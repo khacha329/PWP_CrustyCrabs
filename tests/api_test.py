@@ -61,8 +61,8 @@ def _populate_db():
 
     # Create dummy items
     items = [
-        Item(name="Laptop", category="Electronics", weight=1.5),
-        Item(name="Smartphone", category="Electronics", weight=0.2),
+        Item(name="Laptop-1", category="Electronics", weight=1.5),
+        Item(name="Smartphone-1", category="Electronics", weight=0.2),
     ]
 
     # Create dummy stocks
@@ -81,11 +81,11 @@ def _populate_db():
     db.session.add_all(locations + warehouses + items + stocks + catalogues)
     db.session.commit()
 
-def _get_item_json(number=1):
+def _get_item_json(number=2):
     """
     Creates a valid sensor JSON object to be used for PUT and POST tests.
     """
-    return {'name': f'Smartphone-{number}', 'category': 'Electronics', 'weight': 0.2}
+    return {'name': f'Laptop-{number}', 'category': 'Electronics', 'weight': 0.2}
     
 # def _check_namespace(client, response):
 #     """
@@ -170,7 +170,7 @@ class TestItemCollection(object):
     
     RESOURCE_URL = "/api/items/"
 
-    def test_get(self, client):
+    def test_get(self, client: FlaskClient):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
@@ -182,7 +182,7 @@ class TestItemCollection(object):
             resp = client.get(item["uri"]) 
             assert resp.status_code == 200
 
-    def test_post(self, client):
+    def test_post(self, client: FlaskClient):
         valid = _get_item_json()
         
         # test with wrong content type
@@ -208,8 +208,8 @@ class TestItemCollection(object):
         
 class TestItemItem(object):
     
-    RESOURCE_URL = "/api/sensors/Laptop/"
-    INVALID_URL = "/api/sensors/NotAnItem/"
+    RESOURCE_URL = "/api/items/Laptop-1/"
+    INVALID_URL = "/api/items/NotAnItem/"
     
 #     def test_get(self, client):
 #         resp = client.get(self.RESOURCE_URL)
@@ -223,38 +223,46 @@ class TestItemItem(object):
 #         resp = client.get(self.INVALID_URL)
 #         assert resp.status_code == 404
 
-#     def test_put(self, client):
-#         valid = _get_sensor_json()
+    def test_put(self, client: FlaskClient):
+        valid = _get_item_json(number=1)
         
-#         # test with wrong content type
-#         resp = client.put(self.RESOURCE_URL, data="notjson", headers=Headers({"Content-Type": "text"}))
-#         assert resp.status_code in (400, 415)
+        # test with wrong content type
+        resp = client.put(self.RESOURCE_URL, data="notjson", headers=Headers({"Content-Type": "text"}))
+        assert resp.status_code in (400, 415)
         
-#         resp = client.put(self.INVALID_URL, json=valid)
-#         assert resp.status_code == 404
+
+        resp = client.put(self.INVALID_URL, json=valid)
+        assert resp.status_code == 404
         
-#         # test with another sensor's name
-#         valid["name"] = "test-sensor-2"
-#         resp = client.put(self.RESOURCE_URL, json=valid)
-#         assert resp.status_code == 409
+        # test with another sensor's name
+        valid["name"] = "Smartphone-1"
+        resp = client.put(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 409
+        db.session.rollback()
         
-#         # test with valid (only change model)
-#         valid["name"] = "test-sensor-1"
-#         resp = client.put(self.RESOURCE_URL, json=valid)
-#         assert resp.status_code == 204
+        # test with valid (only change model)
+        valid["name"] = "Laptop-1"
+        resp = client.put(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 204
         
-#         # remove field for 400
-#         valid.pop("model")
-#         resp = client.put(self.RESOURCE_URL, json=valid)
-#         assert resp.status_code == 400
+        # remove field for 400
+        valid.pop("name")
+        resp = client.put(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 400
         
-#     def test_delete(self, client):
-#         resp = client.delete(self.RESOURCE_URL)
-#         assert resp.status_code == 204
-#         resp = client.delete(self.RESOURCE_URL)
-#         assert resp.status_code == 404
-#         resp = client.delete(self.INVALID_URL)
-#         assert resp.status_code == 404
+    def test_delete(self, client: FlaskClient):
+        with pytest.raises(AssertionError):
+            resp = client.delete(self.RESOURCE_URL)
+        db.session.rollback()
+        # delete the stock 
+        db.session.delete(Stock.query.filter_by(item_id=1).first())
+        resp = client.delete(self.RESOURCE_URL)
+        assert resp.status_code == 204
+
+        resp = client.delete(self.RESOURCE_URL)
+        assert resp.status_code == 404
+        resp = client.delete(self.INVALID_URL)
+        assert resp.status_code == 404
         
         
 if __name__ == "__main__":
