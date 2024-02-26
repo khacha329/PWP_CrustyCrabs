@@ -39,6 +39,8 @@ def create_app(test_config=None):
         pass
 
     db.init_app(app)
+    app.app_context().push()
+
     #cache.init_app(app)
 
     # Import All Models (not sure why yet, its a thing-to-do to make this work)

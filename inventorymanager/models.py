@@ -15,13 +15,6 @@ from flask.cli import with_appcontext
 
 from inventorymanager import db
 
-# Association table for a many-to-many relationship between Items and Warehouses
-# From https://lovelace.oulu.fi/ohjelmoitava-web/ohjelmoitava-web/introduction-to-web-development/#structure-of-databases
-items_warehouses_association = db.Table('items_warehouses',
-    db.Column('item_id', db.Integer, db.ForeignKey('item.item_id'), primary_key=True),
-    db.Column('warehouse_id', db.Integer, db.ForeignKey('warehouse.warehouse_id'), primary_key=True)
-)
-
 # Location model
 class Location(db.Model):
     location_id = db.Column(db.Integer, primary_key=True)
@@ -32,7 +25,7 @@ class Location(db.Model):
     city = db.Column(db.String(64), nullable=False)
     street = db.Column(db.String(64), nullable=False)
 
-    warehouse = db.relationship("Warehouse", back_populates="location", uselist=False)
+    warehouse = db.relationship("Warehouse", back_populates="location",uselist=False) #can't be deleted if warehouse exists with location?
 
     @staticmethod
     def get_schema():
@@ -79,12 +72,10 @@ class Location(db.Model):
 class Warehouse(db.Model):
     warehouse_id = db.Column(db.Integer, primary_key=True)
     manager = db.Column(db.String(64), nullable=True)
-    location_id = db.Column(db.Integer, db.ForeignKey('location.location_id', ondelete='CASCADE'), nullable=True)
-    #location = db.relationship('Location', backref=db.backref('warehouses', lazy=True))
-    location = db.relationship("Location", back_populates="warehouse")
-
-    # Many-to-many relationship with Items
-    items = db.relationship('Item', secondary=items_warehouses_association, back_populates="warehouses")
+    location_id = db.Column(db.Integer, db.ForeignKey('location.location_id', ondelete='RESTRICT'), nullable=False)
+   
+    location = db.relationship("Location", back_populates="warehouse", uselist=False)
+    stock = db.relationship("Stock", back_populates="warehouse", cascade="all, delete-orphan", uselist=True)
 
     @staticmethod
     def get_schema():
@@ -119,9 +110,9 @@ class Item(db.Model):
     category = db.Column(db.String(64), nullable=True)
     weight = db.Column(db.Float, nullable=True)
 
-    # Many-to-many relationship with Warehouses
-    warehouses = db.relationship('Warehouse', secondary=items_warehouses_association, back_populates="items")
-
+    stock = db.relationship("Stock", back_populates="item",  uselist=True) #don't cascade so that it throws an error if stock exists with item when deleted
+    catalogue = db.relationship("Catalogue", back_populates="item", cascade="all, delete-orphan", uselist=True)
+    
     @staticmethod
     def get_schema():
         return {
@@ -152,15 +143,15 @@ class Item(db.Model):
         return f"<Item(id={self.item_id}, name='{self.name}', category='{self.category}', weight={self.weight})>"
 
 # Stock model
-class Stock(db.Model):
-    item_id = db.Column(db.Integer, db.ForeignKey('item.item_id'), primary_key=True)
-    warehouse_id = db.Column(db.Integer, db.ForeignKey('warehouse.warehouse_id'), primary_key=True)
+class Stock(db.Model):  
+    #TODO maybe should be restrict?
+    item_id = db.Column(db.Integer, db.ForeignKey('item.item_id', ondelete='RESTRICT'), primary_key=True)
+    warehouse_id = db.Column(db.Integer, db.ForeignKey('warehouse.warehouse_id', ondelete='CASCADE'), primary_key=True)
     quantity = db.Column(db.Integer, nullable=False)
     shelf_price = db.Column(db.Float, nullable=True)
 
-    # Relationship
-    item = db.relationship('Item', backref=db.backref('stocks', lazy=True))
-    warehouse = db.relationship('Warehouse', backref=db.backref('stocks', lazy=True))
+    item = db.relationship("Item", back_populates="stock", uselist=False)
+    warehouse = db.relationship("Warehouse", back_populates="stock", uselist=False)
 
     @staticmethod
     def get_schema():
@@ -195,10 +186,8 @@ class Catalogue(db.Model):
     supplier_name = db.Column(db.String(64), primary_key=True)
     min_order = db.Column(db.Integer, nullable=False)
     order_price = db.Column(db.Float, nullable=True)
-
-    # Relationship
-
-    item = db.relationship('Item', backref=db.backref('catalogues', lazy=True))
+    
+    item = db.relationship("Item", back_populates="catalogue", uselist=False)
     
     @staticmethod
     def get_schema():
