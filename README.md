@@ -21,7 +21,7 @@ python -m venv /path/to/myEnv
 Activate the virtual environment
 
 ```
-./path/to/myEnv/bin/activate.bat
+c:\path\to\the\virtualenv\Scripts\activate.bat
 ```
 
 cd to directory with project files
