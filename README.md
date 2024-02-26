@@ -21,12 +21,19 @@ python -m venv /path/to/myEnv
 Activate the virtual environment
 
 ```
-source /path/to/myEnv/bin/activate
+./path/to/myEnv/bin/activate.bat
 ```
+
+cd to directory with project files
+
+```
+cd ./path/to/Project/Files
+```
+
 Install the required python packages in the virtual environment using the requirements.txt file located in the root directory of this project
 
 ```
-pip install requirements.txt -r
+pip install -r requirements.txt 
 ```
 
 Intall inventory manager package in developer mode:
