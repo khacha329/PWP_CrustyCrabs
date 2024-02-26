@@ -12,8 +12,23 @@ The functions are responsible for initiliazing and populating the database
 import click
 
 from flask.cli import with_appcontext
-
+from sqlalchemy.engine import Engine
 from inventorymanager import db
+from sqlalchemy import event
+
+
+# from the Exercise 1 webpage
+# https://lovelace.oulu.fi/ohjelmoitava-web/ohjelmoitava-web/introduction-to-web-development/#sidenote-foreign-keys-in-sqlite
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    """
+    Called when a connection to the database is established.
+    Activates the constraints on foreign keys.
+    """
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
+
 
 # Location model
 class Location(db.Model):
