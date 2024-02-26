@@ -206,10 +206,10 @@ class TestItemCollection(object):
         assert resp.status_code == 400
         
         
-# class TestSensorItem(object):
+class TestItemItem(object):
     
-#     RESOURCE_URL = "/api/sensors/test-sensor-1/"
-#     INVALID_URL = "/api/sensors/non-sensor-x/"
+    RESOURCE_URL = "/api/sensors/Laptop/"
+    INVALID_URL = "/api/sensors/NotAnItem/"
     
 #     def test_get(self, client):
 #         resp = client.get(self.RESOURCE_URL)

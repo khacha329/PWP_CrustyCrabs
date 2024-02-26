@@ -191,12 +191,13 @@ class Stock(db.Model):
     
 # Catalogue model
 class Catalogue(db.Model):
-    item_id = db.Column(db.Integer, db.ForeignKey('item.item_id'), primary_key=True)
+    item_id = db.Column(db.Integer, db.ForeignKey('item.item_id', ondelete='CASCADE'), primary_key=True)
     supplier_name = db.Column(db.String(64), primary_key=True)
     min_order = db.Column(db.Integer, nullable=False)
     order_price = db.Column(db.Float, nullable=True)
 
     # Relationship
+
     item = db.relationship('Item', backref=db.backref('catalogues', lazy=True))
     
     @staticmethod

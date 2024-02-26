@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from inventorymanager.models import Item
 from inventorymanager import db
 from inventorymanager.constants import *
+from inventorymanager.utils import create_error_response
 
 
 class ItemCollection(Resource):
@@ -48,4 +49,26 @@ class ItemItem(Resource):
     
     def get(self, item):
         pass
-    
+
+    def put(self, item : Item):
+        try:
+            validate(request.json, Item.get_schema())
+            item.deserialize(request.json)
+            db.session.commit()
+
+        except ValidationError as e:
+            return create_error_response(400, "Invalid JSON document", str(e))
+            
+        except IntegrityError:
+            return create_error_response(
+                409, "Already exists",
+                "Item with name '{}' already exists.".format(request.json["name"])
+            )
+
+        return Response(status=204)
+
+    def delete(self, item : Item):
+        db.session.delete(item)
+        db.session.commit()
+
+        return Response(status=204) 
