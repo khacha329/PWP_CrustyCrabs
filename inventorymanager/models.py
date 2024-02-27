@@ -14,8 +14,7 @@ import click
 from flask.cli import with_appcontext
 from sqlalchemy.engine import Engine
 from inventorymanager import db
-from sqlalchemy import event
-
+from sqlalchemy import event, CheckConstraint, text
 
 # from the Exercise 1 webpage
 # https://lovelace.oulu.fi/ohjelmoitava-web/ohjelmoitava-web/introduction-to-web-development/#sidenote-foreign-keys-in-sqlite
@@ -41,6 +40,11 @@ class Location(db.Model):
     street = db.Column(db.String(64), nullable=False)
 
     warehouse = db.relationship("Warehouse", back_populates="location",uselist=False) #can't be deleted if warehouse exists with location?
+
+    __table_args__ = (
+        CheckConstraint('latitude >= -90 AND latitude <= 90', name='latitude_constraint'),
+        CheckConstraint('longitude >= -180 AND longitude <= 180', name='longitude_constraint')
+    )
 
     @staticmethod
     def get_schema():
@@ -92,6 +96,10 @@ class Warehouse(db.Model):
     location = db.relationship("Location", back_populates="warehouse", uselist=False)
     stock = db.relationship("Stock", back_populates="warehouse", cascade="all, delete-orphan", uselist=True)
 
+    
+    __table_args__ = (
+        CheckConstraint(text("manager LIKE '% %'"), name='manager_constraint'),
+    )
     @staticmethod
     def get_schema():
         return {
@@ -128,6 +136,10 @@ class Item(db.Model):
     stock = db.relationship("Stock", back_populates="item",  uselist=True) #don't cascade so that it throws an error if stock exists with item when deleted
     catalogue = db.relationship("Catalogue", back_populates="item", cascade="all, delete-orphan", uselist=True)
     
+    __table_args__ = (
+        CheckConstraint('weight >= 0', name='weight_constraint'),
+    )
+
     @staticmethod
     def get_schema():
         return {
@@ -159,14 +171,20 @@ class Item(db.Model):
 
 # Stock model
 class Stock(db.Model):  
-    #TODO maybe should be restrict?
+   
     item_id = db.Column(db.Integer, db.ForeignKey('item.item_id', ondelete='RESTRICT'), primary_key=True)
     warehouse_id = db.Column(db.Integer, db.ForeignKey('warehouse.warehouse_id', ondelete='CASCADE'), primary_key=True)
+    #quantity should be >= 0
     quantity = db.Column(db.Integer, nullable=False)
     shelf_price = db.Column(db.Float, nullable=True)
 
     item = db.relationship("Item", back_populates="stock", uselist=False)
     warehouse = db.relationship("Warehouse", back_populates="stock", uselist=False)
+
+    __table_args__ = (
+        CheckConstraint('quantity >= 0', name='quantity_constraint'),
+        CheckConstraint('shelf_price >= 0', name='shelf_price_constraint'),
+    )
 
     @staticmethod
     def get_schema():
@@ -204,6 +222,10 @@ class Catalogue(db.Model):
     
     item = db.relationship("Item", back_populates="catalogue", uselist=False)
     
+    __table_args__ = (
+        CheckConstraint('min_order >= 1', name='min_order_constraint'),
+    )
+
     @staticmethod
     def get_schema():
         return {
