@@ -433,7 +433,6 @@ disable=raw-checker-failed,
         use-symbolic-message-instead,
         no-member,
         import-outside-toplevel,
-        no-self-use,
 
 
 # Enable the message, report, category or checker with the given id(s). You can

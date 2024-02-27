@@ -4,11 +4,14 @@ https://github.com/enkwolf/pwp-course-sensorhub-api-example/blob/master/sensorhu
 
 
 import json
-from jsonschema import validate, ValidationError
-from flask import Response, request, url_for, abort
+
+from flask import Response, abort, request, url_for
 from flask_restful import Resource
+from jsonschema import ValidationError, validate
+
 from inventorymanager import db
 from inventorymanager.models import Location
+
 #from inventorymanager.constants import *
 
 
