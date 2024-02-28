@@ -4,7 +4,7 @@ import json
 from flask import url_for, request, Response
 
 from inventorymanager.constants import *
-from inventorymanager.models import *
+from inventorymanager.models import Item, Warehouse
 
 class MasonBuilder(dict):
     """
