@@ -12,7 +12,7 @@ from werkzeug.exceptions import NotFound
 from werkzeug.routing import BaseConverter
 
 from inventorymanager.constants import ERROR_PROFILE, MASON
-from inventorymanager.models import Item, Warehouse
+from inventorymanager.models import Item, Warehouse, Location
 
 
 class MasonBuilder(dict):
@@ -153,7 +153,7 @@ class LocationConverter(BaseConverter):
     to_url takes a Location object and returns the corresponding location_id
     """
 
-    def to_python(self, value):
+    def to_python(self, value: str): -> Location:
         """
         Converts a location_id in a location object with information from database
         :parameter value: str representing the location id
@@ -161,17 +161,21 @@ class LocationConverter(BaseConverter):
         location is not found.
         :return: a Location object corresponding to the location_id.
         """
+        try:
+            int_id = int(value)  # Ensure value is an integer
+        except ValueError:
+            raise NotFound(description="Location ID must be an integer.")
 
-        location = Location.query.filter_by(location_id=value).first()
+        location = Location.query.filter_by(location_id=int_id).first()
         if location is None:
-            raise NotFound
+            raise NotFound(description=f"Location with ID {int_id} not found.")
         return location
 
-    def to_url(self, value):
+    def to_url(self, value: Location) -> str:
         """
-        Converts a location object to a value used in the URI
-        :param value: Location Object
-        :return: the value
-        """
+        Converts a Location object into a string value used in the URI.
 
-        return value.location_id
+        :param value: Location Object.
+        :return: The location_id as a string.
+        """
+        return str(value.location_id)

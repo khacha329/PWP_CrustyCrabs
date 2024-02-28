@@ -104,6 +104,7 @@ class LocationItem(Resource):
             return {'message': 'Location not found'}, 404
         db.session.delete(location)
         db.session.commit()
+
         return Response(status=204)
 
 
