@@ -7,17 +7,6 @@ https://lovelace.oulu.fi/ohjelmoitava-web/ohjelmoitava-web/implementing-rest-api
 
 import json
 
-<<<<<<< HEAD
-from flask import Response, abort, request, url_for
-from flask_restful import Resource
-from jsonschema import ValidationError, validate
-
-from inventorymanager import db
-from inventorymanager.models import Location
-
-#from inventorymanager.constants import *
-
-=======
 from flask import Response, request, url_for, abort
 from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
@@ -27,7 +16,7 @@ from werkzeug.routing import BaseConverter
 from inventorymanager import db
 from inventorymanager.models import Location
 from jsonschema import validate, ValidationError
->>>>>>> LocationGET
+
 
 
 class LocationCollection(Resource):

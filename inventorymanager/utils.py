@@ -141,8 +141,6 @@ class ItemConverter(BaseConverter):
         if item is None:
             raise NotFound
         return item
-<<<<<<< HEAD
-=======
     
     def to_url(self, value):
         return value.name
@@ -177,13 +175,3 @@ class LocationConverter(BaseConverter):
         """
 
         return value.location_id
-
->>>>>>> LocationGET
-
-    def to_url(self, value: Item) -> str:
-        """Converts item object to a string used in url.
-
-        :param value: item object
-        :return: item name
-        """
-        return value.name
