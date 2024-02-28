@@ -165,6 +165,42 @@ def _get_item_json(number=2):
 #     resp = client.post(href, json=body)
 #     assert resp.status_code == 201
 
+class TestLocationCollection(object):
+    RESOURCE_URL = "/api/location/"
+
+    def test_get(self, client):
+        resp = client.get(self.RESOURCE_URL)
+        assert resp.status_code == 200
+        body = json.loads(resp.data)
+        assert len(body) == 2
+
+        for item in body:
+            assert "uri" in item
+            resp = client.get(item["uri"])
+            assert resp.status_code == 200
+
+    def test_post(self, client):
+        valid = _get_item_json()
+
+        # test with wrong content type
+        resp = client.post(self.RESOURCE_URL, data="notjson")
+        assert resp.status_code in (400, 415)
+
+        # test with valid and see that it exists afterward
+        resp = client.post(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 201
+        assert resp.headers["Location"].endswith(self.RESOURCE_URL + valid["name"] + "/")
+        resp = client.get(resp.headers["Location"])
+        assert resp.status_code == 200
+
+        # send same data again for 409
+        resp = client.post(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 409
+
+        # remove model field for 400
+        valid.pop("name")
+        resp = client.post(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 400
 
 class TestItemCollection(object):
     
