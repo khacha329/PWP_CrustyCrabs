@@ -49,7 +49,7 @@ class WarehouseManagement(Resource):
     
     def get(self, warehouse):
         pass
-
+        #This queries warehouse by id. maybe change it to query by name or smthg?
     def put(self, warehouse : Warehouse):
         try:
             validate(request.json, Warehouse.get_schema())
