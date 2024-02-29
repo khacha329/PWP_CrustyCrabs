@@ -4,7 +4,7 @@ import json
 from flask import url_for, request, Response
 
 from inventorymanager.constants import *
-from inventorymanager.models import Item, Warehouse
+from inventorymanager.models import Item, Warehouse, Catalogue, Stock
 
 class MasonBuilder(dict):
     """
@@ -102,7 +102,24 @@ class ItemConverter(BaseConverter):
     def to_url(self, value):
         return value.name
     
-
-
+class CatalogueConverter(BaseConverter):
     
-
+    def to_python(self, value):
+        catalogue = Catalogue.query.filter_by(supplier_name=value).first()
+        if catalogue is None:
+            raise NotFound
+        return catalogue
+        
+    def to_url(self, value):
+        return value.supplier_name
+    
+class StockConverter(BaseConverter):
+    
+    def to_python(self, value):
+        stock = Stock.query.filter_by(item_id=value).first()
+        if stock is None:
+            raise NotFound
+        return stock
+        
+    def to_url(self, value):
+        return value.supplier_name

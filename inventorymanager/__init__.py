@@ -53,8 +53,10 @@ def create_app(test_config=None):
     app.cli.add_command(create_dummy_data)
 
     from inventorymanager.api import api_bp
-    from inventorymanager.utils import WarehouseConverter, ItemConverter
+    from inventorymanager.utils import WarehouseConverter, ItemConverter, CatalogueConverter, StockConverter
     app.url_map.converters["warehouse"] = WarehouseConverter
+    app.url_map.converters["catalogue"] = CatalogueConverter
+    app.url_map.converters["stock"] = StockConverter
     app.url_map.converters["item"] = ItemConverter
     app.register_blueprint(api_bp)
 

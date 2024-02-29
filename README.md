@@ -21,12 +21,19 @@ python -m venv /path/to/myEnv
 Activate the virtual environment
 
 ```
-source /path/to/myEnv/bin/activate
+c:\path\to\the\virtualenv\Scripts\activate.bat
 ```
+
+cd to directory with project files
+
+```
+cd ./path/to/Project/Files
+```
+
 Install the required python packages in the virtual environment using the requirements.txt file located in the root directory of this project
 
 ```
-pip install requirements.txt -r
+pip install -r requirements.txt 
 ```
 
 Intall inventory manager package in developer mode:
@@ -44,6 +51,13 @@ pip install -e .
 To intialize the database and populate it with dummy data follow the [README file](https://github.com/khacha329/PWP_CrustyCrabs/blob/main/inventorymanager/README.md) under the inventorymanager folder
 
 
+
+## Clean Code
+
+```
+isort inventorymanager
+black inventorymanager
+```
 
 
 __Remember to include all required documentation and HOWTOs, including how to create and populate the database, how to run and test the API, the url to the entrypoint and instructions on how to setup and run the client__
