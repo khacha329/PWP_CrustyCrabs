@@ -202,6 +202,17 @@ class TestLocationCollection(object):
         resp = client.post(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 400
 
+class TestLocationItem(object):
+
+    RESOURCE_URL = "/api/Locations/<location_id>/"
+
+    def test_put(self, client: FlaskClient):
+        pass
+
+    def test_delete(self, client: FlaskClient):
+        pass
+
+
 class TestItemCollection(object):
     
     RESOURCE_URL = "/api/items/"
@@ -241,7 +252,7 @@ class TestItemCollection(object):
         resp = client.post(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 400
         
-        
+
 class TestItemItem(object):
     
     RESOURCE_URL = "/api/items/Laptop-1/"
