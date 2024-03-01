@@ -7,16 +7,15 @@ https://lovelace.oulu.fi/ohjelmoitava-web/ohjelmoitava-web/implementing-rest-api
 
 import json
 
-from flask import Response, request, url_for, abort
+from flask import Response, abort, request, url_for
 from flask_restful import Resource
+from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import NotFound
 from werkzeug.routing import BaseConverter
 
 from inventorymanager import db
 from inventorymanager.models import Location
-from jsonschema import validate, ValidationError
-
 
 
 class LocationCollection(Resource):
@@ -27,10 +26,12 @@ class LocationCollection(Resource):
         body = []
         for location in Location.query.all():
             location_json = location.serialize()
-            location_json["uri"] = url_for("api.locationitem", location_id=location.location_id, _external=True)
+            location_json["uri"] = url_for(
+                "api.locationitem", location_id=location.location_id, _external=True
+            )
             body.append(location_json)
 
-        return Response(json.dumps(body), 200, mimetype='application/json')
+        return Response(json.dumps(body), 200, mimetype="application/json")
 
     def post(self):
         try:
@@ -41,23 +42,23 @@ class LocationCollection(Resource):
             db.session.add(location)
             db.session.commit()
 
-
         except ValidationError as e:
-            return {'message': 'Validation error', 'errors': str(e)}, 400
-
+            return {"message": "Validation error", "errors": str(e)}, 400
 
         except IntegrityError:
             db.session.rollback()
-            return {'message': 'Location already exists'}, 409
+            return {"message": "Location already exists"}, 409
 
-        location_uri = url_for('api.locationitem', location_id=location.location_id, _external=True)
+        location_uri = url_for(
+            "api.locationitem", location_id=location.location_id, _external=True
+        )
         response = Response(status=201)
-        response.headers['Location'] = location_uri
+        response.headers["Location"] = location_uri
         return response
 
 
 class LocationItem(Resource):
-    """ Class for a location resource. '/api/Locations/location_id/' """
+    """Class for a location resource. '/api/Locations/location_id/'"""
 
     def get(self, location_id):
 
@@ -72,17 +73,17 @@ class LocationItem(Resource):
         :parameter location_id: integer ID of location object
         """
         if not request.is_json:
-            return {'message': 'Request must be JSON'}, 415
+            return {"message": "Request must be JSON"}, 415
 
         data = request.get_json()
         try:
             validate(instance=data, schema=Location.get_schema())
         except ValidationError as e:
-            return {'message': 'Validation error', 'errors': str(e)}, 400
+            return {"message": "Validation error", "errors": str(e)}, 400
 
         location = Location.query.get(location_id)
         if not location:
-            return {'message': 'Location not found'}, 404
+            return {"message": "Location not found"}, 404
 
         location.deserialize(data)
 
@@ -91,7 +92,7 @@ class LocationItem(Resource):
             db.session.commit()
         except Exception as e:
             db.session.rollback()
-            return {'message': 'Database error', 'errors': str(e)}, 500
+            return {"message": "Database error", "errors": str(e)}, 500
 
         return {}, 204
 
@@ -101,7 +102,7 @@ class LocationItem(Resource):
         """
         location = Location.query.get(location_id)
         if not location:
-            return {'message': 'Location not found'}, 404
+            return {"message": "Location not found"}, 404
         db.session.delete(location)
         db.session.commit()
 

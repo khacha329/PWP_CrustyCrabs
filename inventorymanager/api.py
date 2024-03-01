@@ -6,7 +6,8 @@ from flask import Blueprint
 from flask_restful import Api
 
 from inventorymanager.resources.item import ItemCollection, ItemItem
-from inventorymanager.resources.location import LocationCollection, LocationItem
+from inventorymanager.resources.location import (LocationCollection,
+                                                 LocationItem)
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 

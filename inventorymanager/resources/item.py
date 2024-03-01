@@ -85,7 +85,7 @@ class ItemItem(Resource):
                 409,
                 "Already exists",
                 f"Item with name {request.json['name']} already exists.",
-                )
+            )
 
         return Response(status=204)
 

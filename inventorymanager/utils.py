@@ -12,9 +12,10 @@ from werkzeug.exceptions import NotFound
 from werkzeug.routing import BaseConverter
 
 from inventorymanager.constants import ERROR_PROFILE, MASON
-from inventorymanager.models import Item, Warehouse, Location
+from inventorymanager.models import Item, Location, Warehouse
 
 
+# from https://github.com/enkwolf/pwp-course-sensorhub-api-example/tree/master
 class MasonBuilder(dict):
     """
     A convenience class for managing dictionaries that represent Mason
@@ -78,6 +79,7 @@ class MasonBuilder(dict):
         self["@controls"][ctrl_name]["href"] = href
 
 
+# from https://github.com/enkwolf/pwp-course-sensorhub-api-example/tree/master
 def create_error_response(
     status_code: int, title: str, message: str = None
 ) -> Response:
@@ -141,7 +143,7 @@ class ItemConverter(BaseConverter):
         if item is None:
             raise NotFound
         return item
-    
+
     def to_url(self, value):
         return value.name
 
