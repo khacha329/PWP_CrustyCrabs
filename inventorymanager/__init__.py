@@ -1,9 +1,11 @@
 """
 This module is used to start and retrieve a Flask application complete with all the required setups
 """
+
+import os
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-import os
 
 from inventorymanager.config import Config
 
@@ -15,13 +17,19 @@ db = SQLAlchemy()
 # https://www.digitalocean.com/community/tutorials/how-to-use-flask-sqlalchemy-to-interact-with-databases-in-a-flask-application#step-2-setting-up-the-database-and-model
 
 
-def create_app(test_config=None):
-    
+def create_app(test_config=None) -> Flask:
+    """creates app from config file if specified
+
+    :param test_config: test configuration, defaults to None
+    :return: app for Flask application
+    """
+
     app = Flask(__name__, instance_relative_config=True)
-    
+
     app.config.from_mapping(
         SECRET_KEY="dev",
-        SQLALCHEMY_DATABASE_URI="sqlite:///" + os.path.join(app.instance_path, "development.db"),
+        SQLALCHEMY_DATABASE_URI="sqlite:///"
+        + os.path.join(app.instance_path, "development.db"),
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         # CACHE_TYPE="FileSystemCache",
         # CACHE_DIR=os.path.join(app.instance_path, "cache"),
@@ -34,30 +42,28 @@ def create_app(test_config=None):
 
     try:
         os.makedirs(app.instance_path)
-    
+
     except OSError:
         pass
 
     db.init_app(app)
     app.app_context().push()
 
-    #cache.init_app(app)
-
-    # Import All Models (not sure why yet, its a thing-to-do to make this work)
-    from inventorymanager.models import Location, Warehouse, Item, Stock, Catalogue
+    # cache.init_app(app)
 
     # CLI commands to populate db
-    from inventorymanager.models import init_db_command, create_dummy_data
+    from inventorymanager.models import create_dummy_data, init_db_command
 
     app.cli.add_command(init_db_command)
     app.cli.add_command(create_dummy_data)
 
     from inventorymanager.api import api_bp
-    from inventorymanager.utils import WarehouseConverter, ItemConverter, CatalogueConverter, StockConverter
+    from inventorymanager.utils import WarehouseConverter, ItemConverter, CatalogueConverter, StockConverter, LocationConverter
     app.url_map.converters["warehouse"] = WarehouseConverter
     app.url_map.converters["catalogue"] = CatalogueConverter
     app.url_map.converters["stock"] = StockConverter
     app.url_map.converters["item"] = ItemConverter
+    app.url_map.converters["location"] = LocationConverter
     app.register_blueprint(api_bp)
 
     return app
