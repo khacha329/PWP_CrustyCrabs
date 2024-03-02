@@ -7,7 +7,7 @@ from flask_restful import Api
 
 from inventorymanager.resources.item import ItemCollection, ItemItem
 from inventorymanager.resources.warehouse import WarehouseCollection, WarehouseManagement
-from inventorymanager.resources.catalogueEntry import CatalogueCollection, CatalogueManagement
+from inventorymanager.resources.catalogueEntry import CatalogueCollection, CatalogueManagement, SupplierByItemName  
 from inventorymanager.resources.Stock import StockCollection, StockManagement
 from inventorymanager.resources.location import (LocationCollection,
                                                  LocationItem)
@@ -27,7 +27,9 @@ api.add_resource(WarehouseManagement,
 api.add_resource(CatalogueCollection, 
                  "/catalogueEntries/")
 api.add_resource(CatalogueManagement, 
-                 "/catalogueEntries/<catalogue:catalogue>/")
+                 "/catalogueEntries/<string:supplier>/")
+api.add_resource(SupplierByItemName, 
+                 "/catalogueEntries/items/<string:item>/")
 
 api.add_resource(StockCollection, 
                  "/stocks/")

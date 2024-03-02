@@ -4,15 +4,14 @@ from flask import Response, abort, request, url_for
 from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
 
-from inventorymanager.models import Catalogue
+from inventorymanager.models import Catalogue, Item
 from inventorymanager import db
 from inventorymanager.constants import *
 from inventorymanager.utils import create_error_response
 
 
-class CatalogueCollection(Resource):
-    
 
+class CatalogueCollection(Resource):
     def get(self):
         body = []
         for catalogue in Catalogue.query.all():
@@ -21,7 +20,6 @@ class CatalogueCollection(Resource):
             body.append(catalogue_json)
 
         return Response(json.dumps(body), 200)
-
 
     def post(self):
         try:
@@ -43,12 +41,19 @@ class CatalogueCollection(Resource):
         })
     
 
-
-
 class CatalogueManagement(Resource):
     
-    def get(self, catalogue):
-        pass
+    def get(self, supplier):
+        supplier = supplier.replace('_', ' ')
+
+        if not supplier:
+            return create_error_response(400, "Item doesn't exist")
+        body = []
+        for catalogue_entry in Catalogue.query.filter_by(supplier_name=supplier).all():
+            catalogue_json = catalogue_entry.serialize()
+            catalogue_json["uri"] = url_for("api.cataloguemanagement", supplier=catalogue_entry.supplier_name)
+            body.append(catalogue_json)
+        return Response(json.dumps(body), 200)
         #This queries Catalogue by id. maybe change it to query by name or smthg?
     def put(self, catalogue : Catalogue):
         try:
@@ -72,3 +77,17 @@ class CatalogueManagement(Resource):
         db.session.commit()
 
         return Response(status=204) 
+    
+class SupplierByItemName(Resource):
+    def get(self, item):
+        item_name = item.replace('_', ' ')
+        item = Item.query.filter_by(name=item_name).first()
+
+        if not item:
+            return create_error_response(400, "Item doesn't exist")
+        body = []
+        for catalogue_entry in Catalogue.query.filter_by(item_id=item.item_id).all():
+            catalogue_json = catalogue_entry.serialize()
+            catalogue_json["uri"] = url_for("api.supplierbyitemname", item=item.name)
+            body.append(catalogue_json)
+        return Response(json.dumps(body), 200)
