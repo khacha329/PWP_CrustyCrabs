@@ -401,6 +401,7 @@ def create_dummy_data() -> None:
     stocks = [
         Stock(item=items[0], warehouse=warehouses[0], quantity=10, shelf_price=999.99),
         Stock(item=items[1], warehouse=warehouses[1], quantity=20, shelf_price=599.99),
+       # Stock(item=items[0], warehouse=warehouses[1], quantity=30, shelf_price=899.99),
     ]
 
     # Create dummy catalogues
@@ -417,6 +418,12 @@ def create_dummy_data() -> None:
             min_order=10,
             order_price=550.00,
         ),
+        # Catalogue(
+        #     item=items[0],
+        #     supplier_name="TechSupplier B",
+        #     min_order=15,
+        #     order_price=850.00,
+        # ),
     ]
 
     # Add all to session and commit

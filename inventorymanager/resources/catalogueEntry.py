@@ -21,10 +21,29 @@ class CatalogueCollection(Resource):
 
         return Response(json.dumps(body), 200)
 
-    def post(self):
+class CatalogueManagement(Resource):
+    def get(self, item):
+        item_name = item.replace('_', ' ')
+        item = Item.query.filter_by(name=item_name).first()
+
+        if not item:
+            return create_error_response(400, "Item doesn't exist")
+        body = []
+        for catalogue_entry in Catalogue.query.filter_by(item_id=item.item_id).all():
+            catalogue_json = catalogue_entry.serialize()
+            catalogue_json["uri"] = url_for("api.cataloguemanagement", item=item.name)
+            body.append(catalogue_json)
+        return Response(json.dumps(body), 200)
+        #This queries Catalogue by id. maybe change it to query by name or smthg?
+    def post(self, item):
+        item_name = item.replace('_', ' ')
+        item_entry = Item.query.filter_by(name=item_name).first()
+
+        if not item_entry:
+            return create_error_response(400, "Item doesn't exist")
         try:
             validate(request.json, Catalogue.get_schema())
-            catalogue = Catalogue()
+            catalogue = Catalogue(item_id = item_entry.item_id)
             catalogue.deserialize(request.json)
         
             db.session.add(catalogue)
@@ -37,28 +56,18 @@ class CatalogueCollection(Resource):
             return abort(409, "Catalogue already exists")
         #if api fails after this line, resource will be added to db anyway
         return Response(status=201, headers={
-            "Location": url_for("api.cataloguecollection", catalogue=catalogue)
+            "Location": url_for("api.cataloguemanagement", item=item_entry.name)
         })
     
-
-class CatalogueManagement(Resource):
-    
-    def get(self, supplier):
-        supplier = supplier.replace('_', ' ')
-
-        if not supplier:
+    def put(self, item):
+        item_name = item.replace('_', ' ')
+        item = Item.query.filter_by(name=item_name).first()
+        if not item:
             return create_error_response(400, "Item doesn't exist")
-        body = []
-        for catalogue_entry in Catalogue.query.filter_by(supplier_name=supplier).all():
-            catalogue_json = catalogue_entry.serialize()
-            catalogue_json["uri"] = url_for("api.cataloguemanagement", supplier=catalogue_entry.supplier_name)
-            body.append(catalogue_json)
-        return Response(json.dumps(body), 200)
-        #This queries Catalogue by id. maybe change it to query by name or smthg?
-    def put(self, catalogue : Catalogue):
+        catalogue_entry = Catalogue.query.filter_by( item_id=item.item_id).first()
         try:
             validate(request.json, Catalogue.get_schema())
-            Catalogue.deserialize(request.json)
+            catalogue_entry.deserialize(request.json)
             db.session.commit()
 
         except ValidationError as e:
@@ -72,22 +81,28 @@ class CatalogueManagement(Resource):
 
         return Response(status=204)
 
-    def delete(self, catalogue : Catalogue):
-        db.session.delete(catalogue)
-        db.session.commit()
-
-        return Response(status=204) 
-    
-class SupplierByItemName(Resource):
-    def get(self, item):
+    def delete(self, item):
         item_name = item.replace('_', ' ')
         item = Item.query.filter_by(name=item_name).first()
-
         if not item:
             return create_error_response(400, "Item doesn't exist")
+
+        # Retrieve the stock entry based on warehouse ID and item ID
+        catalogue_entry = Catalogue.query.filter_by( item_id=item.item_id).first()
+        db.session.delete(catalogue_entry)
+        db.session.commit()
+
+        return Response(status=204)  
+    
+class SupplierItemList(Resource):
+    def get(self, supplier):
+        supplier = supplier.replace('_', ' ')
+
+        if not supplier:
+            return create_error_response(400, "Item doesn't exist")
         body = []
-        for catalogue_entry in Catalogue.query.filter_by(item_id=item.item_id).all():
+        for catalogue_entry in Catalogue.query.filter_by(supplier_name=supplier).all():
             catalogue_json = catalogue_entry.serialize()
-            catalogue_json["uri"] = url_for("api.supplierbyitemname", item=item.name)
+            catalogue_json["uri"] = url_for("api.supplieritemlist", supplier=catalogue_entry.supplier_name)
             body.append(catalogue_json)
         return Response(json.dumps(body), 200)
