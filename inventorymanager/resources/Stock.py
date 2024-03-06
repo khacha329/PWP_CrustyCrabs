@@ -22,35 +22,16 @@ class StockCollection(Resource):
             body.append(stock_json)
 
         return Response(json.dumps(body), 200)
-    
+    def post(self):
 
-
-
-class StockManagement(Resource):
-    
-    def get(self, warehouse, item):
-        item_name = item.replace('_', ' ')
-        item = Item.query.filter_by(name=item_name).first()
-        if not item:
-            return create_error_response(400, "Item doesn't exist")
-
-    # Retrieve the stock entry based on warehouse ID and item ID
-        stock_entry = Stock.query.filter_by(warehouse=warehouse, item_id=item.item_id).first()
-        if not stock_entry:
-            return create_error_response(400, "Stock entry not found ")
-        stock_json = stock_entry.serialize()
-        stock_json["uri"] = url_for("api.stockcollection", stock=stock_entry)
-        return Response(json.dumps(stock_entry), 200)
-    
-    def post(self, warehouse, item):
-        item_name = item.replace('_', ' ')
-        item_entry = Item.query.filter_by(name=item_name).first()
-        if not item_entry:
-            return create_error_response(400, "Item doesn't exist")
-        warehouse_entry = Warehouse.query.get(warehouse.warehouse_id)
         try:
             validate(request.json, Stock.get_schema())
-            stock = Stock(item_id = item_entry.item_id, warehouse_id = warehouse_entry.warehouse_id)
+            item_name = request.json['item_name']
+            item_entry = Item.query.filter_by(name=item_name).first()
+            if not item_entry:
+                return create_error_response(400, "Item doesn't exist")
+            warehouse_id = request.json['warehouse_id']
+            stock = Stock(item_id = item_entry.item_id, warehouse_id = warehouse_id)
             stock.deserialize(request.json)
         
             db.session.add(stock)
@@ -66,8 +47,28 @@ class StockManagement(Resource):
             return abort(409, "stock already exists")
         #if api fails after this line, resource will be added to db anyway
         return Response(status=201, headers={
-            "Location": url_for("api.stockmanagement", warehouse=warehouse_entry, item=item_entry.name)
+            "Location": url_for("api.stockcollection", warehouse=warehouse_id, item=item_entry.name)
         })
+    
+
+
+
+class StockItem(Resource):
+    
+    def get(self, warehouse, item):
+        item_name = item.replace('_', ' ')
+        item = Item.query.filter_by(name=item_name).first()
+        if not item:
+            return create_error_response(400, "Item doesn't exist")
+
+    # Retrieve the stock entry based on warehouse ID and item ID
+        stock_entry = Stock.query.filter_by(warehouse=warehouse, item_id=item.item_id).first()
+        if not stock_entry:
+            return create_error_response(400, "Stock entry not found ")
+        stock_json = stock_entry.serialize()
+        stock_json["uri"] = url_for("api.stockitem", stock=stock_entry)
+        return Response(json.dumps(stock_json), 200)
+    
     def put(self, warehouse: int, item: str):
         item_name = item.replace('_', ' ')
         item = Item.query.filter_by(name=item_name).first()

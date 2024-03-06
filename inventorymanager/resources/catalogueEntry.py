@@ -20,29 +20,14 @@ class CatalogueCollection(Resource):
             body.append(catalogue_json)
 
         return Response(json.dumps(body), 200)
-
-class CatalogueManagement(Resource):
-    def get(self, item):
-        item_name = item.replace('_', ' ')
-        item = Item.query.filter_by(name=item_name).first()
-
-        if not item:
-            return create_error_response(400, "Item doesn't exist")
-        body = []
-        for catalogue_entry in Catalogue.query.filter_by(item_id=item.item_id).all():
-            catalogue_json = catalogue_entry.serialize()
-            catalogue_json["uri"] = url_for("api.cataloguemanagement", item=item.name)
-            body.append(catalogue_json)
-        return Response(json.dumps(body), 200)
-        #This queries Catalogue by id. maybe change it to query by name or smthg?
-    def post(self, item):
-        item_name = item.replace('_', ' ')
-        item_entry = Item.query.filter_by(name=item_name).first()
-
-        if not item_entry:
-            return create_error_response(400, "Item doesn't exist")
+    def post(self):
         try:
             validate(request.json, Catalogue.get_schema())
+            item_name = request.json['item_name']
+            item_entry = Item.query.filter_by(name=item_name).first()
+
+            if not item_entry:
+                return create_error_response(400, "Item doesn't exist")
             catalogue = Catalogue(item_id = item_entry.item_id)
             catalogue.deserialize(request.json)
         
@@ -56,15 +41,29 @@ class CatalogueManagement(Resource):
             return abort(409, "Catalogue already exists")
         #if api fails after this line, resource will be added to db anyway
         return Response(status=201, headers={
-            "Location": url_for("api.cataloguemanagement", item=item_entry.name)
+            "Location": url_for("api.cataloguecollection", item=item_entry.name)
         })
-    
-    def put(self, item):
+
+class CatalogueItem(Resource):
+    def get(self, supplier, item):
         item_name = item.replace('_', ' ')
         item = Item.query.filter_by(name=item_name).first()
+        supplier_name = supplier.replace('_', ' ')
+
         if not item:
             return create_error_response(400, "Item doesn't exist")
-        catalogue_entry = Catalogue.query.filter_by( item_id=item.item_id).first()
+        catalogue_entry = Catalogue.query.filter_by(supplier_name=supplier_name, item_id=item.item_id).first()
+        catalogue_json = catalogue_entry.serialize()
+        catalogue_json["uri"] = url_for("api.catalogueitem", supplier_name=supplier_name, item=item.name)       
+        return Response(json.dumps(catalogue_json), 200)
+    
+    def put(self, supplier, item):
+        item_name = item.replace('_', ' ')
+        item = Item.query.filter_by(name=item_name).first()
+        supplier_name = supplier.replace('_', ' ')
+        if not item:
+            return create_error_response(400, "Item doesn't exist")
+        catalogue_entry = Catalogue.query.filter_by(supplier_name=supplier_name, item_id=item.item_id).first()
         try:
             validate(request.json, Catalogue.get_schema())
             catalogue_entry.deserialize(request.json)
@@ -81,18 +80,34 @@ class CatalogueManagement(Resource):
 
         return Response(status=204)
 
-    def delete(self, item):
+    def delete(self, supplier, item):
         item_name = item.replace('_', ' ')
         item = Item.query.filter_by(name=item_name).first()
+        supplier_name = supplier.replace('_', ' ')
         if not item:
             return create_error_response(400, "Item doesn't exist")
 
-        # Retrieve the stock entry based on warehouse ID and item ID
-        catalogue_entry = Catalogue.query.filter_by( item_id=item.item_id).first()
+        #Retrieve the catalogue entry entry based item ID and supplier name
+        catalogue_entry = Catalogue.query.filter_by(supplier_name=supplier_name, item_id=item.item_id).first()
         db.session.delete(catalogue_entry)
         db.session.commit()
 
         return Response(status=204)  
+    
+class ItemList(Resource):
+    def get(self, item):
+        item_name = item.replace('_', ' ')
+        item = Item.query.filter_by(name=item_name).first()
+
+        if not item:
+            return create_error_response(400, "Item doesn't exist")
+        body = []
+        for catalogue_entry in Catalogue.query.filter_by(item_id=item.item_id).all():
+            catalogue_json = catalogue_entry.serialize()
+            catalogue_json["uri"] = url_for("api.catalogueitem", item=item.name)
+            body.append(catalogue_json)
+        return Response(json.dumps(body), 200)
+
     
 class SupplierItemList(Resource):
     def get(self, supplier):

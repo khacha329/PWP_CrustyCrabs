@@ -262,6 +262,8 @@ class Stock(db.Model):
         return {
             "type": "object",
             "properties": {
+                "item_name": {"type":"string"},
+                "warehouse_id": {"type":"int"},
                 "quantity": {"type": "integer"},
                 "shelf_price": {"type": "number"},
             },
@@ -317,6 +319,7 @@ class Catalogue(db.Model):
         return {
             "type": "object",
             "properties": {
+                "item_name": {"type":"string"},
                 "supplier_name": {"type": "string"},
                 "min_order": {"type": "integer"},
                 "order_price": {"type": "number"},

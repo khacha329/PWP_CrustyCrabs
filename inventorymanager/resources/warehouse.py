@@ -45,7 +45,7 @@ class WarehouseCollection(Resource):
 
 
 
-class WarehouseManagement(Resource):
+class WarehouseItem(Resource):
     
     def get(self, warehouse):
         pass

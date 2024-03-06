@@ -6,9 +6,9 @@ from flask import Blueprint
 from flask_restful import Api
 
 from inventorymanager.resources.item import ItemCollection, ItemItem
-from inventorymanager.resources.warehouse import WarehouseCollection, WarehouseManagement
-from inventorymanager.resources.catalogueEntry import CatalogueCollection, CatalogueManagement, SupplierItemList
-from inventorymanager.resources.Stock import StockCollection, StockManagement, ItemLookUp, WarehouseLookUp
+from inventorymanager.resources.warehouse import WarehouseCollection, WarehouseItem
+from inventorymanager.resources.catalogueEntry import CatalogueCollection, CatalogueItem, ItemList, SupplierItemList
+from inventorymanager.resources.Stock import StockCollection, StockItem, ItemLookUp, WarehouseLookUp
 from inventorymanager.resources.location import (LocationCollection,
                                                  LocationItem)
 
@@ -21,19 +21,21 @@ api.add_resource(ItemItem, "/items/<item:item>/")
 
 api.add_resource(WarehouseCollection, 
                  "/warehouses/")
-api.add_resource(WarehouseManagement, 
+api.add_resource(WarehouseItem, 
                  "/warehouses/<warehouse:warehouse>/")
 
 api.add_resource(CatalogueCollection, 
                  "/catalogueEntries/")
-api.add_resource(CatalogueManagement, 
-                 "/catalogueEntries/items/<string:item>/")
+api.add_resource(CatalogueItem, 
+                 "/catalogueEntries/supplier/<string:supplier>/item/<string:item>/")
+api.add_resource(ItemList, 
+                 "/catalogueEntries/item/<string:item>/")
 api.add_resource(SupplierItemList, 
                  "/catalogueEntries/<string:supplier>/")
 
 api.add_resource(StockCollection, 
                  "/stocks/")
-api.add_resource(StockManagement, 
+api.add_resource(StockItem, 
                  "/stocks/<warehouse:warehouse>/item/<string:item>/")
 api.add_resource(ItemLookUp, 
                  "/stocks/item/<string:item>/")
