@@ -50,9 +50,6 @@ class StockCollection(Resource):
             "Location": url_for("api.stockcollection", warehouse=warehouse_id, item=item_entry.name)
         })
     
-
-
-
 class StockItem(Resource):
     
     def get(self, warehouse, item):
@@ -66,7 +63,7 @@ class StockItem(Resource):
         if not stock_entry:
             return create_error_response(400, "Stock entry not found ")
         stock_json = stock_entry.serialize()
-        stock_json["uri"] = url_for("api.stockitem", stock=stock_entry)
+        stock_json["uri"] = url_for("api.stockitem", warehouse=warehouse, item=item_name)
         return Response(json.dumps(stock_json), 200)
     
     def put(self, warehouse: int, item: str):
@@ -116,15 +113,17 @@ class ItemLookUp(Resource):
         body = []
         for stock_entry in Stock.query.filter_by(item_id=item.item_id).all():
             stock_json = stock_entry.serialize()
-            stock_json["uri"] = url_for("api.itemlookup", item=item.name)
+            stock_json["uri"] = url_for("api.stockitem", warehouse=stock_entry, item=item.name)
             body.append(stock_json)
         return Response(json.dumps(body), 200)
     
 class WarehouseLookUp(Resource):
-    def get(self, warehouse):
+    def get(self, warehouse:int):
+        warehouse_entry = Warehouse.query.filter_by(warehouse_id=warehouse.warehouse_id).first()
         body = []
-        for stock_entry in Stock.query.filter_by(warehouse=warehouse.warehouse_id).all():
+        for stock_entry in Stock.query.filter_by(warehouse_id=warehouse_entry.warehouse_id).all():
+            item = Item.query.filter_by(item_id=stock_entry.item_id).first()
             stock_json = stock_entry.serialize()
-            stock_json["uri"] = url_for("api.warehouselookup", warehouse=warehouse.warehouse_id)
+            stock_json["uri"] = url_for("api.stockitem", warehouse=stock_entry, item=item.name)
             body.append(stock_json)
         return Response(json.dumps(body), 200)

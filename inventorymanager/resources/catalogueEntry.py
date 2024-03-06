@@ -54,7 +54,7 @@ class CatalogueItem(Resource):
             return create_error_response(400, "Item doesn't exist")
         catalogue_entry = Catalogue.query.filter_by(supplier_name=supplier_name, item_id=item.item_id).first()
         catalogue_json = catalogue_entry.serialize()
-        catalogue_json["uri"] = url_for("api.catalogueitem", supplier_name=supplier_name, item=item.name)       
+        catalogue_json["uri"] = url_for("api.catalogueitem", supplier=supplier_name, item=item.name)       
         return Response(json.dumps(catalogue_json), 200)
     
     def put(self, supplier, item):
@@ -104,7 +104,7 @@ class ItemList(Resource):
         body = []
         for catalogue_entry in Catalogue.query.filter_by(item_id=item.item_id).all():
             catalogue_json = catalogue_entry.serialize()
-            catalogue_json["uri"] = url_for("api.catalogueitem", item=item.name)
+            catalogue_json["uri"] = url_for("api.catalogueitem", supplier=catalogue_entry.supplier_name, item=item.name)
             body.append(catalogue_json)
         return Response(json.dumps(body), 200)
 
@@ -117,7 +117,8 @@ class SupplierItemList(Resource):
             return create_error_response(400, "Item doesn't exist")
         body = []
         for catalogue_entry in Catalogue.query.filter_by(supplier_name=supplier).all():
+            item = Item.query.filter_by(item_id=catalogue_entry.item_id).first()
             catalogue_json = catalogue_entry.serialize()
-            catalogue_json["uri"] = url_for("api.supplieritemlist", supplier=catalogue_entry.supplier_name)
+            catalogue_json["uri"] = url_for("api.catalogueitem", supplier=catalogue_entry.supplier_name, item=item.name)
             body.append(catalogue_json)
         return Response(json.dumps(body), 200)

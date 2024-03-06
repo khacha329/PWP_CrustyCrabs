@@ -121,7 +121,7 @@ class WarehouseConverter(BaseConverter):
         :param value: Warehouse object
         :return: Warehouse id
         """
-        return value.warehouse_id
+        return str(value.warehouse_id)
 
 
 class ItemConverter(BaseConverter):
@@ -166,7 +166,7 @@ class StockConverter(BaseConverter):
         return stock
         
     def to_url(self, value):
-        return value.supplier_name
+        return str(value.item_id)
 
 
 class LocationConverter(BaseConverter):

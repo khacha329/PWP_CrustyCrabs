@@ -31,7 +31,7 @@ api.add_resource(CatalogueItem,
 api.add_resource(ItemList, 
                  "/catalogueEntries/item/<string:item>/")
 api.add_resource(SupplierItemList, 
-                 "/catalogueEntries/<string:supplier>/")
+                 "/catalogueEntries/supplier/<string:supplier>/")
 
 api.add_resource(StockCollection, 
                  "/stocks/")

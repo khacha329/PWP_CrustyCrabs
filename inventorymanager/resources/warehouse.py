@@ -4,7 +4,7 @@ from flask import Response, abort, request, url_for
 from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
 
-from inventorymanager.models import Warehouse
+from inventorymanager.models import Warehouse, Location
 from inventorymanager import db
 from inventorymanager.constants import *
 from inventorymanager.utils import create_error_response
@@ -48,7 +48,18 @@ class WarehouseCollection(Resource):
 class WarehouseItem(Resource):
     
     def get(self, warehouse):
-        pass
+        warehouse = Warehouse.query.get(warehouse.warehouse_id)
+        if not warehouse:
+            return create_error_response(400, "Warehouse doesn't exist")
+        location = Location.query.get(warehouse.location_id)
+        location_json = location.serialize()
+    # Retrieve the stock entry based on warehouse ID and item ID
+        warehouse_json = warehouse.serialize()
+        warehouse_json["uri"] = url_for("api.warehousecollection", warehouse=warehouse.warehouse_id)
+        body = []
+        body.append(warehouse_json)
+        body.append(location_json)
+        return Response(json.dumps(body), 200)
         #This queries warehouse by id. maybe change it to query by name or smthg?
     def put(self, warehouse : Warehouse):
         try:
