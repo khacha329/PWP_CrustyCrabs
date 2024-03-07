@@ -28,7 +28,7 @@ class CatalogueCollection(Resource):
             item_entry = Item.query.filter_by(name=item_name).first()
 
             if not item_entry:
-                return create_error_response(400, "Item doesn't exist")
+                return create_error_response(404, "Item doesn't exist")
             catalogue = Catalogue(item_id = item_entry.item_id)
             catalogue.deserialize(request.json)
         
@@ -52,8 +52,10 @@ class CatalogueItem(Resource):
         supplier_name = supplier.replace('_', ' ')
 
         if not item:
-            return create_error_response(400, "Item doesn't exist")
+            return create_error_response(404, "Item doesn't exist")
         catalogue_entry = Catalogue.query.filter_by(supplier_name=supplier_name, item_id=item.item_id).first()
+        if not catalogue_entry:
+            return create_error_response(404, "Catalogue entry doesn't exist")
         catalogue_json = catalogue_entry.serialize()
         catalogue_json["uri"] = url_for("api.catalogueitem", supplier=supplier_name, item=item.name)       
         return Response(json.dumps(catalogue_json), 200)
@@ -63,8 +65,10 @@ class CatalogueItem(Resource):
         item = Item.query.filter_by(name=item_name).first()
         supplier_name = supplier.replace('_', ' ')
         if not item:
-            return create_error_response(400, "Item doesn't exist")
+            return create_error_response(404, "Item doesn't exist")
         catalogue_entry = Catalogue.query.filter_by(supplier_name=supplier_name, item_id=item.item_id).first()
+        if not catalogue_entry:
+            return create_error_response(404, "Catalogue entry doesn't exist")
         try:
             validate(request.json, Catalogue.get_schema())
             catalogue_entry.deserialize(request.json)
@@ -86,10 +90,12 @@ class CatalogueItem(Resource):
         item = Item.query.filter_by(name=item_name).first()
         supplier_name = supplier.replace('_', ' ')
         if not item:
-            return create_error_response(400, "Item doesn't exist")
+            return create_error_response(404, "Item doesn't exist")
 
         #Retrieve the catalogue entry entry based item ID and supplier name
         catalogue_entry = Catalogue.query.filter_by(supplier_name=supplier_name, item_id=item.item_id).first()
+        if not catalogue_entry:
+            return create_error_response(404, "Catalogue entry doesn't exist")
         db.session.delete(catalogue_entry)
         db.session.commit()
 
@@ -101,7 +107,7 @@ class ItemList(Resource):
         item = Item.query.filter_by(name=item_name).first()
 
         if not item:
-            return create_error_response(400, "Item doesn't exist")
+            return create_error_response(404, "Item doesn't exist")
         body = []
         for catalogue_entry in Catalogue.query.filter_by(item_id=item.item_id).all():
             catalogue_json = catalogue_entry.serialize()

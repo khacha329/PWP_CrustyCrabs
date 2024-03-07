@@ -48,20 +48,23 @@ class WarehouseCollection(Resource):
 class WarehouseItem(Resource):
     
     def get(self, warehouse):
-        warehouse = Warehouse.query.get(warehouse.warehouse_id)
+        warehouse = Warehouse.query.get(warehouse)
         if not warehouse:
-            return create_error_response(400, "Warehouse doesn't exist")
+            return create_error_response(404, "Warehouse doesn't exist")
         location = Location.query.get(warehouse.location_id)
         location_json = location.serialize()
     # Retrieve the stock entry based on warehouse ID and item ID
         warehouse_json = warehouse.serialize()
-        warehouse_json["uri"] = url_for("api.warehousecollection", warehouse=warehouse.warehouse_id)
+        warehouse_json["uri"] = url_for("api.warehouseitem", warehouse=warehouse.warehouse_id)
         body = []
         body.append(warehouse_json)
         body.append(location_json)
         return Response(json.dumps(body), 200)
         #This queries warehouse by id. maybe change it to query by name or smthg?
     def put(self, warehouse : Warehouse):
+        warehouse = Warehouse.query.get(warehouse)
+        if not warehouse:
+            return create_error_response(404, "Warehouse doesn't exist")
         try:
             validate(request.json, Warehouse.get_schema())
             warehouse.deserialize(request.json)
@@ -79,6 +82,9 @@ class WarehouseItem(Resource):
         return Response(status=204)
 
     def delete(self, warehouse : Warehouse):
+        warehouse = Warehouse.query.get(warehouse)
+        if not warehouse:
+            return create_error_response(404, "Warehouse doesn't exist")
         db.session.delete(warehouse)
         db.session.commit()
 

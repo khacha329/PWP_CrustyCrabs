@@ -64,6 +64,8 @@ class ItemItem(Resource):
 
         :param item: placeholders
         """
+        if not item:
+            return create_error_response(404, "Item doesn't exist")
         pass
 
     def put(self, item: Item) -> Response:
@@ -72,6 +74,8 @@ class ItemItem(Resource):
         :param item: Item to update
         :return: Response
         """
+        if not item:
+            return create_error_response(404, "Item doesn't exist")
         try:
             validate(request.json, Item.get_schema())
             item.deserialize(request.json)
@@ -95,6 +99,8 @@ class ItemItem(Resource):
         :param item: item to delete
         :return: Response
         """
+        if not item:
+            return create_error_response(404, "Item doesn't exist")
         db.session.delete(item)
         db.session.commit()
 

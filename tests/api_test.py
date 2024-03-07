@@ -304,7 +304,7 @@ class TestItemItem(object):
         assert resp.status_code == 404
         
         # test with another sensor's name
-        valid["warehouse_id"] = 1
+        
         resp = client.put(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 409
         db.session.rollback()
@@ -315,7 +315,7 @@ class TestItemItem(object):
         assert resp.status_code == 204
         
         # remove field for 400
-        valid.pop("warehouse_id")
+        valid.pop("manager")
         resp = client.put(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 400
         
@@ -324,7 +324,7 @@ class TestItemItem(object):
             resp = client.delete(self.RESOURCE_URL)
         db.session.rollback()
         # delete the stock 
-        db.session.delete(Stock.query.filter_by(warehouse_id=1).first())
+        db.session.delete(Stock.query.filter_by(Item_id=1).first())
         resp = client.delete(self.RESOURCE_URL)
         assert resp.status_code == 204
 
@@ -341,7 +341,7 @@ class TestWarehouseCollection(object):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        assert len(body) == 2
+        assert len(body) == 3
 
         for warehouse in body:
 
@@ -359,7 +359,7 @@ class TestWarehouseCollection(object):
         # test with valid and see that it exists afterward
         resp = client.post(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 201
-        assert resp.headers["Location"].endswith(self.RESOURCE_URL + valid["warehouse_id"] + "/")
+        assert resp.headers["Location"].endswith(self.RESOURCE_URL + valid["warehouse_id"] + "/") ##check with warehouse_id s it isnt in schema
         resp = client.get(resp.headers["Location"])
         assert resp.status_code == 200
         
@@ -368,7 +368,7 @@ class TestWarehouseCollection(object):
         assert resp.status_code == 409
         
         # remove model field for 400
-        valid.pop("warehouse_id")
+        valid.pop("manager")
         resp = client.post(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 400
         
@@ -378,20 +378,18 @@ class TestWarehouseItem(object):
     RESOURCE_URL = "/api/warehouse/1/"
     INVALID_URL = "/api/warehouse/Tokmani/"
     
-#     def test_get(self, client):
-#         resp = client.get(self.RESOURCE_URL)
-#         assert resp.status_code == 200
-#         body = json.loads(resp.data)
-#         _check_namespace(client, body)
-#         _check_control_get_method("profile", client, body)
-#         _check_control_get_method("collection", client, body)
-#         _check_control_put_method("edit", client, body)
-#         _check_control_delete_method("senhub:delete", client, body)
-#         resp = client.get(self.INVALID_URL)
-#         assert resp.status_code == 404
+    def test_get(self, client):
+        resp = client.get(self.RESOURCE_URL)
+        assert resp.status_code == 200
+        body = json.loads(resp.data)
+        assert len(body) == 2
+
+        assert "uri" in body[1]
+        resp = client.get(body[1]["uri"]) 
+        assert resp.status_code == 200
 
     def test_put(self, client: FlaskClient):
-        valid = _get_item_json(number=1)
+        valid = _get_warehouse_json(number=1)
         
         # test with wrong content type
         resp = client.put(self.RESOURCE_URL, data="notjson", headers=Headers({"Content-Type": "text"}))
@@ -402,18 +400,18 @@ class TestWarehouseItem(object):
         assert resp.status_code == 404
         
         # test with another sensor's name
-        valid["name"] = "Smartphone-1"
+        valid["manager"] = "Jason Doe"
         resp = client.put(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 409
         db.session.rollback()
         
         # test with valid (only change model)
-        valid["name"] = "Laptop-1"
+        valid["manager"] = "John Doe"
         resp = client.put(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 204
         
         # remove field for 400
-        valid.pop("name")
+        valid.pop("manager")
         resp = client.put(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 400
         
@@ -422,7 +420,7 @@ class TestWarehouseItem(object):
             resp = client.delete(self.RESOURCE_URL)
         db.session.rollback()
         # delete the stock 
-        db.session.delete(Stock.query.filter_by(item_id=1).first())
+        db.session.delete(Warehouse.query.filter_by(warehouse_id=1).first())
         resp = client.delete(self.RESOURCE_URL)
         assert resp.status_code == 204
 

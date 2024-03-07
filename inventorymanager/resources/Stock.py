@@ -30,7 +30,7 @@ class StockCollection(Resource):
             item_name = request.json['item_name']
             item_entry = Item.query.filter_by(name=item_name).first()
             if not item_entry:
-                return create_error_response(400, "Item doesn't exist")
+                return create_error_response(404, "Item doesn't exist")
             warehouse_id = request.json['warehouse_id']
             stock = Stock(item_id = item_entry.item_id, warehouse_id = warehouse_id)
             stock.deserialize(request.json)
@@ -57,12 +57,12 @@ class StockItem(Resource):
         item_name = item.replace('_', ' ')
         item = Item.query.filter_by(name=item_name).first()
         if not item:
-            return create_error_response(400, "Item doesn't exist")
+            return create_error_response(404, "Item doesn't exist")
 
     # Retrieve the stock entry based on warehouse ID and item ID
         stock_entry = Stock.query.filter_by(warehouse=warehouse, item_id=item.item_id).first()
         if not stock_entry:
-            return create_error_response(400, "Stock entry not found ")
+            return create_error_response(404, "Stock entry not found ")
         stock_json = stock_entry.serialize()
         stock_json["uri"] = url_for("api.stockitem", warehouse=warehouse.warehouse_id, item=item_name)
         return Response(json.dumps(stock_json), 200)
@@ -71,10 +71,12 @@ class StockItem(Resource):
         item_name = item.replace('_', ' ')
         item = Item.query.filter_by(name=item_name).first()
         if not item:
-            return create_error_response(400, "Item doesn't exist")
+            return create_error_response(404, "Item doesn't exist")
 
         # Retrieve the stock entry based on warehouse ID and item ID
         stock_entry = Stock.query.filter_by( item_id=item.item_id, warehouse=warehouse).first()
+        if not stock_entry:
+            return create_error_response(404, "Stock entry not found ")
         try:
             validate(request.json, Stock.get_schema())
             stock_entry.deserialize(request.json)
@@ -95,10 +97,12 @@ class StockItem(Resource):
         item_name = item.replace('_', ' ')
         item = Item.query.filter_by(name=item_name).first()
         if not item:
-            return create_error_response(400, "Item doesn't exist")
+            return create_error_response(404, "Item doesn't exist")
 
         # Retrieve the stock entry based on warehouse ID and item ID
         stock_entry = Stock.query.filter_by( item_id=item.item_id, warehouse=warehouse).first()
+        if not stock_entry:
+            return create_error_response(404, "Stock entry not found ")
         db.session.delete(stock_entry)
         db.session.commit()
 
@@ -110,7 +114,7 @@ class ItemLookUp(Resource):
         item = Item.query.filter_by(name=item_name).first()
 
         if not item:
-            return create_error_response(400, "Item doesn't exist")
+            return create_error_response(404, "Item doesn't exist")
         body = []
         for stock_entry in Stock.query.filter_by(item_id=item.item_id).all():
             stock_json = stock_entry.serialize()
@@ -121,6 +125,8 @@ class ItemLookUp(Resource):
 class WarehouseLookUp(Resource):
     def get(self, warehouse:int):
         warehouse_entry = Warehouse.query.filter_by(warehouse_id=warehouse.warehouse_id).first()
+        if not warehouse_entry:
+            return create_error_response(404, "Warehouse entry not found ")
         body = []
         for stock_entry in Stock.query.filter_by(warehouse_id=warehouse_entry.warehouse_id).all():
             item = Item.query.filter_by(item_id=stock_entry.item_id).first()
