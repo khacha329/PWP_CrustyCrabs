@@ -22,7 +22,7 @@ api.add_resource(ItemItem, "/items/<item:item>/")
 api.add_resource(WarehouseCollection, 
                  "/warehouses/")
 api.add_resource(WarehouseItem, 
-                 "/warehouses/<warehouse:warehouse>/")
+                 "/warehouses/<int:warehouse>/")
 
 api.add_resource(CatalogueCollection, 
                  "/catalogueEntries/")
@@ -36,12 +36,12 @@ api.add_resource(SupplierItemList,
 api.add_resource(StockCollection, 
                  "/stocks/")
 api.add_resource(StockItem, 
-                 "/stocks/<warehouse:warehouse>/item/<string:item>/")
+                 "/stocks/<int:warehouse>/item/<string:item>/")
 api.add_resource(ItemLookUp, 
                  "/stocks/item/<string:item>/")
 api.add_resource(WarehouseLookUp, 
-                 "/stocks/warehouse/<warehouse:warehouse>/")
+                 "/stocks/warehouse/<int:warehouse>/")
 
-api.add_resource(LocationCollection, "/locations/locations/")
-api.add_resource(LocationItem, "/api/locations/<int:location_id>")
+api.add_resource(LocationCollection, "/locations/")
+api.add_resource(LocationItem, "/locations/<int:location_id>/")
 

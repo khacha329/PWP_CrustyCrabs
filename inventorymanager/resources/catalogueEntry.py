@@ -15,8 +15,9 @@ class CatalogueCollection(Resource):
     def get(self):
         body = []
         for catalogue in Catalogue.query.all():
+            item = Item.query.filter_by(item_id=catalogue.item_id).first()
             catalogue_json = catalogue.serialize()
-            catalogue_json["uri"] = url_for("api.cataloguecollection", catalogue=catalogue)
+            catalogue_json["uri"] = url_for("api.catalogueitem", supplier=catalogue.supplier_name, item=item.name)
             body.append(catalogue_json)
 
         return Response(json.dumps(body), 200)
@@ -41,7 +42,7 @@ class CatalogueCollection(Resource):
             return abort(409, "Catalogue already exists")
         #if api fails after this line, resource will be added to db anyway
         return Response(status=201, headers={
-            "Location": url_for("api.cataloguecollection", item=item_entry.name)
+            "Location": url_for("api.catalogueitem", supplier=catalogue.supplier_name, item=item_entry.name)
         })
 
 class CatalogueItem(Resource):

@@ -17,8 +17,9 @@ class StockCollection(Resource):
     def get(self):
         body = []
         for stock in Stock.query.all():
+            item = Item.query.filter_by(item_id=stock.item_id).first()
             stock_json = stock.serialize()
-            stock_json["uri"] = url_for("api.stockcollection", stock=stock)
+            stock_json["uri"] = url_for("api.stockitem", warehouse=stock.warehouse_id, item=item.name)
             body.append(stock_json)
 
         return Response(json.dumps(body), 200)
@@ -47,7 +48,7 @@ class StockCollection(Resource):
             return abort(409, "stock already exists")
         #if api fails after this line, resource will be added to db anyway
         return Response(status=201, headers={
-            "Location": url_for("api.stockcollection", warehouse=warehouse_id, item=item_entry.name)
+            "Location": url_for("api.stockitem", warehouse=warehouse_id, item=item_entry.name)
         })
     
 class StockItem(Resource):
@@ -63,7 +64,7 @@ class StockItem(Resource):
         if not stock_entry:
             return create_error_response(400, "Stock entry not found ")
         stock_json = stock_entry.serialize()
-        stock_json["uri"] = url_for("api.stockitem", warehouse=warehouse, item=item_name)
+        stock_json["uri"] = url_for("api.stockitem", warehouse=warehouse.warehouse_id, item=item_name)
         return Response(json.dumps(stock_json), 200)
     
     def put(self, warehouse: int, item: str):
@@ -113,7 +114,7 @@ class ItemLookUp(Resource):
         body = []
         for stock_entry in Stock.query.filter_by(item_id=item.item_id).all():
             stock_json = stock_entry.serialize()
-            stock_json["uri"] = url_for("api.stockitem", warehouse=stock_entry, item=item.name)
+            stock_json["uri"] = url_for("api.stockitem", warehouse=stock_entry.warehouse_id, item=item.name)
             body.append(stock_json)
         return Response(json.dumps(body), 200)
     
@@ -124,6 +125,6 @@ class WarehouseLookUp(Resource):
         for stock_entry in Stock.query.filter_by(warehouse_id=warehouse_entry.warehouse_id).all():
             item = Item.query.filter_by(item_id=stock_entry.item_id).first()
             stock_json = stock_entry.serialize()
-            stock_json["uri"] = url_for("api.stockitem", warehouse=stock_entry, item=item.name)
+            stock_json["uri"] = url_for("api.stockitem", warehouse=stock_entry.warehouse_id, item=item.name)
             body.append(stock_json)
         return Response(json.dumps(body), 200)

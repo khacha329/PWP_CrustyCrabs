@@ -17,7 +17,7 @@ class WarehouseCollection(Resource):
         body = []
         for warehouse in Warehouse.query.all():
             warehouse_json = warehouse.serialize()
-            warehouse_json["uri"] = url_for("api.warehousecollection", warehouse=warehouse)
+            warehouse_json["uri"] = url_for("api.warehouseitem", warehouse=warehouse.warehouse_id)
             body.append(warehouse_json)
 
         return Response(json.dumps(body), 200)
@@ -39,7 +39,7 @@ class WarehouseCollection(Resource):
             return abort(409, "Warehouse already exists")
         #if api fails after this line, resource will be added to db anyway
         return Response(status=201, headers={
-            "Location": url_for("api.warehousecollection", warehouse=warehouse)
+            "Location": url_for("api.warehouseitem", warehouse=warehouse.warehouse_id)
         })
     
 

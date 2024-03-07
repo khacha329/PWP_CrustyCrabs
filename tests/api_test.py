@@ -83,9 +83,31 @@ def _populate_db():
 
 def _get_item_json(number=2):
     """
-    Creates a valid sensor JSON object to be used for PUT and POST tests.
+    Creates a valid item JSON object to be used for PUT and POST tests.
     """
     return {'name': f'Laptop-{number}', 'category': 'Electronics', 'weight': 0.2}
+def _get_warehouse_json():
+    """
+    Creates a valid warehouse JSON object to be used for PUT and POST tests.
+    """
+    return {'manager': 'John Elmeri', 'location_id': 1}
+def _get_location_json():
+    """
+    Creates a valid location JSON object to be used for PUT and POST tests.
+    """
+    return { 'latitude': 70, 'longitude': 50, 
+                'country': 'Finland', 'postal_code': '90570', 'city': 'oulu', 'street': 'yliopistokatu 24'}
+def _get_stock_json(number=2):
+    """
+    Creates a valid stock JSON object to be used for PUT and POST tests.
+    """
+    return {'item_name': f'Laptop {number}', 'warehouse_id': 1, 'quantity': 20, 
+                'shelf_price': 750.00}
+def _get_catalogue_json(number=2):
+    """
+    Creates a valid catalogue JSON object to be used for PUT and POST tests.
+    """
+    return {'item_name': f'Laptop {number}', 'supplier_name': 'TechSupplier A', 'min_order': 30, 'order_price': 600.00}
     
 # def _check_namespace(client, response):
 #     """
@@ -257,6 +279,104 @@ class TestItemItem(object):
     
     RESOURCE_URL = "/api/items/Laptop-1/"
     INVALID_URL = "/api/items/NotAnItem/"
+    
+#     def test_get(self, client):
+#         resp = client.get(self.RESOURCE_URL)
+#         assert resp.status_code == 200
+#         body = json.loads(resp.data)
+#         _check_namespace(client, body)
+#         _check_control_get_method("profile", client, body)
+#         _check_control_get_method("collection", client, body)
+#         _check_control_put_method("edit", client, body)
+#         _check_control_delete_method("senhub:delete", client, body)
+#         resp = client.get(self.INVALID_URL)
+#         assert resp.status_code == 404
+
+    def test_put(self, client: FlaskClient):
+        valid = _get_item_json(number=1)
+        
+        # test with wrong content type
+        resp = client.put(self.RESOURCE_URL, data="notjson", headers=Headers({"Content-Type": "text"}))
+        assert resp.status_code in (400, 415)
+        
+
+        resp = client.put(self.INVALID_URL, json=valid)
+        assert resp.status_code == 404
+        
+        # test with another sensor's name
+        valid["warehouse_id"] = 1
+        resp = client.put(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 409
+        db.session.rollback()
+        
+        # test with valid (only change model)
+        valid["warehouse_id"] = 2
+        resp = client.put(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 204
+        
+        # remove field for 400
+        valid.pop("warehouse_id")
+        resp = client.put(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 400
+        
+    def test_delete(self, client: FlaskClient):
+        with pytest.raises(AssertionError):
+            resp = client.delete(self.RESOURCE_URL)
+        db.session.rollback()
+        # delete the stock 
+        db.session.delete(Stock.query.filter_by(warehouse_id=1).first())
+        resp = client.delete(self.RESOURCE_URL)
+        assert resp.status_code == 204
+
+        resp = client.delete(self.RESOURCE_URL)
+        assert resp.status_code == 404
+        resp = client.delete(self.INVALID_URL)
+        assert resp.status_code == 404
+
+class TestWarehouseCollection(object):
+    
+    RESOURCE_URL = "api/warehouses/"
+
+    def test_get(self, client: FlaskClient):
+        resp = client.get(self.RESOURCE_URL)
+        assert resp.status_code == 200
+        body = json.loads(resp.data)
+        assert len(body) == 2
+
+        for warehouse in body:
+
+            assert "uri" in warehouse
+            resp = client.get(warehouse["uri"]) 
+            assert resp.status_code == 200
+
+    def test_post(self, client: FlaskClient):
+        valid = _get_warehouse_json()
+        
+        # test with wrong content type
+        resp = client.post(self.RESOURCE_URL, data="notjson")
+        assert resp.status_code in (400, 415)
+        
+        # test with valid and see that it exists afterward
+        resp = client.post(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 201
+        assert resp.headers["Location"].endswith(self.RESOURCE_URL + valid["warehouse_id"] + "/")
+        resp = client.get(resp.headers["Location"])
+        assert resp.status_code == 200
+        
+        # send same data again for 409 
+        resp = client.post(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 409
+        
+        # remove model field for 400
+        valid.pop("warehouse_id")
+        resp = client.post(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 400
+        
+
+class TestWarehouseItem(object):
+    
+    RESOURCE_URL = "/api/warehouse/1/"
+    INVALID_URL = "/api/warehouse/Tokmani/"
     
 #     def test_get(self, client):
 #         resp = client.get(self.RESOURCE_URL)
