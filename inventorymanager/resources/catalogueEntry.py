@@ -4,7 +4,7 @@ from flask import Response, abort, request, url_for
 from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
 
-from inventorymanager.models import Catalogue, Item
+from inventorymanager.models import Catalogue, Item, require_admin_key
 from inventorymanager import db
 from inventorymanager.constants import *
 from inventorymanager.utils import create_error_response
@@ -21,6 +21,8 @@ class CatalogueCollection(Resource):
             body.append(catalogue_json)
 
         return Response(json.dumps(body), 200)
+    
+    @require_admin_key
     def post(self):
         try:
             validate(request.json, Catalogue.get_schema())
@@ -60,6 +62,7 @@ class CatalogueItem(Resource):
         catalogue_json["uri"] = url_for("api.catalogueitem", supplier=supplier_name, item=item.name)       
         return Response(json.dumps(catalogue_json), 200)
     
+    @require_admin_key
     def put(self, supplier, item):
         item_name = item.replace('_', ' ')
         item = Item.query.filter_by(name=item_name).first()
@@ -85,6 +88,7 @@ class CatalogueItem(Resource):
 
         return Response(status=204)
 
+    @require_admin_key
     def delete(self, supplier, item):
         item_name = item.replace('_', ' ')
         item = Item.query.filter_by(name=item_name).first()

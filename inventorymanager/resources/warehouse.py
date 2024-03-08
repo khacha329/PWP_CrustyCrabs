@@ -4,7 +4,7 @@ from flask import Response, abort, request, url_for
 from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
 
-from inventorymanager.models import Warehouse, Location
+from inventorymanager.models import Warehouse, Location, require_warehouse_key
 from inventorymanager import db
 from inventorymanager.constants import *
 from inventorymanager.utils import create_error_response
@@ -22,7 +22,7 @@ class WarehouseCollection(Resource):
 
         return Response(json.dumps(body), 200)
 
-
+    @require_warehouse_key
     def post(self):
         try:
             validate(request.json, Warehouse.get_schema())
@@ -81,6 +81,7 @@ class WarehouseItem(Resource):
 
         return Response(status=204)
 
+    @require_warehouse_key
     def delete(self, warehouse : Warehouse):
         warehouse = Warehouse.query.get(warehouse)
         if not warehouse:

@@ -5,7 +5,7 @@ from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.exc import SQLAlchemyError
 
-from inventorymanager.models import Stock, Item, Warehouse
+from inventorymanager.models import Stock, Item, Warehouse, require_warehouse_key
 from inventorymanager import db
 from inventorymanager.constants import *
 from inventorymanager.utils import create_error_response
@@ -23,6 +23,8 @@ class StockCollection(Resource):
             body.append(stock_json)
 
         return Response(json.dumps(body), 200)
+    
+    @require_warehouse_key
     def post(self):
 
         try:
@@ -67,6 +69,7 @@ class StockItem(Resource):
         stock_json["uri"] = url_for("api.stockitem", warehouse=warehouse.warehouse_id, item=item_name)
         return Response(json.dumps(stock_json), 200)
     
+    @require_warehouse_key
     def put(self, warehouse: int, item: str):
         item_name = item.replace('_', ' ')
         item = Item.query.filter_by(name=item_name).first()
@@ -93,6 +96,7 @@ class StockItem(Resource):
 
         return Response(status=204)
 
+    @require_warehouse_key
     def delete(self, warehouse: int, item: str):
         item_name = item.replace('_', ' ')
         item = Item.query.filter_by(name=item_name).first()

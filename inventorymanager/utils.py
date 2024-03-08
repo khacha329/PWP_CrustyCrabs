@@ -168,7 +168,6 @@ class StockConverter(BaseConverter):
     def to_url(self, value):
         return str(value.item_id)
 
-
 class LocationConverter(BaseConverter):
     """
     URLConverter for a location resource.

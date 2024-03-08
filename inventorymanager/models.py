@@ -10,10 +10,14 @@ The classes are:
 The functions are responsible for initiliazing and populating the database
 """
 
+import hashlib
 import click
+import secrets
 from flask.cli import with_appcontext
+from flask import request
 from sqlalchemy import CheckConstraint, event, text
 from sqlalchemy.engine import Engine
+from werkzeug.exceptions import Forbidden
 
 from inventorymanager import db
 
@@ -226,7 +230,8 @@ class Item(db.Model):
         self.weight = doc.get("weight", self.weight)
 
     def __repr__(self):
-        return f"<Item(id={self.item_id}, name='{self.name}', category='{self.category}', weight={self.weight})>"
+        return f"<Item(id={self.item_id}, name='{self.name}',
+                 category='{self.category}', weight={self.weight})>"
 
 
 # Stock model
@@ -292,7 +297,8 @@ class Stock(db.Model):
         self.shelf_price = doc.get("shelf_price", self.shelf_price)
 
     def __repr__(self):
-        return f"<Stock(item_id={self.item_id}, warehouse_id={self.warehouse_id}, quantity={self.quantity}, shelf_price={self.shelf_price})>"
+        return f"<Stock(item_id={self.item_id}, warehouse_id={self.warehouse_id}, 
+                quantity={self.quantity}, shelf_price={self.shelf_price})>"
 
 
 # Catalogue model
@@ -352,6 +358,57 @@ class Catalogue(db.Model):
     def __repr__(self):
         return f"<Catalogue(item_id={self.item_id}, supplier_name='{self.supplier_name}', min_order={self.min_order}, order_price={self.order_price})>"
 
+
+# APIKey Model
+class ApiKey(db.Model):
+    '''
+        A class representing the API keys saved in the database. Keys can be admin (Write permission to Catalogue)
+        or Manager (Write permission to a single related warehouse)
+    '''
+
+    key = db.Column(db.String(32), nullable=False, unique=True, primary_key=True)
+    warehouse_id = db.Column( db.Integer, db.ForeignKey("warehouse.warehouse_id"), primary_key=True)
+    admin = db.Column(db.Boolean, default=False)
+
+    warehouse = db.relationship("Warehouse", back_populates="api_key", uselist=False)
+
+    @staticmethod
+    def key_hash(key):
+        """
+        Generates the hash for the given randomly generated token
+        :param key: a string representing the token to use for the API
+        :return: the sha256 digest of the key parameter
+        """
+        return hashlib.sha256(key.encode()).digest
+
+
+def require_admin_key(func):
+    """
+    Decorator function that runs the parameter function only if the request contains an admin key
+    :param func: function to be executed if the request contains a key with admin privileges
+    :raise Forbidden: if the request doesn't contain an admin key
+    """
+    def wrapper(*args, **kwargs):
+        key_hash = ApiKey.key_hash(request.headers.get("InventoryManager-Api-Key").strip())
+        db_key = ApiKey.query.filter_by(admin=True).first()
+        if secrets.compare_digest(key_hash, db_key.key):
+            return func(*args, **kwargs)
+        raise Forbidden
+    return wrapper
+
+def require_warehouse_key(func):
+    """
+    Decorator function that runs the parameter function only if the request contains an API key
+    :param func: function to be executed if the request contains a valid key
+    :raise Forbidden: if the request doesn't contain an API key'
+    """
+    def wrapper(self, warehouse, *args, **kwargs):
+        key_hash = ApiKey.key_hash(request.headers.get("InventoryManager-Api-Key").strip())
+        db_key = ApiKey.query.filter_by(warehouse=warehouse).first()
+        if db_key is not None and secrets.compare_digest(key_hash, db_key.key):
+            return func(*args, **kwargs)
+        raise Forbidden
+    return wrapper
 
 @click.command("init-db")
 @with_appcontext
