@@ -6,13 +6,15 @@ from sqlalchemy.exc import IntegrityError
 
 from inventorymanager.models import Warehouse, Location, require_admin_key, require_warehouse_key
 from inventorymanager import db
+from inventorymanager import cache
 from inventorymanager.constants import *
-from inventorymanager.utils import create_error_response
+from inventorymanager.utils import create_error_response, request_path_cache_key
 
 
 class WarehouseCollection(Resource):
     
 
+    @cache.cached(timeout=None, make_cache_key=request_path_cache_key)
     def get(self):
         body = []
         for warehouse in Warehouse.query.all():

@@ -201,3 +201,11 @@ class LocationConverter(BaseConverter):
         :return: The location_id as a string.
         """
         return str(value.location_id)
+
+def request_path_cache_key(*args, **kwargs):
+    """
+    Helper function for caching Resources. 
+    Used in get functions in the application
+    :return: returns a string which is the desired cache key "request.path"
+    """
+    return request.path

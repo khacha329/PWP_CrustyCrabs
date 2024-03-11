@@ -6,10 +6,12 @@ import os
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_caching import Cache
 
 from inventorymanager.config import Config
 
 db = SQLAlchemy()
+cache = Cache()
 
 # Structure learned from the following sources:
 # https://flask-sqlalchemy.palletsprojects.com/en/3.0.x/quickstart/
@@ -47,6 +49,7 @@ def create_app(test_config=None) -> Flask:
         pass
 
     db.init_app(app)
+    cache.init_app(app)
     app.app_context().push()
 
     # cache.init_app(app)

@@ -12,15 +12,16 @@ from flask_restful import Resource
 from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
 
-from inventorymanager import db
+from inventorymanager import db, cache
 from inventorymanager.models import Location
 from inventorymanager.constants import *
-from inventorymanager.utils import create_error_response
+from inventorymanager.utils import create_error_response, request_path_cache_key
 
 
 class LocationCollection(Resource):
     """Class for collection of warehouse locations including addresses. /api/Locations/"""
 
+    @cache.cached()
     def get(self):
         """Gets list of locations from database"""
         body = []

@@ -6,14 +6,14 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.exc import SQLAlchemyError
 
 from inventorymanager.models import Stock, Item, Warehouse, require_warehouse_key
-from inventorymanager import db
+from inventorymanager import db, cache
 from inventorymanager.constants import *
-from inventorymanager.utils import create_error_response
+from inventorymanager.utils import create_error_response, request_path_cache_key
 
 
 class StockCollection(Resource):
     
-
+    @cache.cached(timeout=60, make_cache_key=request_path_cache_key)
     def get(self):
         body = []
         for stock in Stock.query.all():

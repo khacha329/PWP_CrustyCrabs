@@ -7,11 +7,11 @@ import os
 import secrets
 import pytest
 import tempfile
+
 from flask.testing import FlaskClient
 from jsonschema import validate
 from sqlalchemy.engine import Engine
 from sqlalchemy import event
-from sqlalchemy.exc import IntegrityError, StatementError
 from werkzeug.datastructures import Headers
 
 from inventorymanager import create_app, db
