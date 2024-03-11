@@ -4,6 +4,7 @@ This module contains functionality related to testing the API
 
 import json
 import os
+import secrets
 import pytest
 import tempfile
 from flask.testing import FlaskClient
@@ -14,7 +15,15 @@ from sqlalchemy.exc import IntegrityError, StatementError
 from werkzeug.datastructures import Headers
 
 from inventorymanager import create_app, db
-from inventorymanager.models import Location, Warehouse, Item, Stock, Catalogue, create_dummy_data
+from inventorymanager.models import ApiKey, Location, Warehouse, Item, Stock, Catalogue, create_dummy_data
+
+TEST_CATALOGUE_KEY = 'catalogue'
+TEST_WAREHOUSE_KEYS = [
+    'warehouse-1',
+    'warehouse-2',
+    'warehouse-3',
+    'warehouse-4'
+]
 
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
@@ -55,8 +64,8 @@ def _populate_db():
 
     # Create dummy warehouses
     warehouses = [
-        Warehouse(manager="John Doe", location=locations[0]),
-        Warehouse(manager="Jane Doe", location=locations[1]),
+        Warehouse(warehouse_id=1, manager="John Doe", location=locations[0]),
+        Warehouse(warehouse_id=2,manager="Jane Doe", location=locations[1]),
     ]
 
     # Create dummy items
@@ -77,8 +86,26 @@ def _populate_db():
         Catalogue(item=items[1], supplier_name="TechSupplier B", min_order=10, order_price=550.00),
     ]
 
+    # Create APIKeys for Warehouses
+    warehouse_api_keys = []
+    index = 1
+    for warehouse in warehouses:
+        token = TEST_WAREHOUSE_KEYS[index]
+        index=index+1
+        db_key = ApiKey (
+        key=ApiKey.key_hash(token),
+        warehouse_id = warehouse.warehouse_id )
+
+        warehouse_api_keys.append(db_key)
+        print(f"Key for Warehouse {warehouse.warehouse_id}: {token}")
+
+    # Add admin key
+    warehouse_api_keys.append(ApiKey(
+        key=ApiKey.key_hash(TEST_CATALOGUE_KEY),
+        admin = True
+    ))
     # Add all to session and commit
-    db.session.add_all(locations + warehouses + items + stocks + catalogues)
+    db.session.add_all(locations + warehouses + items + stocks + catalogues, warehouse_api_keys)
     db.session.commit()
 
 def _get_item_json(number=2):
@@ -336,7 +363,9 @@ class TestItemItem(object):
 class TestWarehouseCollection(object):
     
     RESOURCE_URL = "api/warehouses/"
+    WAREHOUSE_API_KEY = TEST_WAREHOUSE_KEYS[2]
 
+ 
     def test_get(self, client: FlaskClient):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
@@ -351,9 +380,17 @@ class TestWarehouseCollection(object):
 
     def test_post(self, client: FlaskClient):
         valid = _get_warehouse_json()
+        # headers = {
+        #     "Content-Type": "application/json",
+        #     "InventoryManager-Api-Key": TEST_CATALOGUE_KEY,
+        # }
         
         # test with wrong content type
-        resp = client.post(self.RESOURCE_URL, data="notjson")
+        resp = client.post(
+            self.RESOURCE_URL, 
+            data="notjson", 
+            # headers={"Content-Type": "text", "InventoryManager-Api-Key": TEST_CATALOGUE_KEY}
+        )
         assert resp.status_code in (400, 415)
         
         # test with valid and see that it exists afterward
@@ -390,43 +427,51 @@ class TestWarehouseItem(object):
 
     def test_put(self, client: FlaskClient):
         valid = _get_warehouse_json(number=1)
+        headers = Headers({
+            "Content-Type": "application/json",
+            "InventoryManager-Api-Key": TEST_WAREHOUSE_KEYS[0],
+        })
         
         # test with wrong content type
-        resp = client.put(self.RESOURCE_URL, data="notjson", headers=Headers({"Content-Type": "text"}))
+        resp = client.put(self.RESOURCE_URL, data="notjson", headers=Headers({"Content-Type": "text", "InventoryManager-Api-Key": TEST_WAREHOUSE_KEYS[0]}))
         assert resp.status_code in (400, 415)
         
 
-        resp = client.put(self.INVALID_URL, json=valid)
+        resp = client.put(self.INVALID_URL, json=valid, headers=headers)
         assert resp.status_code == 404
         
         # test with another sensor's name
         valid["manager"] = "Jason Doe"
-        resp = client.put(self.RESOURCE_URL, json=valid)
+        resp = client.put(self.RESOURCE_URL, json=valid, headers=headers)
         assert resp.status_code == 409
         db.session.rollback()
         
         # test with valid (only change model)
         valid["manager"] = "John Doe"
-        resp = client.put(self.RESOURCE_URL, json=valid)
+        resp = client.put(self.RESOURCE_URL, json=valid, headers=headers)
         assert resp.status_code == 204
         
         # remove field for 400
         valid.pop("manager")
-        resp = client.put(self.RESOURCE_URL, json=valid)
+        resp = client.put(self.RESOURCE_URL, json=valid, headers=headers)
         assert resp.status_code == 400
         
     def test_delete(self, client: FlaskClient):
+        headers = Headers({
+            "Content-Type": "application/json",
+            "InventoryManager-Api-Key": TEST_WAREHOUSE_KEYS[0],
+        })
         with pytest.raises(AssertionError):
-            resp = client.delete(self.RESOURCE_URL)
+            resp = client.delete(self.RESOURCE_URL, headers=headers)
         db.session.rollback()
         # delete the stock 
         db.session.delete(Warehouse.query.filter_by(warehouse_id=1).first())
-        resp = client.delete(self.RESOURCE_URL)
+        resp = client.delete(self.RESOURCE_URL,headers=headers)
         assert resp.status_code == 204
 
-        resp = client.delete(self.RESOURCE_URL)
+        resp = client.delete(self.RESOURCE_URL, headers=headers)
         assert resp.status_code == 404
-        resp = client.delete(self.INVALID_URL)
+        resp = client.delete(self.INVALID_URL, headers=headers)
         assert resp.status_code == 404
         
         

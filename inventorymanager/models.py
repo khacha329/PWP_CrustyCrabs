@@ -127,6 +127,7 @@ class Warehouse(db.Model):
         nullable=False,
     )
 
+    api_key = db.relationship("ApiKey", back_populates="warehouse", uselist=False)
     location = db.relationship("Location", back_populates="warehouse", uselist=False)
     stock = db.relationship(
         "Stock", back_populates="warehouse", cascade="all, delete-orphan", uselist=True
@@ -230,8 +231,7 @@ class Item(db.Model):
         self.weight = doc.get("weight", self.weight)
 
     def __repr__(self):
-        return f"<Item(id={self.item_id}, name='{self.name}',
-                 category='{self.category}', weight={self.weight})>"
+        return f"<Item(id={self.item_id}, name='{self.name}', category='{self.category}', weight={self.weight})>"
 
 
 # Stock model
@@ -297,8 +297,7 @@ class Stock(db.Model):
         self.shelf_price = doc.get("shelf_price", self.shelf_price)
 
     def __repr__(self):
-        return f"<Stock(item_id={self.item_id}, warehouse_id={self.warehouse_id}, 
-                quantity={self.quantity}, shelf_price={self.shelf_price})>"
+        return f"<Stock(item_id={self.item_id}, warehouse_id={self.warehouse_id}, quantity={self.quantity}, shelf_price={self.shelf_price})>"
 
 
 # Catalogue model
@@ -367,7 +366,7 @@ class ApiKey(db.Model):
     '''
 
     key = db.Column(db.String(32), nullable=False, unique=True, primary_key=True)
-    warehouse_id = db.Column( db.Integer, db.ForeignKey("warehouse.warehouse_id"), primary_key=True)
+    warehouse_id = db.Column( db.Integer, db.ForeignKey("warehouse.warehouse_id"), nullable=True)
     admin = db.Column(db.Boolean, default=False)
 
     warehouse = db.relationship("Warehouse", back_populates="api_key", uselist=False)
@@ -379,7 +378,7 @@ class ApiKey(db.Model):
         :param key: a string representing the token to use for the API
         :return: the sha256 digest of the key parameter
         """
-        return hashlib.sha256(key.encode()).digest
+        return hashlib.sha256(key.encode()).hexdigest()
 
 
 def require_admin_key(func):
@@ -418,6 +417,24 @@ def init_db_command() -> None:
     """
     db.create_all()
 
+@click.command("catalogue-key")
+@with_appcontext
+def generate_catalogue_key():
+    """
+    Click function callable from the command line, used to generate the admin key for the Catalogue.
+    Prints the key after adding it.
+    """
+    # admin key
+    token = secrets.token_urlsafe()
+    db_key = ApiKey(
+        key=ApiKey.key_hash(token),
+        admin=True
+    )
+    db.session.add(db_key)
+    db.session.commit()
+    print("Catalogue key: " + token)
+
+
 
 @click.command("populate-db")
 @with_appcontext
@@ -447,8 +464,8 @@ def create_dummy_data() -> None:
 
     # Create dummy warehouses
     warehouses = [
-        Warehouse(manager="John Doe", location=locations[0]),
-        Warehouse(manager="Jane Doe", location=locations[1]),
+        Warehouse(warehouse_id=97, manager="John Doe", location=locations[0]),
+        Warehouse(warehouse_id=99,manager="Jane Doe", location=locations[1]),
     ]
 
     # Create dummy items
@@ -478,16 +495,21 @@ def create_dummy_data() -> None:
             min_order=10,
             order_price=550.00,
         ),
-        # Catalogue(
-        #     item=items[0],
-        #     supplier_name="TechSupplier B",
-        #     min_order=15,
-        #     order_price=850.00,
-        # ),
     ]
 
+    # Create APIKeys for Warehouses
+    warehouse_api_keys = []
+    for warehouse in warehouses:
+        token = secrets.token_urlsafe()
+        db_key = ApiKey (
+        key=ApiKey.key_hash(token),
+        warehouse_id = warehouse.warehouse_id )
+
+        warehouse_api_keys.append(db_key)
+        print(f"Key for Warehouse {warehouse.warehouse_id}: {token}")
+
     # Add all to session and commit
-    db.session.add_all(locations + warehouses + items + stocks + catalogues)
+    db.session.add_all(locations + warehouses + items + stocks + catalogues + warehouse_api_keys)
     db.session.commit()
 
 

@@ -52,10 +52,11 @@ def create_app(test_config=None) -> Flask:
     # cache.init_app(app)
 
     # CLI commands to populate db
-    from inventorymanager.models import create_dummy_data, init_db_command
+    from inventorymanager.models import create_dummy_data, init_db_command, generate_catalogue_key
 
     app.cli.add_command(init_db_command)
     app.cli.add_command(create_dummy_data)
+    app.cli.add_command(generate_catalogue_key)
 
     from inventorymanager.api import api_bp
     from inventorymanager.utils import WarehouseConverter, ItemConverter, CatalogueConverter, StockConverter, LocationConverter
