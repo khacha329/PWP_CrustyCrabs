@@ -19,10 +19,3 @@ Item.query.all()
 Stock.query.all()
 Catalogue.query.all()
 ```
-To test the app, type the following commands in cmd:
-
-```
-set FLASK_APP=inventorymanager
-set FLASK_ENV=developement
-flask run
-```

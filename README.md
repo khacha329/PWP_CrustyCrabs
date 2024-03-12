@@ -45,6 +45,11 @@ Run:
 pip install -e .
 ```
 
+To run the app, type the following commands from the root directory (NOTE: FIRST INITIALIZE THE DATABASE):
+
+```
+flask --app inventorymanager run
+```
 
 ## Initialize and Populate DB
 
@@ -60,6 +65,10 @@ Run these to format code and imports:
 isort inventorymanager
 black inventorymanager
 ```
+
+After starting the flask server, the Swagger documentation can be found at:
+
+http://localhost:5000/apidocs/#/
 
 VS code has an extension AutoDocstring, to use set cursor directly below method and press Ctrl+Shift+2.
 To format the docstrings correctly go to settings and set:
