@@ -12,7 +12,14 @@ from inventorymanager.utils import create_error_response
 
 
 class CatalogueCollection(Resource):
+    """
+    Resource for the collection of catalogue entries, provides GET and POST methods
+    """
     def get(self):
+        """Returns a list of all catalogue entries in the database
+
+        :return: Response
+        """
         body = []
         for catalogue in Catalogue.query.all():
             item = Item.query.filter_by(item_id=catalogue.item_id).first()
@@ -25,6 +32,10 @@ class CatalogueCollection(Resource):
         return Response(json.dumps(body), 200)
 
     def post(self):
+        """Adds a new catalogue entry to the database
+
+        :return: Response
+        """
         try:
             validate(request.json, Catalogue.get_schema())
             item_name = request.json["item_name"]
@@ -57,7 +68,16 @@ class CatalogueCollection(Resource):
 
 
 class CatalogueItem(Resource):
+    """
+    Resource for a single catalogue entry, provides GET, PUT and DELETE methods
+    """
     def get(self, supplier, item):
+        """returns a single catalogue entry in the database
+
+        :param supplier: supplier name of the catalogue entry to return
+        :param item: item name of the catalogue entry to return
+        :return: Response
+        """
         item_name = item.replace("_", " ")
         item = Item.query.filter_by(name=item_name).first()
         supplier_name = supplier.replace("_", " ")
@@ -76,6 +96,12 @@ class CatalogueItem(Resource):
         return Response(json.dumps(catalogue_json), 200)
 
     def put(self, supplier, item):
+        """updates a single catalogue entry in the database
+
+        :param supplier: supplier name of the catalogue entry to update
+        :param item: item name of the catalogue entry to update
+        :return: Response
+        """
         item_name = item.replace("_", " ")
         item = Item.query.filter_by(name=item_name).first()
         supplier_name = supplier.replace("_", " ")
@@ -104,6 +130,12 @@ class CatalogueItem(Resource):
         return Response(status=204)
 
     def delete(self, supplier, item):
+        """deletes a single catalogue entry in the database
+
+        :param supplier: supplier name of the catalogue entry to delete
+        :param item: item name of the catalogue entry to delete
+        :return: Response
+        """
         item_name = item.replace("_", " ")
         item = Item.query.filter_by(name=item_name).first()
         supplier_name = supplier.replace("_", " ")
@@ -123,7 +155,15 @@ class CatalogueItem(Resource):
 
 
 class ItemList(Resource):
+    """
+    Resource for the collection of catalogue entries filtered by item, provides GET method
+    """
     def get(self, item):
+        """Returns a list of catalogue entries in the database filtered by item name
+        
+        :param item: item name to filter catalogue entry with
+        :return: Response
+        """
         item_name = item.replace("_", " ")
         item = Item.query.filter_by(name=item_name).first()
 
@@ -142,7 +182,15 @@ class ItemList(Resource):
 
 
 class SupplierItemList(Resource):
+    """
+    Resource for the collection of catalogue entries filtered by supplier, provides GET method
+    """
     def get(self, supplier):
+        """Returns a list of catalogue entries in the database filtered by supplier name
+        
+        :param supplier: supplier name to filter catalogue entry with
+        :return: Response
+        """
         supplier = supplier.replace("_", " ")
 
         if not supplier:

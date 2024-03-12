@@ -12,8 +12,15 @@ from inventorymanager.utils import create_error_response
 
 
 class WarehouseCollection(Resource):
+    """
+    Resource for the collection of warehouses, provides GET and POST methods
+    """
 
     def get(self):
+        """Returns a list of all warehouses in the database
+
+        :return: Response
+        """
         body = []
         for warehouse in Warehouse.query.all():
             warehouse_json = warehouse.serialize()
@@ -25,6 +32,10 @@ class WarehouseCollection(Resource):
         return Response(json.dumps(body), 200)
 
     def post(self):
+        """Adds a new warehouse to the database
+
+        :return: Response
+        """
         try:
             validate(request.json, Warehouse.get_schema())
             warehouse = Warehouse()
@@ -50,8 +61,16 @@ class WarehouseCollection(Resource):
 
 
 class WarehouseItem(Resource):
+    """
+    Resource for a single warehouse, provides GET, PUT and DELETE methods
+    """
 
     def get(self, warehouse):
+        """returns a single warehouse in the database with its location details
+
+        :param warehouse: warehouse id of the warehouse to return
+        :return: Response
+        """
         warehouse = Warehouse.query.get(warehouse)
         if not warehouse:
             return create_error_response(404, "Warehouse doesn't exist")
@@ -69,6 +88,11 @@ class WarehouseItem(Resource):
         # This queries warehouse by id. maybe change it to query by name or smthg?
 
     def put(self, warehouse: Warehouse):
+        """updates a single warehouse in the database
+
+        :param warehouse: warehouse id of the warehouse to update
+        :return: Response
+        """
         warehouse = Warehouse.query.get(warehouse)
         if not warehouse:
             return create_error_response(404, "Warehouse doesn't exist")
@@ -90,6 +114,11 @@ class WarehouseItem(Resource):
         return Response(status=204)
 
     def delete(self, warehouse: Warehouse):
+        """deletes a single warehouse in the database
+
+        :param warehouse: warehouse id of the warehouse to delete
+        :return: Response
+        """
         warehouse = Warehouse.query.get(warehouse)
         if not warehouse:
             return create_error_response(404, "Warehouse doesn't exist")

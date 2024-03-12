@@ -12,8 +12,14 @@ from inventorymanager.utils import create_error_response
 
 
 class StockCollection(Resource):
-
+    """
+    Resource for the collection of stocks, provides GET and POST methods
+    """
     def get(self):
+        """Returns a list of all stocks in the database
+
+        :return: Response
+        """
         body = []
         for stock in Stock.query.all():
             item = Item.query.filter_by(item_id=stock.item_id).first()
@@ -26,7 +32,10 @@ class StockCollection(Resource):
         return Response(json.dumps(body), 200)
 
     def post(self):
+        """Adds a new stock to the database
 
+        :return: Response
+        """
         try:
             validate(request.json, Stock.get_schema())
             item_name = request.json["item_name"]
@@ -60,8 +69,16 @@ class StockCollection(Resource):
 
 
 class StockItem(Resource):
-
+    """
+    Resource for a single stock, provides GET, PUT and DELETE methods
+    """
     def get(self, warehouse, item):
+        """returns a single stock in the database
+
+        :param warehouse: warehouse id of the stock to return
+        :param item: item name of the stock to return
+        :return: Response
+        """
         item_name = item.replace("_", " ")
         item = Item.query.filter_by(name=item_name).first()
         if not item:
@@ -80,6 +97,12 @@ class StockItem(Resource):
         return Response(json.dumps(stock_json), 200)
 
     def put(self, warehouse: int, item: str):
+        """Updates a stock in the database
+
+        :param warehouse: warehouse id of the stock to update
+        :param item: item name of the stock to update
+        :return: Response
+        """
         item_name = item.replace("_", " ")
         item = Item.query.filter_by(name=item_name).first()
         if not item:
@@ -109,6 +132,12 @@ class StockItem(Resource):
         return Response(status=204)
 
     def delete(self, warehouse: int, item: str):
+        """Deletes a stock in the database
+
+        :param warehouse: warehouse id of the stock to delete
+        :param item: item name of the stock to delete
+        :return: Response
+        """
         item_name = item.replace("_", " ")
         item = Item.query.filter_by(name=item_name).first()
         if not item:
@@ -127,7 +156,15 @@ class StockItem(Resource):
 
 
 class ItemLookUp(Resource):
+    """
+    Resource for the collection of stocks filtered by item, provides GET method
+    """
     def get(self, item):
+        """Returns a list of stocks in the database filtered by item name
+        
+        :param item: item name to filter stocks with
+        :return: Response
+        """
         item_name = item.replace("_", " ")
         item = Item.query.filter_by(name=item_name).first()
 
@@ -144,7 +181,15 @@ class ItemLookUp(Resource):
 
 
 class WarehouseLookUp(Resource):
+    """
+    Resource for the collection of stocks filtered by name, provides GET method
+    """
     def get(self, warehouse: int):
+        """Returns a list of stocks in the database filtered by warehouse id
+        
+        :param warehouse: warehouse id to filter stocks with
+        :return: Response
+        """
         warehouse_entry = Warehouse.query.filter_by(
             warehouse_id=warehouse.warehouse_id
         ).first()
