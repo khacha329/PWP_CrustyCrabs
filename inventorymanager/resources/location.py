@@ -13,8 +13,8 @@ from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
 
 from inventorymanager import db
-from inventorymanager.models import Location
 from inventorymanager.constants import *
+from inventorymanager.models import Location
 from inventorymanager.utils import create_error_response
 
 

@@ -7,11 +7,12 @@ objects.
 
 import json
 
-from werkzeug.routing import BaseConverter
+from flask import Response, request, url_for
 from werkzeug.exceptions import NotFound
-from flask import url_for, request, Response
+from werkzeug.routing import BaseConverter
+
 from inventorymanager.constants import *
-from inventorymanager.models import Item, Location, Warehouse, Catalogue, Stock
+from inventorymanager.models import Catalogue, Item, Location, Stock, Warehouse
 
 
 # from https://github.com/enkwolf/pwp-course-sensorhub-api-example/tree/master
@@ -145,26 +146,28 @@ class ItemConverter(BaseConverter):
 
     def to_url(self, value):
         return value.name
-    
+
+
 class CatalogueConverter(BaseConverter):
-    
+
     def to_python(self, value):
         catalogue = Catalogue.query.filter_by(supplier_name=value).first()
         if catalogue is None:
             raise NotFound
         return catalogue
-        
+
     def to_url(self, value):
         return value.supplier_name
-    
+
+
 class StockConverter(BaseConverter):
-    
+
     def to_python(self, value):
         stock = Stock.query.filter_by(item_id=value).first()
         if stock is None:
             raise NotFound
         return stock
-        
+
     def to_url(self, value):
         return str(value.item_id)
 

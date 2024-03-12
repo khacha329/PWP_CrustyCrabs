@@ -262,8 +262,8 @@ class Stock(db.Model):
         return {
             "type": "object",
             "properties": {
-                "item_name": {"type":"string"},
-                "warehouse_id": {"type":"int"},
+                "item_name": {"type": "string"},
+                "warehouse_id": {"type": "int"},
                 "quantity": {"type": "integer"},
                 "shelf_price": {"type": "number"},
             },
@@ -319,7 +319,7 @@ class Catalogue(db.Model):
         return {
             "type": "object",
             "properties": {
-                "item_name": {"type":"string"},
+                "item_name": {"type": "string"},
                 "supplier_name": {"type": "string"},
                 "min_order": {"type": "integer"},
                 "order_price": {"type": "number"},
@@ -404,7 +404,7 @@ def create_dummy_data() -> None:
     stocks = [
         Stock(item=items[0], warehouse=warehouses[0], quantity=10, shelf_price=999.99),
         Stock(item=items[1], warehouse=warehouses[1], quantity=20, shelf_price=599.99),
-       # Stock(item=items[0], warehouse=warehouses[1], quantity=30, shelf_price=899.99),
+        # Stock(item=items[0], warehouse=warehouses[1], quantity=30, shelf_price=899.99),
     ]
 
     # Create dummy catalogues
