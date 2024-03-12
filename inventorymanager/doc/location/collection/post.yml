@@ -1,0 +1,40 @@
+description: Adds a new location where a warehouse is present to the database.
+tags:
+  - Locations
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: "#/components/schemas/Location"
+      examples:
+        example1:
+          value:
+            city: New York
+            country: USA
+            latitude: 40.7128
+            longitude: -74.0060
+            postal_code: 10001
+            street: 5th Avenue
+responses:
+  "201":
+    description: Location successfully created. The 'Location' header contains the URI of the new resource.
+    headers:
+      Location:
+        description: URI of the created location.
+        schema:
+          type: string
+          format: uri
+  "400":
+    description: Validation error with the input data.
+    content:
+      application/json:
+        example:
+          message: Validation error
+          errors: Details about the validation error
+  "409":
+    description: Location already exists.
+    content:
+      application/json:
+        example:
+          message: Location already exists

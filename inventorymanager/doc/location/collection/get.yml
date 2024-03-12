@@ -1,0 +1,27 @@
+description: Retrieves a list of all locations from the database, including a URI for accessing each individual location's details.
+tags:
+  - Locations
+responses:
+  "200":
+    description: A list of all warehouse locations, each with a URI to access more details.
+    content:
+      application/json:
+        schema:
+          type: array
+          # items:
+          #   $ref: "#/components/schemas/LocationWithURI"
+        example:
+          - city: "New York"
+            country: "USA"
+            latitude: 40.7128
+            longitude: -74.0060
+            postal_code: "10001"
+            street: "5th Avenue"
+            uri: "http://example.com/api/locations/1"
+          - city: "San Francisco"
+            country: "USA"
+            latitude: 37.7749
+            longitude: -122.4194
+            postal_code: "94103"
+            street: "Market Street"
+            uri: "http://example.com/api/locations/2"

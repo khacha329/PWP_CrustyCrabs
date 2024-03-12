@@ -32,10 +32,6 @@ class CatalogueCollection(Resource):
         return Response(json.dumps(body), 200)
 
     def post(self):
-        """Adds a new catalogue entry to the database
-
-        :return: Response
-        """
         try:
             validate(request.json, Catalogue.get_schema())
             item_name = request.json["item_name"]

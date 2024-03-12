@@ -1,0 +1,26 @@
+description: Deletes an existing location given a unique identifier. Returns status code 204 if the deletion is successful, or 404 if the location is not found.
+tags:
+  - Locations
+parameters:
+  - in: path
+    name: location_id
+    required: true
+    schema:
+      type: integer
+    description: Unique identifier of the location to be deleted.
+responses:
+  "204":
+    description: The location was successfully deleted. No content is returned.
+  "404":
+    description: The specified location was not found in the database.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+        examples:
+          locationNotFound:
+            value:
+              message: Location not found
