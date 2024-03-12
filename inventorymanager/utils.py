@@ -132,7 +132,7 @@ class ItemConverter(BaseConverter):
     """
 
     def to_python(self, value: int) -> Item:
-        """Converts the item id to a item object.
+        """Converts the item id to an item object.
 
         :param value: item id
         :raises NotFound: raises NotFound exception if the item is not found
@@ -145,30 +145,68 @@ class ItemConverter(BaseConverter):
         return item
 
     def to_url(self, value):
+        """
+        Converts an item object into a string value used in the URI.
+
+        :param value: item name
+        :return: The item name.
+        """
         return value.name
 
 
 class CatalogueConverter(BaseConverter):
+    """
+    Convenience class for converting catalogue id's to Catalogue objects and
+    vice versa.
+    """
 
     def to_python(self, value):
+        """Converts the catalogue id to a catalogue object.
+
+        :param value: supplier name
+        :raises NotFound: raises NotFound exception if the catalogue is not found
+        :return: catalogue object
+        """
         catalogue = Catalogue.query.filter_by(supplier_name=value).first()
         if catalogue is None:
             raise NotFound
         return catalogue
 
     def to_url(self, value):
+        """
+        Converts a catalogue object into a string value used in the URI.
+
+        :param value: supplier name
+        :return: The supplier name.
+        """
         return value.supplier_name
 
 
 class StockConverter(BaseConverter):
+    """
+    Convenience class for converting stock id's to stock objects and
+    vice versa.
+    """
 
     def to_python(self, value):
+        """Converts the stock id to a stock object.
+
+        :param value: item id 
+        :raises NotFound: raises NotFound exception if the stock is not found
+        :return: stock object
+        """
         stock = Stock.query.filter_by(item_id=value).first()
         if stock is None:
             raise NotFound
         return stock
 
     def to_url(self, value):
+        """
+        Converts a stock object into a string value used in the URI.
+
+        :param value: item id
+        :return: The item id as a string.
+        """
         return str(value.item_id)
 
 
