@@ -1,0 +1,109 @@
+---
+swagger: 2.0
+openapi: 3.0.3
+servers:
+  - url: /
+components:
+  parameters:
+    warehouse:
+      description: A unique identifier for each warehouse
+      in: path
+      name: warehouse
+      required: true
+      schema:
+        type: int
+    item:
+      description: A unique identifier for each item
+      in: path
+      name: item
+      required: true
+      schema:
+        type: string
+    supplier:
+      description: A supplier part of the catalogue
+      in: path
+      required: true
+      schema:
+        type: string
+    location:
+      description: Location of a warehouse
+      in: path
+      required: true
+      schema:
+        type: int
+  schemas:
+    Warehouse:
+      properties:
+        location_id:
+          description: Unique Identifier for the warehosue
+          type: integer
+        manager:
+          description: The responsible manager of the warehouse
+          type: string
+      required: []
+      type: object
+    Item:
+      additionalProperties: false
+      properties:
+        category:
+          description: The category to which the item belongs to
+          type: string
+        name:
+          description: The name of the item
+          type: string
+        weight:
+          description: The weight of the item
+          type: number
+      required:
+      - name
+      type: object
+    Location:
+      additionalProperties: false
+      properties:
+        city:
+          description: City
+          type: string
+        country:
+          description: Country
+          type: string
+        latitude:
+          description: Latititude
+          type: number
+        longitude:
+          description: Longitude
+          type: number
+        postal_code:
+          description: Postal Code
+          type: string
+        street:
+          description: Street
+          type: string
+      required:
+      - country
+      - postal_code
+      - city
+      - street
+      type: object
+  securitySchemes:
+    catalogueKey:
+      type: apiKey
+      name: InventoryManager-Api-Key
+      in: header
+    warehousetKey:
+      type: apiKey
+      name: InventoryManager-Api-Key
+      in: header
+info:
+  title: PWP Inventory Manager
+  version: 0.0.1
+  description: |
+    This API is the coursework for the Programmable Web Project course
+    of spring 2024. It is a Inventory manager system that manages multiple warehouses and their stocks.
+  termsOfService: http://totally.not.placehold.er/
+  contact:
+    url: http://totally.not.placehold.er/
+    email: pwp-course@lists.oulu.fi
+    name: PWP Staff List
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html

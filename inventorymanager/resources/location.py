@@ -4,25 +4,31 @@ https://github.com/enkwolf/pwp-course-sensorhub-api-example/blob/master/sensorhu
 Examples from PWP course exercise 2
 https://lovelace.oulu.fi/ohjelmoitava-web/ohjelmoitava-web/implementing-rest-apis-with-flask/#dynamic-schemas-static-methods
 """
-
+import os
 import json
 
-from flask import Response, abort, request, url_for
+from flask import Response, request, url_for
 from flask_restful import Resource
+from flasgger import swag_from
 from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
 
 from inventorymanager import db
 from inventorymanager.models import Location
-from inventorymanager.constants import *
+from inventorymanager.constants import DOC_FOLDER
 from inventorymanager.utils import create_error_response
 
 
 class LocationCollection(Resource):
     """Class for collection of warehouse locations including addresses. /api/Locations/"""
 
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}location/collection/get.yml")
     def get(self):
-        """Gets list of locations from database"""
+        """Gets all locations present in the database
+
+        Returns:
+            Array: List of all locations
+        """
         body = []
         for location in Location.query.all():
             location_json = location.serialize()
@@ -33,7 +39,13 @@ class LocationCollection(Resource):
 
         return Response(json.dumps(body), 200, mimetype="application/json")
 
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}location/collection/post.yml")
     def post(self):
+        """Add a new location to the database
+
+        Returns:
+            Response: A response object containing the URI of the new location in the header
+        """
         try:
             validate(request.json, Location.get_schema())
             location = Location()
@@ -60,17 +72,29 @@ class LocationCollection(Resource):
 class LocationItem(Resource):
     """Class for a location resource. '/api/Locations/location_id/'"""
 
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}location/item/get.yml")   
     def get(self, location_id):
+        """Retrieves location matching to the provided location_id
 
+        Args:
+            location_id (int): Unique identifier of the location
+
+        Returns:
+            string: The matching location
+        """
         location = Location.query.get(location_id)
         if not location:
             return {"message": "Location not found"}, 404
         return location.serialize(), 200
 
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}location/item/put.yml")   
     def put(self, location_id):
         """
         Updates existing location_id. Validates against JSON schema.
-        :parameter location_id: integer ID of location object
+
+        Args:
+            location_id (int): Unique identifier of the location
+
         """
         if not request.is_json:
             return {"message": "Request must be JSON"}, 415
@@ -96,9 +120,14 @@ class LocationItem(Resource):
 
         return {}, 204
 
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}location/item/delete.yml")   
     def delete(self, location_id):
         """
         Deletes existing location. Returns status code 204 if deletion is successful.
+
+        Args:
+            location_id (int): Unique identifier of the location
+
         """
         location = Location.query.get(location_id)
         if not location:

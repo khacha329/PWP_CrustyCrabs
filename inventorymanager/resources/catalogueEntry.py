@@ -21,7 +21,13 @@ class CatalogueCollection(Resource):
             body.append(catalogue_json)
 
         return Response(json.dumps(body), 200)
+    
     def post(self):
+        """_summary_
+
+        Returns:
+            _type_: _description_
+        """
         try:
             validate(request.json, Catalogue.get_schema())
             item_name = request.json['item_name']

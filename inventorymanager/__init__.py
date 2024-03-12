@@ -6,6 +6,7 @@ import os
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flasgger import Swagger
 
 from inventorymanager.config import Config
 
@@ -35,6 +36,12 @@ def create_app(test_config=None) -> Flask:
         # CACHE_DIR=os.path.join(app.instance_path, "cache"),
     )
 
+    app.config["SWAGGER"] = {
+        "title": "InventoryManger API",
+        "openapi": "3.0.3",
+        "uiversion": 3,
+    }
+
     if test_config is None:
         app.config.from_pyfile("config.py", silent=True)
     else:
@@ -49,7 +56,11 @@ def create_app(test_config=None) -> Flask:
     db.init_app(app)
     app.app_context().push()
 
-    # cache.init_app(app)
+    # Swagger 
+    Swagger(app, template_file="doc/hub.yml")
+
+    # Cache Initialization
+
 
     # CLI commands to populate db
     from inventorymanager.models import create_dummy_data, init_db_command
