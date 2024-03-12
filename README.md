@@ -62,6 +62,8 @@ black inventorymanager
 ```
 
 VS code has an extension AutoDocstring, to use set cursor directly below method and press Ctrl+Shift+2.
+To format the docstrings correctly go to settings and set:
+![alt text](/images/autodoc.png)
 
 
 ## Testing
