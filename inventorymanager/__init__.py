@@ -69,7 +69,10 @@ def create_app(test_config=None) -> Flask:
     app.cli.add_command(create_dummy_data)
 
     from inventorymanager.api import api_bp
-    from inventorymanager.utils import WarehouseConverter, ItemConverter, CatalogueConverter, StockConverter, LocationConverter
+    from inventorymanager.utils import (CatalogueConverter, ItemConverter,
+                                        LocationConverter, StockConverter,
+                                        WarehouseConverter)
+
     app.url_map.converters["warehouse"] = WarehouseConverter
     app.url_map.converters["catalogue"] = CatalogueConverter
     app.url_map.converters["stock"] = StockConverter

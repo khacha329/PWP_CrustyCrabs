@@ -16,6 +16,7 @@ from sqlalchemy.exc import IntegrityError
 from inventorymanager import db
 from inventorymanager.models import Location
 from inventorymanager.constants import DOC_FOLDER
+
 from inventorymanager.utils import create_error_response
 
 
