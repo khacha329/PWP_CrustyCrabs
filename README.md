@@ -52,13 +52,25 @@ To intialize the database and populate it with dummy data follow the [README fil
 
 
 
-## Clean Code
+## Clean Code / Documentation
+
+Run these to format code and imports:
 
 ```
 isort inventorymanager
 black inventorymanager
 ```
 
+VS code has an extension AutoDocstring, to use set cursor directly below method and press Ctrl+Shift+2.
+
+
+## Testing
+
+Run all Tests: `pytest`
+Run all Tests with coverage: `pytest --cov-report term-missing --cov=inventorymanager`
+Or Run tests in VS Code tests tab. 
+
+Postman link: https://app.getpostman.com/join-team?invite_code=a11c54208bc216362b9fde402feec912&target_code=437ef75d1e1193f934e96cb340c4f083    
 
 __Remember to include all required documentation and HOWTOs, including how to create and populate the database, how to run and test the API, the url to the entrypoint and instructions on how to setup and run the client__
 
