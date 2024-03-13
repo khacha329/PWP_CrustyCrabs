@@ -5,16 +5,21 @@ This module instantiates the Api object and adds to it all the endpoints for the
 from flask import Blueprint
 from flask_restful import Api
 
-from inventorymanager.resources.catalogueEntry import (CatalogueCollection,
-                                                       CatalogueItem, ItemList,
-                                                       SupplierItemList)
+from inventorymanager.resources.catalogue import (
+    CatalogueCollection,
+    CatalogueItem,
+    ItemList,
+    SupplierItemList,
+)
 from inventorymanager.resources.item import ItemCollection, ItemItem
-from inventorymanager.resources.location import (LocationCollection,
-                                                 LocationItem)
-from inventorymanager.resources.Stock import (ItemLookUp, StockCollection,
-                                              StockItem, WarehouseLookUp)
-from inventorymanager.resources.warehouse import (WarehouseCollection,
-                                                  WarehouseItem)
+from inventorymanager.resources.location import LocationCollection, LocationItem
+from inventorymanager.resources.Stock import (
+    ItemLookUp,
+    StockCollection,
+    StockItem,
+    WarehouseLookUp,
+)
+from inventorymanager.resources.warehouse import WarehouseCollection, WarehouseItem
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 
