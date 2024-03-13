@@ -21,14 +21,15 @@ from inventorymanager.utils import create_error_response
 
 
 class LocationCollection(Resource):
-    """Class for collection of warehouse locations including addresses. /api/Locations/"""
+    """
+    Class for collection of warehouse locations including addresses. /api/Locations/
+    """
 
     @swag_from(os.getcwd() + f"{DOC_FOLDER}location/collection/get.yml")
     def get(self):
         """Gets all locations present in the database
 
-        Returns:
-            Array: List of all locations
+        :return: List of all locations
         """
         body = []
         for location in Location.query.all():
@@ -44,8 +45,7 @@ class LocationCollection(Resource):
     def post(self):
         """Add a new location to the database
 
-        Returns:
-            Response: A response object containing the URI of the new location in the header
+        :return: A response object containing the URI of the new location in the header
         """
         try:
             validate(request.json, Location.get_schema())
@@ -77,11 +77,8 @@ class LocationItem(Resource):
     def get(self, location_id):
         """Retrieves location matching to the provided location_id
 
-        Args:
-            location_id (int): Unique identifier of the location
-
-        Returns:
-            string: The matching location
+        :param location_id: Unique identifier of the location
+        :return: string: The matching location
         """
         location = Location.query.get(location_id)
         if not location:
@@ -90,12 +87,10 @@ class LocationItem(Resource):
 
     @swag_from(os.getcwd() + f"{DOC_FOLDER}location/item/put.yml")   
     def put(self, location_id):
-        """
-        Updates existing location_id. Validates against JSON schema.
+        """Updates existing location_id. Validates against JSON schema.
 
-        Args:
-            location_id (int): Unique identifier of the location
-
+        :param location_id: Unique identifier of the location
+        :return: location_id: Updated location_id
         """
         if not request.is_json:
             return {"message": "Request must be JSON"}, 415
@@ -123,12 +118,10 @@ class LocationItem(Resource):
 
     @swag_from(os.getcwd() + f"{DOC_FOLDER}location/item/delete.yml")   
     def delete(self, location_id):
-        """
-        Deletes existing location. Returns status code 204 if deletion is successful.
+        """Deletes existing location. Returns status code 204 if deletion is successful.
 
-        Args:
-            location_id (int): Unique identifier of the location
-
+        :param location_id: Unique identifier of the location
+        :return: status code 204 if deletion is successful
         """
         location = Location.query.get(location_id)
         if not location:
@@ -137,21 +130,3 @@ class LocationItem(Resource):
         db.session.commit()
 
         return Response(status=204)
-
-
-# app.url_map.converters['db_location'] = LocationConverter
-
-
-# class SensorItem(Resource):
-
-# @cache.cached()
-# def get(self, sensor):
-# db_sensor = Sensor.query.filter_by(name=sensor).first()
-# if db_sensor is None:
-# raise NotFound
-# body = {
-# "name": db_sensor.name,
-# "model": db_sensor.model,
-# "location": db_sensor.location.description
-# }
-# return Response(json.dumps(body), 200, mimetype=JSON)
