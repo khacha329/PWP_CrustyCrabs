@@ -14,6 +14,7 @@ from inventorymanager.utils import create_error_response
 class WarehouseCollection(Resource):
     """
     Resource for the collection of warehouses, provides GET and POST methods
+    /warehouses/
     """
 
     def get(self):
@@ -24,9 +25,7 @@ class WarehouseCollection(Resource):
         body = []
         for warehouse in Warehouse.query.all():
             warehouse_json = warehouse.serialize()
-            warehouse_json["uri"] = url_for(
-                "api.warehouseitem", warehouse=warehouse.warehouse_id
-            )
+            warehouse_json["uri"] = url_for("api.warehouseitem", warehouse=warehouse)
             body.append(warehouse_json)
 
         return Response(json.dumps(body), 200)
@@ -52,17 +51,14 @@ class WarehouseCollection(Resource):
         # if api fails after this line, resource will be added to db anyway
         return Response(
             status=201,
-            headers={
-                "Location": url_for(
-                    "api.warehouseitem", warehouse=warehouse.warehouse_id
-                )
-            },
+            headers={"Location": url_for("api.warehouseitem", warehouse=warehouse)},
         )
 
 
 class WarehouseItem(Resource):
     """
     Resource for a single warehouse, provides GET, PUT and DELETE methods
+    /warehouses/<warehouse:warehouse>/
     """
 
     def get(self, warehouse):
@@ -71,16 +67,12 @@ class WarehouseItem(Resource):
         :param warehouse: warehouse id of the warehouse to return
         :return: Response
         """
-        warehouse = Warehouse.query.get(warehouse)
-        if not warehouse:
-            return create_error_response(404, "Warehouse doesn't exist")
-        location = Location.query.get(warehouse.location_id)
+
+        location = warehouse.location
         location_json = location.serialize()
         # Retrieve the stock entry based on warehouse ID and item ID
         warehouse_json = warehouse.serialize()
-        warehouse_json["uri"] = url_for(
-            "api.warehouseitem", warehouse=warehouse.warehouse_id
-        )
+        warehouse_json["uri"] = url_for("api.warehouseitem", warehouse=warehouse)
         body = []
         body.append(warehouse_json)
         body.append(location_json)
@@ -90,12 +82,9 @@ class WarehouseItem(Resource):
     def put(self, warehouse: Warehouse):
         """updates a single warehouse in the database
 
-        :param warehouse: warehouse id of the warehouse to update
+        :param warehouse: warehouse
         :return: Response
         """
-        warehouse = Warehouse.query.get(warehouse)
-        if not warehouse:
-            return create_error_response(404, "Warehouse doesn't exist")
         try:
             validate(request.json, Warehouse.get_schema())
             warehouse.deserialize(request.json)
@@ -119,9 +108,6 @@ class WarehouseItem(Resource):
         :param warehouse: warehouse id of the warehouse to delete
         :return: Response
         """
-        warehouse = Warehouse.query.get(warehouse)
-        if not warehouse:
-            return create_error_response(404, "Warehouse doesn't exist")
         db.session.delete(warehouse)
         db.session.commit()
 

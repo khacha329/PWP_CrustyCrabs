@@ -14,7 +14,9 @@ from inventorymanager.utils import create_error_response
 class StockCollection(Resource):
     """
     Resource for the collection of stocks, provides GET and POST methods
+    /stocks/
     """
+
     def get(self):
         """Returns a list of all stocks in the database
 
@@ -22,10 +24,9 @@ class StockCollection(Resource):
         """
         body = []
         for stock in Stock.query.all():
-            item = Item.query.filter_by(item_id=stock.item_id).first()
             stock_json = stock.serialize()
             stock_json["uri"] = url_for(
-                "api.stockitem", warehouse=stock.warehouse_id, item=item.name
+                "api.stockitem", warehouse=stock.warehouse, item=stock.item
             )
             body.append(stock_json)
 
@@ -43,7 +44,10 @@ class StockCollection(Resource):
             if not item_entry:
                 return create_error_response(404, "Item doesn't exist")
             warehouse_id = request.json["warehouse_id"]
-            stock = Stock(item_id=item_entry.item_id, warehouse_id=warehouse_id)
+            warehouse_entry = Warehouse.query.filter_by(
+                warehouse_id=warehouse_id
+            ).first()
+            stock = Stock(item=item_entry, warehouse=warehouse_entry)
             stock.deserialize(request.json)
 
             db.session.add(stock)
@@ -62,7 +66,7 @@ class StockCollection(Resource):
             status=201,
             headers={
                 "Location": url_for(
-                    "api.stockitem", warehouse=warehouse_id, item=item_entry.name
+                    "api.stockitem", warehouse=stock.warehouse, item=stock.item
                 )
             },
         )
@@ -71,47 +75,33 @@ class StockCollection(Resource):
 class StockItem(Resource):
     """
     Resource for a single stock, provides GET, PUT and DELETE methods
+    /stocks/<warehouse:warehouse>/item/<item:item>/
     """
-    def get(self, warehouse, item):
+
+    def get(self, warehouse: Warehouse, item: Item):
         """returns a single stock in the database
 
         :param warehouse: warehouse id of the stock to return
         :param item: item name of the stock to return
         :return: Response
         """
-        item_name = item.replace("_", " ")
-        item = Item.query.filter_by(name=item_name).first()
-        if not item:
-            return create_error_response(404, "Item doesn't exist")
 
-        # Retrieve the stock entry based on warehouse ID and item ID
-        stock_entry = Stock.query.filter_by(
-            warehouse=warehouse, item_id=item.item_id
-        ).first()
+        stock_entry = Stock.query.filter_by(warehouse=warehouse, item=item).first()
         if not stock_entry:
             return create_error_response(404, "Stock entry not found ")
         stock_json = stock_entry.serialize()
-        stock_json["uri"] = url_for(
-            "api.stockitem", warehouse=warehouse.warehouse_id, item=item_name
-        )
+        stock_json["uri"] = url_for("api.stockitem", warehouse=warehouse, item=item)
         return Response(json.dumps(stock_json), 200)
 
-    def put(self, warehouse: int, item: str):
+    def put(self, warehouse: Warehouse, item: Item):
         """Updates a stock in the database
 
         :param warehouse: warehouse id of the stock to update
         :param item: item name of the stock to update
         :return: Response
         """
-        item_name = item.replace("_", " ")
-        item = Item.query.filter_by(name=item_name).first()
-        if not item:
-            return create_error_response(404, "Item doesn't exist")
 
-        # Retrieve the stock entry based on warehouse ID and item ID
-        stock_entry = Stock.query.filter_by(
-            item_id=item.item_id, warehouse=warehouse
-        ).first()
+        stock_entry = Stock.query.filter_by(item=item, warehouse=warehouse).first()
         if not stock_entry:
             return create_error_response(404, "Stock entry not found ")
         try:
@@ -131,22 +121,15 @@ class StockItem(Resource):
 
         return Response(status=204)
 
-    def delete(self, warehouse: int, item: str):
+    def delete(self, warehouse: Warehouse, item: Item):
         """Deletes a stock in the database
 
         :param warehouse: warehouse id of the stock to delete
         :param item: item name of the stock to delete
         :return: Response
         """
-        item_name = item.replace("_", " ")
-        item = Item.query.filter_by(name=item_name).first()
-        if not item:
-            return create_error_response(404, "Item doesn't exist")
 
-        # Retrieve the stock entry based on warehouse ID and item ID
-        stock_entry = Stock.query.filter_by(
-            item_id=item.item_id, warehouse=warehouse
-        ).first()
+        stock_entry = Stock.query.filter_by(item=item, warehouse=warehouse).first()
         if not stock_entry:
             return create_error_response(404, "Stock entry not found ")
         db.session.delete(stock_entry)
@@ -155,54 +138,46 @@ class StockItem(Resource):
         return Response(status=204)
 
 
-class ItemLookUp(Resource):
+class StockItemCollection(Resource):
     """
     Resource for the collection of stocks filtered by item, provides GET method
+    /stocks/item/<item:item>/
     """
-    def get(self, item):
+
+    def get(self, item: Item):
         """Returns a list of stocks in the database filtered by item name
-        
+
         :param item: item name to filter stocks with
         :return: Response
         """
-        item_name = item.replace("_", " ")
-        item = Item.query.filter_by(name=item_name).first()
 
-        if not item:
-            return create_error_response(404, "Item doesn't exist")
         body = []
-        for stock_entry in Stock.query.filter_by(item_id=item.item_id).all():
+        for stock_entry in Stock.query.filter_by(item=item).all():
             stock_json = stock_entry.serialize()
             stock_json["uri"] = url_for(
-                "api.stockitem", warehouse=stock_entry.warehouse_id, item=item.name
+                "api.stockitem", warehouse=stock_entry.warehouse, item=item
             )
             body.append(stock_json)
         return Response(json.dumps(body), 200)
 
 
-class WarehouseLookUp(Resource):
+class StockWarehouseCollection(Resource):
     """
     Resource for the collection of stocks filtered by name, provides GET method
+    /stocks/warehouse/<warehouse:warehouse>/
     """
-    def get(self, warehouse: int):
+
+    def get(self, warehouse: Warehouse):
         """Returns a list of stocks in the database filtered by warehouse id
-        
+
         :param warehouse: warehouse id to filter stocks with
         :return: Response
         """
-        warehouse_entry = Warehouse.query.filter_by(
-            warehouse_id=warehouse.warehouse_id
-        ).first()
-        if not warehouse_entry:
-            return create_error_response(404, "Warehouse entry not found ")
         body = []
-        for stock_entry in Stock.query.filter_by(
-            warehouse_id=warehouse_entry.warehouse_id
-        ).all():
-            item = Item.query.filter_by(item_id=stock_entry.item_id).first()
-            stock_json = stock_entry.serialize()
+        for stock in Stock.query.filter_by(warehouse=warehouse).all():
+            stock_json = stock.serialize()
             stock_json["uri"] = url_for(
-                "api.stockitem", warehouse=stock_entry.warehouse_id, item=item.name
+                "api.stockitem", warehouse=stock.warehouse, item=stock.item
             )
             body.append(stock_json)
         return Response(json.dumps(body), 200)

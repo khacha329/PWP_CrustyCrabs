@@ -14,7 +14,9 @@ from inventorymanager.utils import create_error_response
 class CatalogueCollection(Resource):
     """
     Resource for the collection of catalogue entries, provides GET and POST methods
+    /catalogue/
     """
+
     def get(self):
         """Returns a list of all catalogue entries in the database
 
@@ -22,10 +24,12 @@ class CatalogueCollection(Resource):
         """
         body = []
         for catalogue in Catalogue.query.all():
-            item = Item.query.filter_by(item_id=catalogue.item_id).first()
+
             catalogue_json = catalogue.serialize()
             catalogue_json["uri"] = url_for(
-                "api.catalogueitem", supplier=catalogue.supplier_name, item=item.name
+                "api.catalogueitem",
+                supplier=catalogue.supplier_name,
+                item=catalogue.item,
             )
             body.append(catalogue_json)
 
@@ -34,12 +38,11 @@ class CatalogueCollection(Resource):
     def post(self):
         try:
             validate(request.json, Catalogue.get_schema())
-            item_name = request.json["item_name"]
-            item_entry = Item.query.filter_by(name=item_name).first()
+            item_entry = Item.query.filter_by(name=request.json["item_name"]).first()
 
             if not item_entry:
                 return create_error_response(404, "Item doesn't exist")
-            catalogue = Catalogue(item_id=item_entry.item_id)
+            catalogue = Catalogue(item=item_entry)
             catalogue.deserialize(request.json)
 
             db.session.add(catalogue)
@@ -57,7 +60,7 @@ class CatalogueCollection(Resource):
                 "Location": url_for(
                     "api.catalogueitem",
                     supplier=catalogue.supplier_name,
-                    item=item_entry.name,
+                    item=catalogue.item,
                 )
             },
         )
@@ -66,7 +69,9 @@ class CatalogueCollection(Resource):
 class CatalogueItem(Resource):
     """
     Resource for a single catalogue entry, provides GET, PUT and DELETE methods
+    /catalogue/supplier/<string:supplier>/item/<item:item>/
     """
+
     def get(self, supplier, item):
         """returns a single catalogue entry in the database
 
@@ -74,20 +79,14 @@ class CatalogueItem(Resource):
         :param item: item name of the catalogue entry to return
         :return: Response
         """
-        item_name = item.replace("_", " ")
-        item = Item.query.filter_by(name=item_name).first()
-        supplier_name = supplier.replace("_", " ")
-
-        if not item:
-            return create_error_response(404, "Item doesn't exist")
         catalogue_entry = Catalogue.query.filter_by(
-            supplier_name=supplier_name, item_id=item.item_id
+            supplier_name=supplier, item=item
         ).first()
         if not catalogue_entry:
             return create_error_response(404, "Catalogue entry doesn't exist")
         catalogue_json = catalogue_entry.serialize()
         catalogue_json["uri"] = url_for(
-            "api.catalogueitem", supplier=supplier_name, item=item.name
+            "api.catalogueitem", supplier=supplier, item=item
         )
         return Response(json.dumps(catalogue_json), 200)
 
@@ -98,13 +97,9 @@ class CatalogueItem(Resource):
         :param item: item name of the catalogue entry to update
         :return: Response
         """
-        item_name = item.replace("_", " ")
-        item = Item.query.filter_by(name=item_name).first()
-        supplier_name = supplier.replace("_", " ")
-        if not item:
-            return create_error_response(404, "Item doesn't exist")
+
         catalogue_entry = Catalogue.query.filter_by(
-            supplier_name=supplier_name, item_id=item.item_id
+            supplier_name=supplier, item_id=item
         ).first()
         if not catalogue_entry:
             return create_error_response(404, "Catalogue entry doesn't exist")
@@ -120,7 +115,7 @@ class CatalogueItem(Resource):
             return create_error_response(
                 409,
                 "Already exists",
-                "Catalogue with name '{}' already exists.".format(request.json["name"]),
+                "Catalogue already exists",
             )
 
         return Response(status=204)
@@ -132,15 +127,10 @@ class CatalogueItem(Resource):
         :param item: item name of the catalogue entry to delete
         :return: Response
         """
-        item_name = item.replace("_", " ")
-        item = Item.query.filter_by(name=item_name).first()
-        supplier_name = supplier.replace("_", " ")
-        if not item:
-            return create_error_response(404, "Item doesn't exist")
 
         # Retrieve the catalogue entry entry based item ID and supplier name
         catalogue_entry = Catalogue.query.filter_by(
-            supplier_name=supplier_name, item_id=item.item_id
+            supplier_name=supplier, item=item
         ).first()
         if not catalogue_entry:
             return create_error_response(404, "Catalogue entry doesn't exist")
@@ -150,55 +140,51 @@ class CatalogueItem(Resource):
         return Response(status=204)
 
 
-class ItemList(Resource):
+class CatalogueItemCollection(Resource):
     """
-    Resource for the collection of catalogue entries filtered by item, provides GET method
+    Resource for the  ollection of catalogue entries filtered by item, provides GET method
+    /catalogue/item/<item:item>/
     """
-    def get(self, item):
+
+    def get(self, item: Item):
         """Returns a list of catalogue entries in the database filtered by item name
-        
+
         :param item: item name to filter catalogue entry with
         :return: Response
         """
-        item_name = item.replace("_", " ")
-        item = Item.query.filter_by(name=item_name).first()
 
-        if not item:
-            return create_error_response(404, "Item doesn't exist")
         body = []
-        for catalogue_entry in Catalogue.query.filter_by(item_id=item.item_id).all():
-            catalogue_json = catalogue_entry.serialize()
+        for catalogue in Catalogue.query.filter_by(item=item).all():
+            catalogue_json = catalogue.serialize()
             catalogue_json["uri"] = url_for(
                 "api.catalogueitem",
-                supplier=catalogue_entry.supplier_name,
-                item=item.name,
+                supplier=catalogue.supplier_name,
+                item=item,
             )
             body.append(catalogue_json)
         return Response(json.dumps(body), 200)
 
 
-class SupplierItemList(Resource):
+class CatalogueSupplierCollection(Resource):
     """
     Resource for the collection of catalogue entries filtered by supplier, provides GET method
+    /catalogue/supplier/<string:supplier>/
     """
-    def get(self, supplier):
+
+    def get(self, supplier: str):
         """Returns a list of catalogue entries in the database filtered by supplier name
-        
+
         :param supplier: supplier name to filter catalogue entry with
         :return: Response
         """
-        supplier = supplier.replace("_", " ")
 
-        if not supplier:
-            return create_error_response(400, "Item doesn't exist")
         body = []
-        for catalogue_entry in Catalogue.query.filter_by(supplier_name=supplier).all():
-            item = Item.query.filter_by(item_id=catalogue_entry.item_id).first()
-            catalogue_json = catalogue_entry.serialize()
+        for catalogue in Catalogue.query.filter_by(supplier_name=supplier).all():
+            catalogue_json = catalogue.serialize()
             catalogue_json["uri"] = url_for(
                 "api.catalogueitem",
-                supplier=catalogue_entry.supplier_name,
-                item=item.name,
+                supplier=catalogue.supplier_name,
+                item=catalogue.item,
             )
             body.append(catalogue_json)
         return Response(json.dumps(body), 200)

@@ -4,6 +4,7 @@ https://github.com/enkwolf/pwp-course-sensorhub-api-example/blob/master/sensorhu
 Examples from PWP course exercise 2
 https://lovelace.oulu.fi/ohjelmoitava-web/ohjelmoitava-web/implementing-rest-apis-with-flask/#dynamic-schemas-static-methods
 """
+
 import os
 import json
 
@@ -21,7 +22,9 @@ from inventorymanager.utils import create_error_response
 
 
 class LocationCollection(Resource):
-    """Class for collection of warehouse locations including addresses. /api/Locations/"""
+    """Class for collection of warehouse locations including addresses.
+    /locations/
+    """
 
     @swag_from(os.getcwd() + f"{DOC_FOLDER}location/collection/get.yml")
     def get(self):
@@ -33,9 +36,7 @@ class LocationCollection(Resource):
         body = []
         for location in Location.query.all():
             location_json = location.serialize()
-            location_json["uri"] = url_for(
-                "api.locationitem", location_id=location.location_id, _external=True
-            )
+            location_json["uri"] = url_for("api.locationitem", location=location)
             body.append(location_json)
 
         return Response(json.dumps(body), 200, mimetype="application/json")
@@ -62,39 +63,37 @@ class LocationCollection(Resource):
             db.session.rollback()
             return {"message": "Location already exists"}, 409
 
-        location_uri = url_for(
-            "api.locationitem", location_id=location.location_id, _external=True
+        return Response(
+            status=201,
+            headers={"Location": url_for("api.locationitem", location=location)},
         )
-        response = Response(status=201)
-        response.headers["Location"] = location_uri
-        return response
 
 
 class LocationItem(Resource):
-    """Class for a location resource. '/api/Locations/location_id/'"""
+    """Class for a location resource.
+    /locations/<location:location>/
+    """
 
-    @swag_from(os.getcwd() + f"{DOC_FOLDER}location/item/get.yml")   
-    def get(self, location_id):
-        """Retrieves location matching to the provided location_id
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}location/item/get.yml")
+    def get(self, location):
+        """Retrieves location
 
         Args:
-            location_id (int): Unique identifier of the location
+            location: location
 
         Returns:
             string: The matching location
         """
-        location = Location.query.get(location_id)
-        if not location:
-            return {"message": "Location not found"}, 404
+
         return location.serialize(), 200
 
-    @swag_from(os.getcwd() + f"{DOC_FOLDER}location/item/put.yml")   
-    def put(self, location_id):
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}location/item/put.yml")
+    def put(self, location):
         """
         Updates existing location_id. Validates against JSON schema.
 
         Args:
-            location_id (int): Unique identifier of the location
+            location : location
 
         """
         if not request.is_json:
@@ -105,10 +104,6 @@ class LocationItem(Resource):
             validate(instance=data, schema=Location.get_schema())
         except ValidationError as e:
             return {"message": "Validation error", "errors": str(e)}, 400
-
-        location = Location.query.get(location_id)
-        if not location:
-            return {"message": "Location not found"}, 404
 
         location.deserialize(data)
 
@@ -121,37 +116,18 @@ class LocationItem(Resource):
 
         return {}, 204
 
-    @swag_from(os.getcwd() + f"{DOC_FOLDER}location/item/delete.yml")   
-    def delete(self, location_id):
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}location/item/delete.yml")
+    def delete(self, location):
         """
         Deletes existing location. Returns status code 204 if deletion is successful.
 
         Args:
-            location_id (int): Unique identifier of the location
+            location: location
 
         """
-        location = Location.query.get(location_id)
-        if not location:
-            return {"message": "Location not found"}, 404
         db.session.delete(location)
         db.session.commit()
 
         return Response(status=204)
 
 
-# app.url_map.converters['db_location'] = LocationConverter
-
-
-# class SensorItem(Resource):
-
-# @cache.cached()
-# def get(self, sensor):
-# db_sensor = Sensor.query.filter_by(name=sensor).first()
-# if db_sensor is None:
-# raise NotFound
-# body = {
-# "name": db_sensor.name,
-# "model": db_sensor.model,
-# "location": db_sensor.location.description
-# }
-# return Response(json.dumps(body), 200, mimetype=JSON)

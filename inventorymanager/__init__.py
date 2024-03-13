@@ -56,11 +56,10 @@ def create_app(test_config=None) -> Flask:
     db.init_app(app)
     app.app_context().push()
 
-    # Swagger 
+    # Swagger
     Swagger(app, template_file="doc/hub.yml")
 
     # Cache Initialization
-
 
     # CLI commands to populate db
     from inventorymanager.models import create_dummy_data, init_db_command
@@ -69,13 +68,13 @@ def create_app(test_config=None) -> Flask:
     app.cli.add_command(create_dummy_data)
 
     from inventorymanager.api import api_bp
-    from inventorymanager.utils import (CatalogueConverter, ItemConverter,
-                                        LocationConverter, StockConverter,
-                                        WarehouseConverter)
+    from inventorymanager.utils import (
+        ItemConverter,
+        LocationConverter,
+        WarehouseConverter,
+    )
 
     app.url_map.converters["warehouse"] = WarehouseConverter
-    app.url_map.converters["catalogue"] = CatalogueConverter
-    app.url_map.converters["stock"] = StockConverter
     app.url_map.converters["item"] = ItemConverter
     app.url_map.converters["location"] = LocationConverter
     app.register_blueprint(api_bp)

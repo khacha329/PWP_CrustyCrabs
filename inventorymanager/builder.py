@@ -158,7 +158,7 @@ class InventoryManagerBuilder(MasonBuilder):
 
     def add_control_all_catalogue(self) -> None:
         self.add_control(
-            f"{NAMESPACE}:catalogueEntries-all",
+            f"{NAMESPACE}:catalogues-all",
             url_for("api.cataloguecollection"),
             method="GET",
             title="All catalogue",

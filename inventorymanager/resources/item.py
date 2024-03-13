@@ -22,6 +22,7 @@ from inventorymanager.builder import InventoryManagerBuilder
 class ItemCollection(Resource):
     """
     Resource for the collection of items, provides GET and POST methods
+    /items/
     """
 
     def get(self) -> Response:
@@ -29,13 +30,22 @@ class ItemCollection(Resource):
 
         :return: Response
         """
-        body = []
-        for item in Item.query.all():
-            item_json = item.serialize()
-            item_json["uri"] = url_for("api.itemitem", item=item)
-            body.append(item_json)
 
-        return Response(json.dumps(body), 200)
+        body = InventoryManagerBuilder(items=[])
+        body.add_namespace(NAMESPACE, LINK_RELATIONS_URL)
+        body.add_control("self", url_for("api.itemcollection"))
+
+        for item_object in Item.query.all():
+            item = InventoryManagerBuilder(item_object.serialize())
+            item.add_control("self", url_for("api.itemitem", item=item_object))
+            item.add_control("profile", INVENTORY_PROFILE)
+            body["items"].append(item)
+
+        body.add_control_all_catalogue()
+        body.add_control_all_stock()
+        body.add_control_all_warehouses()
+
+        return Response(json.dumps(body), 200, mimetype=MASON)
 
     def post(self) -> Response:
         """Adds a new item to the database
@@ -64,12 +74,14 @@ class ItemCollection(Resource):
 class ItemItem(Resource):
     """
     Resource for a single item, provides PUT and DELETE methods
+    /items/<item:item>/
     """
 
-    def get(self, item: Item) -> None:
-        """placeholder
+    def get(self, item: Item) -> Response:
+        """returns a single item
 
-        :param item: placeholders
+        :param item: item to return
+        :return: Response
         """
         if not item:
             return create_error_response(404, "Item doesn't exist")
@@ -85,6 +97,7 @@ class ItemItem(Resource):
         body.add_control_delete("Delete this item", self_url)
         body.add_control_all_catalogue()
         body.add_control_all_stock()
+        body.add_control
 
         return Response(json.dumps(body), 200, mimetype=MASON)
 
@@ -119,8 +132,7 @@ class ItemItem(Resource):
         :param item: item to delete
         :return: Response
         """
-        if not item:
-            return create_error_response(404, "Item doesn't exist")
+
         db.session.delete(item)
         db.session.commit()
 

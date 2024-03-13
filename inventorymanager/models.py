@@ -263,8 +263,8 @@ class Stock(db.Model):
             "type": "object",
             "properties": {
                 "item_name": {"type": "string"},
-                "warehouse_id": {"type": "int"},
-                "quantity": {"type": "integer"},
+                "warehouse_id": {"type": "number"},
+                "quantity": {"type": "number"},
                 "shelf_price": {"type": "number"},
             },
             "required": ["quantity"],
