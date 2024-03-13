@@ -10,6 +10,13 @@ from sqlalchemy.exc import IntegrityError
 from inventorymanager import db
 from inventorymanager.models import Item
 from inventorymanager.utils import create_error_response
+from inventorymanager.constants import (
+    MASON,
+    LINK_RELATIONS_URL,
+    NAMESPACE,
+    INVENTORY_PROFILE,
+)
+from inventorymanager.builder import InventoryManagerBuilder
 
 
 class ItemCollection(Resource):
@@ -66,7 +73,20 @@ class ItemItem(Resource):
         """
         if not item:
             return create_error_response(404, "Item doesn't exist")
-        pass
+
+        self_url = url_for("api.itemitem", item=item)
+        body = InventoryManagerBuilder(item.serialize())
+
+        body.add_namespace(NAMESPACE, LINK_RELATIONS_URL)
+        body.add_control("self", self_url)
+        body.add_control("profile", INVENTORY_PROFILE)
+        body.add_control("collection", url_for("api.itemcollection"))
+        body.add_control_put("Modify this item", self_url, Item.get_schema())
+        body.add_control_delete("Delete this item", self_url)
+        body.add_control_all_catalogue()
+        body.add_control_all_stock()
+
+        return Response(json.dumps(body), 200, mimetype=MASON)
 
     def put(self, item: Item) -> Response:
         """Updates an item in the database
