@@ -97,7 +97,7 @@ class ItemItem(Resource):
         body.add_control_delete("Delete this item", self_url)
         body.add_control_all_catalogue()
         body.add_control_all_stock()
-        body.add_control
+        body.add_control_all_catalogue_items(item)
 
         return Response(json.dumps(body), 200, mimetype=MASON)
 
