@@ -41,6 +41,9 @@ class ItemCollection(Resource):
             item.add_control("profile", INVENTORY_PROFILE)
             body["items"].append(item)
 
+        body.add_control_post(
+            "add-item", "Add new item", url_for("api.itemcollection"), Item.get_schema()
+        )
         body.add_control_all_catalogue()
         body.add_control_all_stock()
         body.add_control_all_warehouses()

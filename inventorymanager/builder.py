@@ -88,7 +88,12 @@ class MasonBuilder(dict):
         """
 
         self.add_control(
-            ctrl_name, href, method="POST", encoding="json", title=title, schema=schema
+            f"{NAMESPACE}:{ctrl_name}",
+            href,
+            method="POST",
+            encoding="json",
+            title=title,
+            schema=schema,
         )
 
     def add_control_put(self, title, href, schema):
@@ -178,4 +183,28 @@ class InventoryManagerBuilder(MasonBuilder):
             url_for("api.catalogueitemcollection", item=item),
             method="GET",
             title="All catalogue entries for this item",
+        )
+
+    def add_control_get_item(self, item: Item) -> None:
+        self.add_control(
+            f"{NAMESPACE}:item",
+            url_for("api.itemitem", item=item),
+            method="GET",
+            title="Get item",
+        )
+
+    def add_control_get_warehouse(self, warehouse: Warehouse) -> None:
+        self.add_control(
+            f"{NAMESPACE}:warehouse",
+            url_for("api.warehouseitem", warehouse=warehouse),
+            method="GET",
+            title="Get warehouse",
+        )
+
+    def add_control_all_stock_items(self, item: Item) -> None:
+        self.add_control(
+            f"{NAMESPACE}:stock-items-all",
+            url_for("api.stockitemcollection", item=item),
+            method="GET",
+            title="All stock entries for this item",
         )

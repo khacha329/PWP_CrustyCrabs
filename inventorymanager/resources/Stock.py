@@ -2,6 +2,7 @@ import json
 
 from flask import Response, abort, request, url_for
 from flask_restful import Resource
+from inventorymanager.builder import InventoryManagerBuilder
 from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
@@ -22,13 +23,28 @@ class StockCollection(Resource):
 
         :return: Response
         """
-        body = []
+
+        body = InventoryManagerBuilder(items=[])
+        body.add_namespace(NAMESPACE, LINK_RELATIONS_URL)
+        body.add_control("self", url_for("api.stockcollection"))
+
         for stock in Stock.query.all():
-            stock_json = stock.serialize()
-            stock_json["uri"] = url_for(
-                "api.stockitem", warehouse=stock.warehouse, item=stock.item
+            item = InventoryManagerBuilder(stock.serialize())
+            item.add_control(
+                "self",
+                url_for("api.stockitem", warehouse=stock.warehouse, item=stock.item),
             )
-            body.append(stock_json)
+            item.add_control("profile", INVENTORY_PROFILE)
+            body["items"].append(item)
+
+        body.add_control_post(
+            "add-stock",
+            "Add new stock",
+            url_for("api.stockcollection"),
+            Stock.get_schema(),
+        )
+        body.add_control_all_items()
+        body.add_control_all_warehouses()
 
         return Response(json.dumps(body), 200)
 
@@ -86,11 +102,29 @@ class StockItem(Resource):
         :return: Response
         """
 
-        stock_entry = Stock.query.filter_by(warehouse=warehouse, item=item).first()
-        if not stock_entry:
+        stock = Stock.query.filter_by(warehouse=warehouse, item=item).first()
+        if not stock:
             return create_error_response(404, "Stock entry not found ")
-        stock_json = stock_entry.serialize()
-        stock_json["uri"] = url_for("api.stockitem", warehouse=warehouse, item=item)
+
+        self_url = url_for("api.stockitem", warehouse=warehouse, item=item)
+        body = InventoryManagerBuilder(stock.serialize())
+
+        body.add_namespace(NAMESPACE, LINK_RELATIONS_URL)
+        body.add_control("self", self_url)
+        body.add_control("profile", INVENTORY_PROFILE)
+        body.add_control("collection", url_for("api.stockcollection"))
+        body.add_control_put("Modify this stock", self_url, Stock.get_schema())
+        body.add_control_delete("Delete this stock", self_url)
+        body.add_control_get_warehouse(warehouse)
+        body.add_control_get_item(item)
+        body.add_control_all_stock_items(item)
+
+        # body.add_control_all_catalogue()
+        # body.add_control_all_stock()
+        # body.add_control_all_catalogue_items(item)
+
+        return Response(json.dumps(body), 200, mimetype=MASON)
+
         return Response(json.dumps(stock_json), 200)
 
     def put(self, warehouse: Warehouse, item: Item):
