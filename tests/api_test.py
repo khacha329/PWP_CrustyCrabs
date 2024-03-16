@@ -34,12 +34,13 @@ def client():
     
     app = create_app(config)
     
-    with app.app_context():
-        db.create_all()
-        _populate_db() #couldn't get create_dummy_data to work
+   # with app.app_context():
+    db.create_all()
+    _populate_db() #couldn't get create_dummy_data to work
         
     yield app.test_client()
-    
+
+    db.session.remove()
     os.close(db_fd)
     os.unlink(db_fname)
 
@@ -188,7 +189,7 @@ def _get_catalogue_json(number=2):
 #     assert resp.status_code == 201
 
 class TestLocationCollection(object):
-    RESOURCE_URL = "/api/location/"
+    RESOURCE_URL = "/api/locations/"
 
     def test_get(self, client):
         resp = client.get(self.RESOURCE_URL)
@@ -202,7 +203,7 @@ class TestLocationCollection(object):
             assert resp.status_code == 200
 
     def test_post(self, client):
-        valid = _get_item_json()
+        valid = _get_location_json()
 
         # test with wrong content type
         resp = client.post(self.RESOURCE_URL, data="notjson")
@@ -211,7 +212,7 @@ class TestLocationCollection(object):
         # test with valid and see that it exists afterward
         resp = client.post(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 201
-        assert resp.headers["Location"].endswith(self.RESOURCE_URL + valid["name"] + "/")
+        assert resp.headers["Location"].endswith(self.RESOURCE_URL + valid["location.id"] + "/")
         resp = client.get(resp.headers["Location"])
         assert resp.status_code == 200
 
@@ -243,7 +244,7 @@ class TestItemCollection(object):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        assert len(body) == 2
+        assert len(body["items"]) == 3
 
         for item in body:
 
@@ -324,7 +325,7 @@ class TestItemItem(object):
             resp = client.delete(self.RESOURCE_URL)
         db.session.rollback()
         # delete the stock 
-        db.session.delete(Stock.query.filter_by(Item_id=1).first())
+        db.session.delete(Stock.query.filter_by(item_id=1).first())
         resp = client.delete(self.RESOURCE_URL)
         assert resp.status_code == 204
 
@@ -335,13 +336,13 @@ class TestItemItem(object):
 
 class TestWarehouseCollection(object):
     
-    RESOURCE_URL = "api/warehouses/"
+    RESOURCE_URL = "/api/warehouses/"
 
     def test_get(self, client: FlaskClient):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        assert len(body) == 3
+        assert len(body) == 2
 
         for warehouse in body:
 
@@ -375,8 +376,8 @@ class TestWarehouseCollection(object):
 
 class TestWarehouseItem(object):
     
-    RESOURCE_URL = "/api/warehouse/1/"
-    INVALID_URL = "/api/warehouse/Tokmani/"
+    RESOURCE_URL = "/api/warehouses/1/"
+    INVALID_URL = "/api/warehouses/Tokmani/"
     
     def test_get(self, client):
         resp = client.get(self.RESOURCE_URL)
@@ -384,8 +385,8 @@ class TestWarehouseItem(object):
         body = json.loads(resp.data)
         assert len(body) == 2
 
-        assert "uri" in body[1]
-        resp = client.get(body[1]["uri"]) 
+        assert "uri" in body[0]
+        resp = client.get(body[0]["uri"]) 
         assert resp.status_code == 200
 
     def test_put(self, client: FlaskClient):
