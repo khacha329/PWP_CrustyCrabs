@@ -98,17 +98,18 @@ def _get_location_json(number):
     """
     return { 'location_id': number,'latitude': 70, 'longitude': 50, 
                 'country': 'Finland', 'postal_code': '90570', 'city': 'oulu', 'street': 'yliopistokatu 24'}
-def _get_stock_json(number=2):
+def _get_stock_json(number):
     """
     Creates a valid stock JSON object to be used for PUT and POST tests.
     """
     return {'item_name': f'Laptop {number}', 'warehouse_id': 1, 'quantity': 20, 
                 'shelf_price': 750.00}
-def _get_catalogue_json(number=2):
+
+def _get_catalogue_json(number):
     """
     Creates a valid catalogue JSON object to be used for PUT and POST tests.
     """
-    return {'item_name': f'Laptop {number}', 'supplier_name': 'TechSupplier A', 'min_order': 30, 'order_price': 600.00}
+    return {'item_id': number, 'supplier_name': 'TechSupplier C', 'min_order': 30, 'order_price': 600.00}
     
 # def _check_namespace(client, response):
 #     """
@@ -360,7 +361,7 @@ class TestWarehouseCollection(object):
         # test with valid and see that it exists afterward
         resp = client.post(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 201
-        assert resp.headers["Location"].endswith(self.RESOURCE_URL + str(valid["warehouse_id"]) + "/") ##check with warehouse_id s it isnt in schema
+        assert resp.headers["Location"].endswith(self.RESOURCE_URL + str(valid["warehouse_id"]) + "/")
         resp = client.get(resp.headers["Location"])
         assert resp.status_code == 200
         
@@ -420,7 +421,95 @@ class TestWarehouseItem(object):
         assert resp.status_code == 404
         resp = client.delete(self.INVALID_URL)
         assert resp.status_code == 404
+
+
+class TestCatalogueCollection(object):
+    
+    RESOURCE_URL = "/api/catalogue/"
+
+    def test_get(self, client: FlaskClient):
+        resp = client.get(self.RESOURCE_URL)
+        assert resp.status_code == 200
+        body = json.loads(resp.data)
+        assert len(body) == 2
+
+        for catalogue in body:
+
+            assert "uri" in catalogue
+            resp = client.get(catalogue["uri"]) 
+            assert resp.status_code == 200
+
+    def test_post(self, client: FlaskClient):
+        valid = _get_catalogue_json(1)
         
+        # test with wrong content type
+        resp = client.post(self.RESOURCE_URL, data="notjson")
+        assert resp.status_code in (400, 415)
+        
+        # test with valid and see that it exists afterward
+        resp = client.post(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 201
+        assert resp.headers["Location"].endswith(self.RESOURCE_URL + "supplier/" + valid["supplier_name"] + "/item/"+ str(valid["item_id"]) +"/") #issue with name having spaces and item id being the id instead of item name
+        resp = client.get(resp.headers["Location"])
+        assert resp.status_code == 200
+        
+        # send same data again for 409 
+        resp = client.post(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 409
+        
+
+class TestCatalogueItem(object):
+    
+    RESOURCE_URL = "/api/catalogue/supplier/TechSupplier%20A/item/Laptop-1/"
+    INVALID_URL = "/api/catalogue/supplier/Apple/item/Chair/"
+    
+    def test_get(self, client):
+        resp = client.get(self.RESOURCE_URL)
+        assert resp.status_code == 200
+        body = json.loads(resp.data)
+        assert len(body) == 5
+
+        assert "uri" in body
+        resp = client.get(body["uri"]) 
+        assert resp.status_code == 200
+
+    def test_put(self, client: FlaskClient):
+        valid = _get_catalogue_json(2)
+        
+        # test with wrong content type
+        resp = client.put(self.RESOURCE_URL, data="notjson", headers=Headers({"Content-Type": "text"}))
+        assert resp.status_code in (400, 415)
+        
+
+        resp = client.put(self.INVALID_URL, json=valid)
+        assert resp.status_code == 404
+        
+        # test with another warehouse id
+        valid["item_id"] = 2
+        valid["supplier_name"] = "TechSupplier B"
+        resp = client.put(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 409
+        db.session.rollback()
+        
+        # test with valid (only change model)
+        valid["item_id"] = 1
+        valid["supplier_name"] = "TechSupplier A"
+        resp = client.put(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 204
+        
+        
+    def test_delete(self, client: FlaskClient):
+        with pytest.raises(AssertionError):
+            resp = client.delete(self.RESOURCE_URL)
+        db.session.rollback()
+
+        resp = client.delete(self.RESOURCE_URL)
+        assert resp.status_code == 204
+
+        resp = client.delete(self.RESOURCE_URL)
+        assert resp.status_code == 404
+        resp = client.delete(self.INVALID_URL)
+        assert resp.status_code == 404
         
 if __name__ == "__main__":
     client()      

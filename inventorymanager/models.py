@@ -325,7 +325,7 @@ class Catalogue(db.Model):
         return {
             "type": "object",
             "properties": {
-                "item_name": {"type": "string"},
+                "item_id": {"type": "number"},
                 "supplier_name": {"type": "string"},
                 "min_order": {"type": "integer"},
                 "order_price": {"type": "number"},
@@ -351,7 +351,7 @@ class Catalogue(db.Model):
 
         :param doc: dictionary with catalogue information
         """
-        self.item_name = doc.get("item_name", self.item_name)
+        self.item_id = doc.get("item_name", self.item_id)
         self.supplier_name = doc.get("supplier_name", self.supplier_name)
         self.min_order = doc.get("min_order", self.min_order)
         self.order_price = doc.get("order_price", self.order_price)

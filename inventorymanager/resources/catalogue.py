@@ -38,7 +38,7 @@ class CatalogueCollection(Resource):
     def post(self):
         try:
             validate(request.json, Catalogue.get_schema())
-            item_entry = Item.query.filter_by(name=request.json["item_name"]).first()
+            item_entry = Item.query.filter_by(item_id=request.json["item_id"]).first()
 
             if not item_entry:
                 return create_error_response(404, "Item doesn't exist")
