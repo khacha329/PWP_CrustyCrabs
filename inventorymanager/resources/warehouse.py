@@ -97,7 +97,7 @@ class WarehouseItem(Resource):
             return create_error_response(
                 409,
                 "Already exists",
-                "warehouse with name '{}' already exists.".format(request.json["name"]),
+                "warehouse with id '{}' already exists.".format(request.json["warehouse_id"]),
             )
 
         return Response(status=204)

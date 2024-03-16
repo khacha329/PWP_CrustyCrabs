@@ -164,6 +164,7 @@ class Warehouse(db.Model):
 
         :param doc: dictionary with warehouse information
         """
+        self.warehouse_id = doc.get("warehouse_id", self.warehouse_id)
         self.manager = doc.get("manager", self.manager)
         self.location_id = doc.get("location_id", self.location_id)
 

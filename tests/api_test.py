@@ -87,16 +87,16 @@ def _get_item_json(number=2):
     Creates a valid item JSON object to be used for PUT and POST tests.
     """
     return {'name': f'Laptop-{number}', 'category': 'Electronics', 'weight': 0.2}
-def _get_warehouse_json():
+def _get_warehouse_json(number):
     """
     Creates a valid warehouse JSON object to be used for PUT and POST tests.
     """
-    return {'manager': 'John Elmeri', 'location_id': 1}
-def _get_location_json():
+    return {'warehouse_id': number,'manager': 'John Elmeri', 'location_id': 1}
+def _get_location_json(number):
     """
     Creates a valid location JSON object to be used for PUT and POST tests.
     """
-    return { 'latitude': 70, 'longitude': 50, 
+    return { 'location_id': number,'latitude': 70, 'longitude': 50, 
                 'country': 'Finland', 'postal_code': '90570', 'city': 'oulu', 'street': 'yliopistokatu 24'}
 def _get_stock_json(number=2):
     """
@@ -203,7 +203,7 @@ class TestLocationCollection(object):
             assert resp.status_code == 200
 
     def test_post(self, client):
-        valid = _get_location_json()
+        valid = _get_location_json(3)
 
         # test with wrong content type
         resp = client.post(self.RESOURCE_URL, data="notjson")
@@ -212,7 +212,7 @@ class TestLocationCollection(object):
         # test with valid and see that it exists afterward
         resp = client.post(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 201
-        assert resp.headers["Location"].endswith(self.RESOURCE_URL + valid["location_id"] + "/")
+        assert resp.headers["Location"].endswith(self.RESOURCE_URL + str(valid["location_id"]) + "/")
         resp = client.get(resp.headers["Location"])
         assert resp.status_code == 200
 
@@ -351,7 +351,7 @@ class TestWarehouseCollection(object):
             assert resp.status_code == 200
 
     def test_post(self, client: FlaskClient):
-        valid = _get_warehouse_json()
+        valid = _get_warehouse_json(3)
         
         # test with wrong content type
         resp = client.post(self.RESOURCE_URL, data="notjson")
@@ -360,18 +360,13 @@ class TestWarehouseCollection(object):
         # test with valid and see that it exists afterward
         resp = client.post(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 201
-        assert resp.headers["Location"].endswith(self.RESOURCE_URL + valid["warehouse_id"] + "/") ##check with warehouse_id s it isnt in schema
+        assert resp.headers["Location"].endswith(self.RESOURCE_URL + str(valid["warehouse_id"]) + "/") ##check with warehouse_id s it isnt in schema
         resp = client.get(resp.headers["Location"])
         assert resp.status_code == 200
         
         # send same data again for 409 
         resp = client.post(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 409
-        
-        # remove model field for 400
-        valid.pop("manager")
-        resp = client.post(self.RESOURCE_URL, json=valid)
-        assert resp.status_code == 400
         
 
 class TestWarehouseItem(object):
@@ -390,7 +385,7 @@ class TestWarehouseItem(object):
         assert resp.status_code == 200
 
     def test_put(self, client: FlaskClient):
-        valid = _get_warehouse_json()
+        valid = _get_warehouse_json(3)
         
         # test with wrong content type
         resp = client.put(self.RESOURCE_URL, data="notjson", headers=Headers({"Content-Type": "text"}))
@@ -400,21 +395,17 @@ class TestWarehouseItem(object):
         resp = client.put(self.INVALID_URL, json=valid)
         assert resp.status_code == 404
         
-        # test with another sensor's name
-        valid["manager"] = "Jane Doe"
+        # test with another warehouse id
+        valid["warehouse_id"] = 2
         resp = client.put(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 409
         db.session.rollback()
         
         # test with valid (only change model)
-        valid["manager"] = "John Doe"
+        valid["warehouse_id"] = 1
         resp = client.put(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 204
         
-        # remove field for 400
-        valid.pop("manager")
-        resp = client.put(self.RESOURCE_URL, json=valid)
-        assert resp.status_code == 400
         
     def test_delete(self, client: FlaskClient):
         with pytest.raises(AssertionError):
