@@ -115,7 +115,7 @@ class CatalogueItem(Resource):
             return create_error_response(
                 409,
                 "Already exists",
-                "Catalogue already exists",
+                "catalogue with item '{}' from supplier '{}'already exists.".format(request.json["item_name"], request.json["supplier_name"]),
             )
 
         return Response(status=204)

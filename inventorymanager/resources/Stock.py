@@ -150,7 +150,7 @@ class StockItem(Resource):
             return create_error_response(
                 409,
                 "Already exists",
-                "stock with name '{}' already exists.".format(request.json["name"]),
+                "stock with item '{}' in warehouse with id '{}'already exists.".format(request.json["item_name"], request.json["warehouse_id"]),
             )
 
         return Response(status=204)
