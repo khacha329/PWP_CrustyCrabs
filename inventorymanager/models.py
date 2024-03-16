@@ -97,6 +97,7 @@ class Location(db.Model):
 
         :param doc: dictionary with location information
         """
+        self.location_id = doc.get("location_id", self.location_id)
         self.latitude = doc.get("latitude", self.latitude)
         self.longitude = doc.get("longitude", self.longitude)
         self.country = doc.get("country", self.country)
@@ -291,6 +292,8 @@ class Stock(db.Model):
 
         :param doc: dictionary with stock information
         """
+        self.item_id = doc.get("item_id", self.item_id)
+        self.warehouse_id = doc.get("warehouse", self.warehouse)
         self.quantity = doc.get("quantity", self.quantity)
         self.shelf_price = doc.get("shelf_price", self.shelf_price)
 
@@ -348,6 +351,7 @@ class Catalogue(db.Model):
 
         :param doc: dictionary with catalogue information
         """
+        self.item_name = doc.get("item_name", self.item_name)
         self.supplier_name = doc.get("supplier_name", self.supplier_name)
         self.min_order = doc.get("min_order", self.min_order)
         self.order_price = doc.get("order_price", self.order_price)

@@ -221,7 +221,7 @@ class TestLocationCollection(object):
         assert resp.status_code == 409
 
         # remove model field for 400
-        valid.pop("name")
+        valid.pop("country")
         resp = client.post(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 400
 
