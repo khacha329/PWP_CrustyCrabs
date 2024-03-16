@@ -65,6 +65,7 @@ class Location(db.Model):
         return {
             "type": "object",
             "properties": {
+                "location_id": {"type": "number"},
                 "latitude": {"type": "number"},
                 "longitude": {"type": "number"},
                 "country": {"type": "string"},
@@ -142,6 +143,7 @@ class Warehouse(db.Model):
         return {
             "type": "object",
             "properties": {
+                "warehouse_id": {"type": "number"},
                 "manager": {"type": "string"},
                 "location_id": {"type": "integer"},
             },

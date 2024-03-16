@@ -212,7 +212,7 @@ class TestLocationCollection(object):
         # test with valid and see that it exists afterward
         resp = client.post(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 201
-        assert resp.headers["Location"].endswith(self.RESOURCE_URL + valid["location.id"] + "/")
+        assert resp.headers["Location"].endswith(self.RESOURCE_URL + valid["location_id"] + "/")
         resp = client.get(resp.headers["Location"])
         assert resp.status_code == 200
 
@@ -244,12 +244,12 @@ class TestItemCollection(object):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        assert len(body["items"]) == 3
+        assert len(body["items"]) == 2
 
-        for item in body:
+        for item in body["items"]:
 
-            assert "uri" in item
-            resp = client.get(item["uri"]) 
+            assert "@controls" in item
+            resp = client.get(item["@controls"]["self"]["href"]) 
             assert resp.status_code == 200
 
     def test_post(self, client: FlaskClient):
@@ -294,7 +294,7 @@ class TestItemItem(object):
 #         assert resp.status_code == 404
 
     def test_put(self, client: FlaskClient):
-        valid = _get_item_json(number=1)
+        valid = _get_item_json(number=2)
         
         # test with wrong content type
         resp = client.put(self.RESOURCE_URL, data="notjson", headers=Headers({"Content-Type": "text"}))
@@ -305,18 +305,18 @@ class TestItemItem(object):
         assert resp.status_code == 404
         
         # test with another sensor's name
-        
+        valid["name"] = "Smartphone-1"
         resp = client.put(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 409
         db.session.rollback()
         
         # test with valid (only change model)
-        valid["warehouse_id"] = 2
+        valid["name"] = "Laptop-1"
         resp = client.put(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 204
         
         # remove field for 400
-        valid.pop("manager")
+        valid.pop("name")
         resp = client.put(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 400
         
@@ -390,7 +390,7 @@ class TestWarehouseItem(object):
         assert resp.status_code == 200
 
     def test_put(self, client: FlaskClient):
-        valid = _get_warehouse_json(number=1)
+        valid = _get_warehouse_json()
         
         # test with wrong content type
         resp = client.put(self.RESOURCE_URL, data="notjson", headers=Headers({"Content-Type": "text"}))
@@ -401,7 +401,7 @@ class TestWarehouseItem(object):
         assert resp.status_code == 404
         
         # test with another sensor's name
-        valid["manager"] = "Jason Doe"
+        valid["manager"] = "Jane Doe"
         resp = client.put(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 409
         db.session.rollback()
@@ -421,7 +421,7 @@ class TestWarehouseItem(object):
             resp = client.delete(self.RESOURCE_URL)
         db.session.rollback()
         # delete the stock 
-        db.session.delete(Warehouse.query.filter_by(warehouse_id=1).first())
+        db.session.delete(Stock.query.filter_by(warehouse_id=1).first())
         resp = client.delete(self.RESOURCE_URL)
         assert resp.status_code == 204
 
