@@ -64,9 +64,11 @@ class ItemCollection(Resource):
             db.session.commit()
 
         except ValidationError as e:
+            db.session.rollback()
             return abort(400, e.message)
 
         except IntegrityError:
+            db.session.rollback()
             return abort(409, "Item already exists")
 
         return Response(
@@ -118,9 +120,11 @@ class ItemItem(Resource):
             db.session.commit()
 
         except ValidationError as e:
+            db.session.rollback()
             return create_error_response(400, "Invalid JSON document", str(e))
 
         except IntegrityError:
+            db.session.rollback()
             return create_error_response(
                 409,
                 "Already exists",

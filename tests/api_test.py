@@ -233,13 +233,57 @@ class TestLocationCollection(object):
 
 class TestLocationItem(object):
 
-    RESOURCE_URL = "/api/Locations/<location_id>/"
+    RESOURCE_URL = "/api/locations/1/"
+    INVALID_URL = "/api/locations/Tokmani/"
+    
+    def test_get(self, client: FlaskClient):
+        resp = client.get(self.RESOURCE_URL)
+        assert resp.status_code == 200
+        body = json.loads(resp.data)
+        assert len(body) == 7
+
+        assert "uri" in body[0]
+        resp = client.get(body[0]["uri"]) 
+        assert resp.status_code == 200
 
     def test_put(self, client: FlaskClient):
-        pass
+        valid = _get_location_json(1)
+        
+        # test with wrong content type
+        resp = client.put(self.RESOURCE_URL, data="notjson", headers=Headers({"Content-Type": "text"}))
+        assert resp.status_code in (400, 415)
+        
 
+        resp = client.put(self.INVALID_URL, json=valid)
+        assert resp.status_code == 404
+        
+        # test with another warehouse id
+        valid["location_id"] = 2
+        resp = client.put(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 409
+        db.session.rollback()
+        
+        # test with valid (only change model)
+        valid["location_id"] = 1
+        resp = client.put(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 204
+        
+        
     def test_delete(self, client: FlaskClient):
-        pass
+        with pytest.raises(AssertionError):
+            resp = client.delete(self.RESOURCE_URL)
+        db.session.rollback()
+        # delete the stock 
+        db.session.delete(Warehouse.query.filter_by(location_id=1).first())
+        
+        resp = client.delete(self.RESOURCE_URL)
+        assert resp.status_code == 204
+
+        resp = client.delete(self.RESOURCE_URL)
+        assert resp.status_code == 404
+        resp = client.delete(self.INVALID_URL)
+        assert resp.status_code == 404
+
 
 
 class TestItemCollection(object):
@@ -416,11 +460,7 @@ class TestWarehouseItem(object):
         
         
     def test_delete(self, client: FlaskClient):
-        with pytest.raises(AssertionError):
-            resp = client.delete(self.RESOURCE_URL)
-        db.session.rollback()
-        # delete the stock 
-        db.session.delete(Stock.query.filter_by(warehouse_id=1).first())
+
         resp = client.delete(self.RESOURCE_URL)
         assert resp.status_code == 204
 
@@ -512,9 +552,6 @@ class TestCatalogueItem(object):
         
         
     def test_delete(self, client: FlaskClient):
-        with pytest.raises(AssertionError):
-            resp = client.delete(self.RESOURCE_URL)
-        db.session.rollback()
 
         resp = client.delete(self.RESOURCE_URL)
         assert resp.status_code == 204
@@ -641,9 +678,6 @@ class TestStockItem(object):
         
         
     def test_delete(self, client: FlaskClient):
-        with pytest.raises(AssertionError):
-            resp = client.delete(self.RESOURCE_URL)
-        db.session.rollback()
 
         resp = client.delete(self.RESOURCE_URL)
         assert resp.status_code == 204

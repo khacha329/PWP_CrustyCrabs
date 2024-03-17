@@ -109,9 +109,11 @@ class CatalogueItem(Resource):
             db.session.commit()
 
         except ValidationError as e:
+            db.session.rollback()
             return create_error_response(400, "Invalid JSON document", str(e))
 
-        except IntegrityError:
+        except IntegrityError:         
+            db.session.rollback()
             return create_error_response(
                 409,
                 "Already exists",

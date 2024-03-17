@@ -44,11 +44,13 @@ class WarehouseCollection(Resource):
             db.session.commit()
 
         except ValidationError as e:
+            db.session.rollback()
             return abort(400, e.message)
 
         except IntegrityError:
+            db.session.rollback()
             return abort(409, "Warehouse already exists")
-        # if api fails after this line, resource will be added to db anyway
+
         return Response(
             status=201,
             headers={"Location": url_for("api.warehouseitem", warehouse=warehouse)},
@@ -91,9 +93,11 @@ class WarehouseItem(Resource):
             db.session.commit()
 
         except ValidationError as e:
+            db.session.rollback()
             return create_error_response(400, "Invalid JSON document", str(e))
 
         except IntegrityError:
+            db.session.rollback()
             return create_error_response(
                 409,
                 "Already exists",

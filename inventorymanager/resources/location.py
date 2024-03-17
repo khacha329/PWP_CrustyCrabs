@@ -8,7 +8,7 @@ https://lovelace.oulu.fi/ohjelmoitava-web/ohjelmoitava-web/implementing-rest-api
 import os
 import json
 
-from flask import Response, request, url_for
+from flask import Response, request, url_for, abort
 from flask_restful import Resource
 from flasgger import swag_from
 from jsonschema import ValidationError, validate
@@ -84,8 +84,15 @@ class LocationItem(Resource):
         Returns:
             string: The matching location
         """
+        location_entry = Location.query.filter_by(location_id=location.location_id).first()
+        if not location_entry:
+            return create_error_response(404, "location doesn't exist")
+        location_json = location_entry.serialize()
+        location_json["uri"] = url_for(
+            "api.locationitem", location=location
+        )
+        return Response(json.dumps(location_json), 200)
 
-        return location.serialize(), 200
 
     @swag_from(os.getcwd() + f"{DOC_FOLDER}location/item/put.yml")
     def put(self, location):
@@ -110,9 +117,13 @@ class LocationItem(Resource):
         try:
             db.session.add(location)
             db.session.commit()
-        except Exception as e:
+        except ValidationError as e:
             db.session.rollback()
-            return {"message": "Database error", "errors": str(e)}, 500
+            return abort(400, e.message)
+
+        except IntegrityError:
+            db.session.rollback()
+            return abort(409, "stock already exists")
 
         return {}, 204
 
