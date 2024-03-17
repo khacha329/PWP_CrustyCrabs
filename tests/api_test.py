@@ -359,7 +359,7 @@ class TestWarehouseCollection(object):
             assert resp.status_code == 200
 
     def test_post(self, client: FlaskClient):
-        valid = _get_warehouse_json(3)
+        valid = _get_warehouse_json(4)
         
         # test with wrong content type
         resp = client.post(self.RESOURCE_URL, data="notjson")
@@ -547,6 +547,7 @@ class TestCatalogueItemCollection(object):
 
 class TestCatalogueSupplierCollection(object):
     RESOURCE_URL = "/api/catalogue/supplier/TechSupplier%20A/"
+    NOSUPPLIER_URL = "/api/catalogue/supplier/TechSupplier%20C/"
 
     def test_get(self, client: FlaskClient):
         resp = client.get(self.RESOURCE_URL)
@@ -559,6 +560,8 @@ class TestCatalogueSupplierCollection(object):
             assert "uri" in catalogue
             resp = client.get(catalogue["uri"]) 
             assert resp.status_code == 200
+            resp = client.get(self.NOSUPPLIER_URL)
+            assert resp.status_code == 404
 
 class TestStockCollection(object):
     
@@ -649,6 +652,44 @@ class TestStockItem(object):
         assert resp.status_code == 404
         resp = client.delete(self.INVALID_URL)
         assert resp.status_code == 404
+
+class TestStockItemCollection(object):
+    RESOURCE_URL = "/api/stocks/item/Laptop-1/"
+    NOITEM_URL = "/api/stocks/item/Laptop-2/"
+    OUTOFSTOCK_URL = "/api/stocks/item/Laptop-3/"
+
+    def test_get(self, client: FlaskClient):
+        resp = client.get(self.RESOURCE_URL)
+        assert resp.status_code == 200
+        body = json.loads(resp.data)
+        assert len(body) == 1
+
+        for catalogue in body:
+
+            assert "uri" in catalogue
+            resp = client.get(catalogue["uri"]) 
+            assert resp.status_code == 200
+        resp = client.get(self.NOITEM_URL)
+        assert resp.status_code == 404
+        resp = client.get(self.OUTOFSTOCK_URL)
+        assert resp.status_code == 404
+
+class TestStockWarehouseCollection(object):
+    RESOURCE_URL = "/api/stocks/warehouse/1/"
+    NOWAREHOUSE_URL = "/api/stocks/warehouse/4/"
+
+    def test_get(self, client: FlaskClient):
+        resp = client.get(self.RESOURCE_URL)
+        assert resp.status_code == 200
+        body = json.loads(resp.data)
+        assert len(body) == 1
+
+        for catalogue in body:
+            assert "uri" in catalogue
+            resp = client.get(catalogue["uri"]) 
+            assert resp.status_code == 200
+            resp = client.get(self.NOWAREHOUSE_URL)
+            assert resp.status_code == 404
 if __name__ == "__main__":
     client()      
         

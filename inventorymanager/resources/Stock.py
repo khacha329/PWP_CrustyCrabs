@@ -183,7 +183,12 @@ class StockItemCollection(Resource):
         :param item: item name to filter stocks with
         :return: Response
         """
-
+        item = Item.query.filter_by(item_id=item.item_id).first()
+        if not item:
+            return create_error_response(404, "Item doesn't exist")
+        stock_entry = Stock.query.filter_by(item_id=item.item_id).first()
+        if not stock_entry:
+            return create_error_response(404, "item is out of stock in all warehouses")
         body = []
         for stock_entry in Stock.query.filter_by(item=item).all():
             stock_json = stock_entry.serialize()
@@ -207,6 +212,12 @@ class StockWarehouseCollection(Resource):
         :return: Response
         """
         body = []
+        warehouse = Warehouse.query.filter_by(warehouse_id=warehouse.warehouse_id).first()
+        if not warehouse:
+            return create_error_response(404, "warehouse doesn't exist")
+        stock_entry = Stock.query.filter_by(item_id=warehouse.warehouse_id).first()
+        if not stock_entry:
+            return create_error_response(404, "warehouse has no items in stock yet")
         for stock in Stock.query.filter_by(warehouse=warehouse).all():
             stock_json = stock.serialize()
             stock_json["uri"] = url_for(
