@@ -102,7 +102,7 @@ def _get_stock_json(number):
     """
     Creates a valid stock JSON object to be used for PUT and POST tests.
     """
-    return {'item_name': f'Laptop {number}', 'warehouse_id': 1, 'quantity': 20, 
+    return {'item_name': f'Laptop-{number}', 'warehouse_id': 1, 'quantity': 20, 
                 'shelf_price': 750.00}
 
 def _get_catalogue_json(number):
@@ -449,10 +449,15 @@ class TestCatalogueCollection(object):
         # test with valid and see that it exists afterward
         resp = client.post(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 201
-        assert resp.headers["Location"].endswith(self.RESOURCE_URL + "supplier/" + valid["supplier_name"] + "/item/"+ str(valid["item_id"]) +"/") #issue with name having spaces and item id being the id instead of item name
+        #to extract item name
+        item_entry = Item.query.filter_by(item_id=valid["item_id"]).first()
+        #account for spullier name with spaces
+        valid["supplier_name"] = valid["supplier_name"].replace(" ", "%20")
+        assert resp.headers["Location"].endswith(self.RESOURCE_URL + "supplier/" + valid["supplier_name"] + "/item/"+ item_entry.name +"/") #issue with name having spaces and item id being the id instead of item name
         resp = client.get(resp.headers["Location"])
         assert resp.status_code == 200
-        
+        #replace supplier name back to having spaces
+        valid["supplier_name"] = valid["supplier_name"].replace("%20", " ")
         # send same data again for 409 
         resp = client.post(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 409
@@ -484,7 +489,7 @@ class TestCatalogueItem(object):
         resp = client.put(self.INVALID_URL, json=valid)
         assert resp.status_code == 404
         
-        # test with another warehouse id
+        # test with another catalogue id (item id + supplier name)
         valid["item_id"] = 2
         valid["supplier_name"] = "TechSupplier B"
         resp = client.put(self.RESOURCE_URL, json=valid)

@@ -99,7 +99,7 @@ class CatalogueItem(Resource):
         """
 
         catalogue_entry = Catalogue.query.filter_by(
-            supplier_name=supplier, item_id=item
+            supplier_name=supplier, item_id=item.item_id
         ).first()
         if not catalogue_entry:
             return create_error_response(404, "Catalogue entry doesn't exist")
@@ -115,7 +115,7 @@ class CatalogueItem(Resource):
             return create_error_response(
                 409,
                 "Already exists",
-                "catalogue with item '{}' from supplier '{}'already exists.".format(request.json["item_name"], request.json["supplier_name"]),
+                "catalogue with item '{}' from supplier '{}'already exists.".format(request.json["item_id"], request.json["supplier_name"]),
             )
 
         return Response(status=204)
