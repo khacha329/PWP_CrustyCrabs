@@ -351,7 +351,7 @@ class Catalogue(db.Model):
 
         :param doc: dictionary with catalogue information
         """
-        self.item_id = doc.get("item_name", self.item_id)
+        self.item_id = doc.get("item_id", self.item_id)
         self.supplier_name = doc.get("supplier_name", self.supplier_name)
         self.min_order = doc.get("min_order", self.min_order)
         self.order_price = doc.get("order_price", self.order_price)

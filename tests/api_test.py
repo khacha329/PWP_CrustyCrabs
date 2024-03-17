@@ -109,7 +109,7 @@ def _get_catalogue_json(number):
     """
     Creates a valid catalogue JSON object to be used for PUT and POST tests.
     """
-    return {'item_id': number, 'supplier_name': 'TechSupplier C', 'min_order': 30, 'order_price': 600.00}
+    return {'item_id': number, 'supplier_name': 'TechSupplier A', 'min_order': 30, 'order_price': 600.00}
     
 # def _check_namespace(client, response):
 #     """
@@ -440,7 +440,7 @@ class TestCatalogueCollection(object):
             assert resp.status_code == 200
 
     def test_post(self, client: FlaskClient):
-        valid = _get_catalogue_json(1)
+        valid = _get_catalogue_json(2)
         
         # test with wrong content type
         resp = client.post(self.RESOURCE_URL, data="notjson")
