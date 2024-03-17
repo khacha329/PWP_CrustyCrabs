@@ -266,7 +266,7 @@ class Stock(db.Model):
         return {
             "type": "object",
             "properties": {
-                "item_name": {"type": "string"},
+                "item_id": {"type": "number"},
                 "warehouse_id": {"type": "number"},
                 "quantity": {"type": "number"},
                 "shelf_price": {"type": "number"},
@@ -293,7 +293,7 @@ class Stock(db.Model):
         :param doc: dictionary with stock information
         """
         self.item_id = doc.get("item_id", self.item_id)
-        self.warehouse_id = doc.get("warehouse", self.warehouse)
+        self.warehouse_id = doc.get("warehouse_id", self.warehouse_id)
         self.quantity = doc.get("quantity", self.quantity)
         self.shelf_price = doc.get("shelf_price", self.shelf_price)
 

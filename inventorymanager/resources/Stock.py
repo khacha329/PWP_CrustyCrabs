@@ -55,23 +55,22 @@ class StockCollection(Resource):
         """
         try:
             validate(request.json, Stock.get_schema())
-            item_name = request.json["item_name"]
-            item_entry = Item.query.filter_by(name=item_name).first()
+            item_id = request.json["item_id"]
+            item_entry = Item.query.filter_by(item_id=item_id).first()
             if not item_entry:
                 return create_error_response(404, "Item doesn't exist")
             warehouse_id = request.json["warehouse_id"]
             warehouse_entry = Warehouse.query.filter_by(
                 warehouse_id=warehouse_id
             ).first()
-            stock = Stock(item=item_entry, warehouse=warehouse_entry)
+            if not warehouse_entry:
+                return create_error_response(404, "Warehouse doesn't exist")
+            stock = Stock()
             stock.deserialize(request.json)
 
             db.session.add(stock)
             db.session.commit()
 
-        except SQLAlchemyError as e:
-            error = str(e.__dict__["orig"])
-            return abort(400, error)
         except ValidationError as e:
             return abort(400, e.message)
 
@@ -125,7 +124,7 @@ class StockItem(Resource):
 
         return Response(json.dumps(body), 200, mimetype=MASON)
 
-        return Response(json.dumps(stock_json), 200)
+        #return Response(json.dumps(stock_json), 200)
 
     def put(self, warehouse: Warehouse, item: Item):
         """Updates a stock in the database
@@ -150,7 +149,7 @@ class StockItem(Resource):
             return create_error_response(
                 409,
                 "Already exists",
-                "stock with item '{}' in warehouse with id '{}'already exists.".format(request.json["item_name"], request.json["warehouse_id"]),
+                "stock with item '{}' in warehouse with id '{}'already exists.".format(request.json["item_id"], request.json["warehouse_id"]),
             )
 
         return Response(status=204)

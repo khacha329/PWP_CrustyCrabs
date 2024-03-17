@@ -50,8 +50,10 @@ def _populate_db():
     """
     # Create dummy locations
     locations = [
-        Location(latitude=60.1699, longitude=24.9384, country="Finland", postal_code="00100", city="Helsinki", street="Mannerheimintie"),
-        Location(latitude=60.4518, longitude=22.2666, country="Finland", postal_code="20100", city="Turku", street="Aurakatu"),
+        Location(latitude=60.1699, longitude=24.9384, country="Finland", 
+                 postal_code="00100", city="Helsinki", street="Mannerheimintie"),
+        Location(latitude=60.4518, longitude=22.2666, country="Finland", 
+                 postal_code="20100", city="Turku", street="Aurakatu"),
     ]
 
     # Create dummy warehouses
@@ -64,6 +66,7 @@ def _populate_db():
     items = [
         Item(name="Laptop-1", category="Electronics", weight=1.5),
         Item(name="Smartphone-1", category="Electronics", weight=0.2),
+        Item(name="Laptop-3", category="Electronics", weight=1.7),
     ]
 
     # Create dummy stocks
@@ -97,19 +100,21 @@ def _get_location_json(number):
     Creates a valid location JSON object to be used for PUT and POST tests.
     """
     return { 'location_id': number,'latitude': 70, 'longitude': 50, 
-                'country': 'Finland', 'postal_code': '90570', 'city': 'oulu', 'street': 'yliopistokatu 24'}
-def _get_stock_json(number):
+                'country': 'Finland', 'postal_code': '90570', 
+                'city': 'oulu', 'street': 'yliopistokatu 24'}
+def _get_stock_json(item_id, warehouse_id):
     """
     Creates a valid stock JSON object to be used for PUT and POST tests.
     """
-    return {'item_name': f'Laptop-{number}', 'warehouse_id': 1, 'quantity': 20, 
+    return {'item_id': item_id, 'warehouse_id':  warehouse_id, 'quantity': 20, 
                 'shelf_price': 750.00}
 
 def _get_catalogue_json(number):
     """
     Creates a valid catalogue JSON object to be used for PUT and POST tests.
     """
-    return {'item_id': number, 'supplier_name': 'TechSupplier A', 'min_order': 30, 'order_price': 600.00}
+    return {'item_id': number, 'supplier_name': 'TechSupplier A', 
+            'min_order': 30, 'order_price': 600.00}
     
 # def _check_namespace(client, response):
 #     """
@@ -245,7 +250,8 @@ class TestItemCollection(object):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        assert len(body["items"]) == 2
+        items = Item.query.all()
+        assert len(body["items"]) == len(items)
 
         for item in body["items"]:
 
@@ -343,7 +349,8 @@ class TestWarehouseCollection(object):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        assert len(body) == 2
+        warehouses = Warehouse.query.all()
+        assert len(body) == len(warehouses)
 
         for warehouse in body:
 
@@ -431,7 +438,8 @@ class TestCatalogueCollection(object):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        assert len(body) == 2
+        catalogues = Catalogue.query.all()
+        assert len(body) == len(catalogues)
 
         for catalogue in body:
 
@@ -516,6 +524,131 @@ class TestCatalogueItem(object):
         resp = client.delete(self.INVALID_URL)
         assert resp.status_code == 404
         
+class TestCatalogueItemCollection(object):
+    RESOURCE_URL = "/api/catalogue/item/Laptop-1/"
+    NOITEM_URL = "/api/catalogue/item/Laptop-2/"
+    OUTOFSTOCK_URL = "/api/catalogue/item/Laptop-3/"
+
+    def test_get(self, client: FlaskClient):
+        resp = client.get(self.RESOURCE_URL)
+        assert resp.status_code == 200
+        body = json.loads(resp.data)
+        assert len(body) == 1
+
+        for catalogue in body:
+
+            assert "uri" in catalogue
+            resp = client.get(catalogue["uri"]) 
+            assert resp.status_code == 200
+        resp = client.get(self.NOITEM_URL)
+        assert resp.status_code == 404
+        resp = client.get(self.OUTOFSTOCK_URL)
+        assert resp.status_code == 404
+
+class TestCatalogueSupplierCollection(object):
+    RESOURCE_URL = "/api/catalogue/supplier/TechSupplier%20A/"
+
+    def test_get(self, client: FlaskClient):
+        resp = client.get(self.RESOURCE_URL)
+        assert resp.status_code == 200
+        body = json.loads(resp.data)
+        assert len(body) == 1
+
+        for catalogue in body:
+
+            assert "uri" in catalogue
+            resp = client.get(catalogue["uri"]) 
+            assert resp.status_code == 200
+
+class TestStockCollection(object):
+    
+    RESOURCE_URL = "/api/stocks/"
+
+    def test_get(self, client: FlaskClient):
+        resp = client.get(self.RESOURCE_URL)
+        assert resp.status_code == 200
+        body = json.loads(resp.data)
+        stocks = Stock.query.all()
+        assert len(body["items"]) == len(stocks)
+
+        for stock in body["items"]:
+
+            assert "@controls" in stock
+            resp = client.get(stock["@controls"]["self"]["href"]) 
+            assert resp.status_code == 200
+
+    def test_post(self, client: FlaskClient):
+        valid = _get_stock_json(1, 2)
+        
+        # test with wrong content type
+        resp = client.post(self.RESOURCE_URL, data="notjson")
+        assert resp.status_code in (400, 415)
+        
+        # test with valid and see that it exists afterward
+        resp = client.post(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 201
+        #to extract item name
+        item_entry = Item.query.filter_by(item_id=valid["item_id"]).first()
+        
+        assert resp.headers["Location"].endswith(self.RESOURCE_URL + str(valid["warehouse_id"]) + "/item/"+ item_entry.name +"/") #issue with name having spaces and item id being the id instead of item name
+        resp = client.get(resp.headers["Location"])
+        assert resp.status_code == 200
+
+        # send same data again for 409 
+        resp = client.post(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 409
+        
+
+class TestStockItem(object):
+    
+    RESOURCE_URL = "/api/stocks/1/item/Laptop-1/"
+    INVALID_URL = "/api/stocks/3/item/Chair/"
+    
+    def test_get(self, client):
+        resp = client.get(self.RESOURCE_URL)
+        assert resp.status_code == 200
+        body = json.loads(resp.data)
+        assert len(body) == 6
+
+        assert "@controls" in body
+        resp = client.get(body["@controls"]["self"]["href"]) 
+        assert resp.status_code == 200
+
+    def test_put(self, client: FlaskClient):
+        valid = _get_stock_json(2, 2)
+        
+        # test with wrong content type
+        resp = client.put(self.RESOURCE_URL, data="notjson", headers=Headers({"Content-Type": "text"}))
+        assert resp.status_code in (400, 415)
+        
+
+        resp = client.put(self.INVALID_URL, json=valid)
+        assert resp.status_code == 404
+        
+        # test with another catalogue id (item id + supplier name)
+        valid = _get_stock_json(2, 2)
+        resp = client.put(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 409
+        db.session.rollback()
+        
+        # test with valid (only change model)
+        valid = _get_stock_json(1, 2)
+        resp = client.put(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 204
+        
+        
+    def test_delete(self, client: FlaskClient):
+        with pytest.raises(AssertionError):
+            resp = client.delete(self.RESOURCE_URL)
+        db.session.rollback()
+
+        resp = client.delete(self.RESOURCE_URL)
+        assert resp.status_code == 204
+
+        resp = client.delete(self.RESOURCE_URL)
+        assert resp.status_code == 404
+        resp = client.delete(self.INVALID_URL)
+        assert resp.status_code == 404
 if __name__ == "__main__":
     client()      
         

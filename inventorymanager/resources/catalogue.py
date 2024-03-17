@@ -154,7 +154,15 @@ class CatalogueItemCollection(Resource):
         """
 
         body = []
-        for catalogue in Catalogue.query.filter_by(item=item).all():
+        item = Item.query.filter_by(item_id=item.item_id).first()
+        if not item:
+            return create_error_response(404, "Item doesn't exist")
+        
+        catalogue_entry = Catalogue.query.filter_by(item_id=item.item_id).first()
+        if not catalogue_entry:
+            return create_error_response(404, "No supplier has the requested item")
+        
+        for catalogue in Catalogue.query.filter_by(item_id=item.item_id).all():
             catalogue_json = catalogue.serialize()
             catalogue_json["uri"] = url_for(
                 "api.catalogueitem",
@@ -179,6 +187,10 @@ class CatalogueSupplierCollection(Resource):
         """
 
         body = []
+        catalogue_entry = Catalogue.query.filter_by(supplier_name=supplier).first()
+        if not catalogue_entry:
+            return create_error_response(404, "supplier does not exist")
+        
         for catalogue in Catalogue.query.filter_by(supplier_name=supplier).all():
             catalogue_json = catalogue.serialize()
             catalogue_json["uri"] = url_for(
