@@ -240,10 +240,10 @@ class TestLocationItem(object):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        assert len(body) == 7
+        assert len(body) == 8
 
-        assert "uri" in body[0]
-        resp = client.get(body[0]["uri"]) 
+        assert "uri" in body
+        resp = client.get(body["uri"]) 
         assert resp.status_code == 200
 
     def test_put(self, client: FlaskClient):
@@ -270,7 +270,7 @@ class TestLocationItem(object):
         
         
     def test_delete(self, client: FlaskClient):
-        with pytest.raises(AssertionError):
+        with pytest.raises(IntegrityError):
             resp = client.delete(self.RESOURCE_URL)
         db.session.rollback()
         # delete the stock 
@@ -343,6 +343,16 @@ class TestItemItem(object):
 #         _check_control_delete_method("senhub:delete", client, body)
 #         resp = client.get(self.INVALID_URL)
 #         assert resp.status_code == 404
+    def test_get(self, client):
+        resp = client.get(self.RESOURCE_URL)
+        assert resp.status_code == 200
+        body = json.loads(resp.data)
+        assert len(body) == 6
+
+        assert "@controls" in body
+        resp = client.get(body["@controls"]["self"]["href"]) 
+        assert resp.status_code == 200
+
 
     def test_put(self, client: FlaskClient):
         valid = _get_item_json(number=2)
@@ -726,19 +736,4 @@ class TestStockWarehouseCollection(object):
             assert resp.status_code == 404
 if __name__ == "__main__":
     client()      
-        
-        
-        
-        
-        
-        
-        
-        
-    
-    
-
-    
-
-        
-            
-    
+         
