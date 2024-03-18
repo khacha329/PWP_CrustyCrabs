@@ -86,8 +86,6 @@ class LocationItem(Resource):
         location_entry = Location.query.filter_by(
             location_id=location.location_id
         ).first()
-        if not location_entry:
-            return create_error_response(404, "location doesn't exist")
         location_json = location_entry.serialize()
         location_json["uri"] = url_for("api.locationitem", location=location)
         return Response(json.dumps(location_json), 200)
@@ -105,14 +103,10 @@ class LocationItem(Resource):
             return {"message": "Request must be JSON"}, 415
 
         data = request.get_json()
+
         try:
             validate(instance=data, schema=Location.get_schema())
-        except ValidationError as e:
-            return {"message": "Validation error", "errors": str(e)}, 400
-
-        location.deserialize(data)
-
-        try:
+            location.deserialize(data)
             db.session.add(location)
             db.session.commit()
         except ValidationError as e:

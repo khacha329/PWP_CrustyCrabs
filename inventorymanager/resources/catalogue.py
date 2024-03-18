@@ -36,10 +36,13 @@ class CatalogueCollection(Resource):
         return Response(json.dumps(body), 200)
 
     def post(self):
+        """Adds a new catalogue to the database
+
+        :return: Response
+        """
         try:
             validate(request.json, Catalogue.get_schema())
             item_entry = Item.query.filter_by(item_id=request.json["item_id"]).first()
-
             if not item_entry:
                 return create_error_response(404, "Item doesn't exist")
             catalogue = Catalogue(item=item_entry)
@@ -49,9 +52,11 @@ class CatalogueCollection(Resource):
             db.session.commit()
 
         except ValidationError as e:
+            db.session.rollback()
             return abort(400, e.message)
 
         except IntegrityError:
+            db.session.rollback()
             return abort(409, "Catalogue already exists")
         # if api fails after this line, resource will be added to db anyway
         return Response(
@@ -82,8 +87,6 @@ class CatalogueItem(Resource):
         catalogue_entry = Catalogue.query.filter_by(
             supplier_name=supplier, item=item
         ).first()
-        if not catalogue_entry:
-            return create_error_response(404, "Catalogue entry doesn't exist")
         catalogue_json = catalogue_entry.serialize()
         catalogue_json["uri"] = url_for(
             "api.catalogueitem", supplier=supplier, item=item
@@ -101,8 +104,6 @@ class CatalogueItem(Resource):
         catalogue_entry = Catalogue.query.filter_by(
             supplier_name=supplier, item_id=item.item_id
         ).first()
-        if not catalogue_entry:
-            return create_error_response(404, "Catalogue entry doesn't exist")
         try:
             validate(request.json, Catalogue.get_schema())
             catalogue_entry.deserialize(request.json)
@@ -159,8 +160,6 @@ class CatalogueItemCollection(Resource):
 
         body = []
         item = Item.query.filter_by(item_id=item.item_id).first()
-        if not item:
-            return create_error_response(404, "Item doesn't exist")
 
         catalogue_entry = Catalogue.query.filter_by(item_id=item.item_id).first()
         if not catalogue_entry:

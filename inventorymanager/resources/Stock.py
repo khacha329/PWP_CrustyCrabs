@@ -103,8 +103,6 @@ class StockItem(Resource):
         """
 
         stock = Stock.query.filter_by(warehouse=warehouse, item=item).first()
-        if not stock:
-            return create_error_response(404, "Stock entry not found ")
 
         self_url = url_for("api.stockitem", warehouse=warehouse, item=item)
         body = InventoryManagerBuilder(stock.serialize())
@@ -134,15 +132,12 @@ class StockItem(Resource):
         :param item: item name of the stock to update
         :return: Response
         """
-
-        stock_entry = Stock.query.filter_by(item=item, warehouse=warehouse).first()
-        if not stock_entry:
-            return create_error_response(404, "Stock entry not found ")
         try:
             validate(request.json, Stock.get_schema())
+            stock_entry = Stock.query.filter_by(item=item, warehouse=warehouse).first()
             stock_entry.deserialize(request.json)
             db.session.commit()
-
+        
         except ValidationError as e:
             db.session.rollback()
             return create_error_response(400, "Invalid JSON document", str(e))
@@ -189,8 +184,6 @@ class StockItemCollection(Resource):
         :return: Response
         """
         item = Item.query.filter_by(item_id=item.item_id).first()
-        if not item:
-            return create_error_response(404, "Item doesn't exist")
         stock_entry = Stock.query.filter_by(item_id=item.item_id).first()
         if not stock_entry:
             return create_error_response(404, "item is out of stock in all warehouses")
@@ -220,11 +213,6 @@ class StockWarehouseCollection(Resource):
         warehouse = Warehouse.query.filter_by(
             warehouse_id=warehouse.warehouse_id
         ).first()
-        if not warehouse:
-            return create_error_response(404, "warehouse doesn't exist")
-        stock_entry = Stock.query.filter_by(item_id=warehouse.warehouse_id).first()
-        if not stock_entry:
-            return create_error_response(404, "warehouse has no items in stock yet")
         for stock in Stock.query.filter_by(warehouse=warehouse).all():
             stock_json = stock.serialize()
             stock_json["uri"] = url_for(

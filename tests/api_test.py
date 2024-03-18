@@ -7,7 +7,7 @@ import os
 import pytest
 import tempfile
 from flask.testing import FlaskClient
-from jsonschema import validate
+from jsonschema import  ValidationError, validate
 from sqlalchemy.engine import Engine
 from sqlalchemy import event
 from sqlalchemy.exc import IntegrityError, StatementError
@@ -68,7 +68,6 @@ def _populate_db():
         Item(name="Smartphone-1", category="Electronics", weight=0.2),
         Item(name="Laptop-3", category="Electronics", weight=1.7),
     ]
-
     # Create dummy stocks
     stocks = [
         Stock(item=items[0], warehouse=warehouses[0], quantity=10, shelf_price=999.99),
@@ -228,6 +227,8 @@ class TestLocationCollection(object):
 
         # remove model field for 400
         valid.pop("country")
+        with pytest.raises(ValidationError):
+            validate(valid, Location.get_schema())
         resp = client.post(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 400
 
@@ -267,6 +268,12 @@ class TestLocationItem(object):
         valid["location_id"] = 1
         resp = client.put(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 204
+        # remove model field for 400
+        valid.pop("country")
+        with pytest.raises(ValidationError):
+            validate(valid, Location.get_schema())
+        resp = client.put(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 400
         
         
     def test_delete(self, client: FlaskClient):
@@ -519,6 +526,15 @@ class TestCatalogueCollection(object):
         # send same data again for 409 
         resp = client.post(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 409
+
+        valid = _get_catalogue_json(4)
+        resp = client.post(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 404
+        valid.pop("supplier_name")
+        with pytest.raises(ValidationError):
+            validate(valid, Catalogue.get_schema())
+        resp = client.post(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 400
         
 
 class TestCatalogueItem(object):
@@ -559,6 +575,11 @@ class TestCatalogueItem(object):
         valid["supplier_name"] = "TechSupplier A"
         resp = client.put(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 204
+        valid.pop("supplier_name")
+        with pytest.raises(ValidationError):
+            validate(valid, Catalogue.get_schema())
+        resp = client.put(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 400
         
         
     def test_delete(self, client: FlaskClient):
@@ -646,13 +667,26 @@ class TestStockCollection(object):
 
         # send same data again for 409 
         resp = client.post(self.RESOURCE_URL, json=valid)
-        assert resp.status_code == 409
+        assert resp.status_code == 409      
+        valid = _get_stock_json(4, 2)
+        resp = client.post(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 404
+        valid = _get_stock_json(1, 3)
+        resp = client.post(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 404
+        valid = _get_stock_json(1, 2)
+        valid.pop("quantity")
+        with pytest.raises(ValidationError):
+            validate(valid, Stock.get_schema())
+        resp = client.post(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 400
+
         
 
 class TestStockItem(object):
     
     RESOURCE_URL = "/api/stocks/1/item/Laptop-1/"
-    INVALID_URL = "/api/stocks/3/item/Chair/"
+    INVALID_URL = "/api/stocks/2/item/Chair/"
     
     def test_get(self, client):
         resp = client.get(self.RESOURCE_URL)
@@ -663,6 +697,8 @@ class TestStockItem(object):
         assert "@controls" in body
         resp = client.get(body["@controls"]["self"]["href"]) 
         assert resp.status_code == 200
+        resp = client.put(self.INVALID_URL)
+        assert resp.status_code == 404
 
     def test_put(self, client: FlaskClient):
         valid = _get_stock_json(2, 2)
@@ -673,8 +709,7 @@ class TestStockItem(object):
         
 
         resp = client.put(self.INVALID_URL, json=valid)
-        assert resp.status_code == 404
-        
+        assert resp.status_code == 404     
         # test with another catalogue id (item id + supplier name)
         valid = _get_stock_json(2, 2)
         resp = client.put(self.RESOURCE_URL, json=valid)
@@ -685,6 +720,13 @@ class TestStockItem(object):
         valid = _get_stock_json(1, 2)
         resp = client.put(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 204
+        valid = _get_stock_json(2, 2)
+        valid.pop("quantity")
+        with pytest.raises(ValidationError):
+            validate(valid, Stock.get_schema())
+        resp = client.put(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 400   
+
         
         
     def test_delete(self, client: FlaskClient):

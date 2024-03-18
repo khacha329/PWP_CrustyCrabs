@@ -170,7 +170,9 @@ class Warehouse(db.Model):
         self.location_id = doc.get("location_id", self.location_id)
 
     def __repr__(self):
-        return f"<Warehouse(id={self.warehouse_id}, manager='{self.manager}', location_id={self.location_id})>"
+        return (    f"<Warehouse(id={self.warehouse_id},"
+                    f"manager='{self.manager}', location_id={self.location_id})>"
+        )
 
 
 # Item model
@@ -230,7 +232,9 @@ class Item(db.Model):
         self.weight = doc.get("weight", self.weight)
 
     def __repr__(self):
-        return f"<Item(id={self.item_id}, name='{self.name}', category='{self.category}', weight={self.weight})>"
+        return (f"<Item(id={self.item_id}, name='{self.name}',"
+               f"category='{self.category}', weight={self.weight})>"
+        )
 
 
 # Stock model
@@ -298,7 +302,9 @@ class Stock(db.Model):
         self.shelf_price = doc.get("shelf_price", self.shelf_price)
 
     def __repr__(self):
-        return f"<Stock(item_id={self.item_id}, warehouse_id={self.warehouse_id}, quantity={self.quantity}, shelf_price={self.shelf_price})>"
+        return (f"<Stock(item_id={self.item_id}, warehouse_id={self.warehouse_id},"
+                f"quantity={self.quantity}, shelf_price={self.shelf_price})>"
+        )
 
 
 # Catalogue model
@@ -357,7 +363,9 @@ class Catalogue(db.Model):
         self.order_price = doc.get("order_price", self.order_price)
 
     def __repr__(self):
-        return f"<Catalogue(item_id={self.item_id}, supplier_name='{self.supplier_name}', min_order={self.min_order}, order_price={self.order_price})>"
+        return (f"<Catalogue(item_id={self.item_id}, supplier_name='{self.supplier_name}',"
+                f"min_order={self.min_order}, order_price={self.order_price})>"
+        )
 
 
 @click.command("init-db")

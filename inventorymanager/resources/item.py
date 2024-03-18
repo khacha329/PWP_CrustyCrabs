@@ -88,8 +88,6 @@ class ItemItem(Resource):
         :param item: item to return
         :return: Response
         """
-        if not item:
-            return create_error_response(404, "Item doesn't exist")
 
         self_url = url_for("api.itemitem", item=item)
         body = InventoryManagerBuilder(item.serialize())
@@ -112,8 +110,6 @@ class ItemItem(Resource):
         :param item: Item to update
         :return: Response
         """
-        if not item:
-            return create_error_response(404, "Item doesn't exist")
         try:
             validate(request.json, Item.get_schema())
             item.deserialize(request.json)

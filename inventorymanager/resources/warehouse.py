@@ -43,10 +43,6 @@ class WarehouseCollection(Resource):
             db.session.add(warehouse)
             db.session.commit()
 
-        except ValidationError as e:
-            db.session.rollback()
-            return abort(400, e.message)
-
         except IntegrityError:
             db.session.rollback()
             return abort(409, "Warehouse already exists")
@@ -79,7 +75,6 @@ class WarehouseItem(Resource):
         body.append(warehouse_json)
         body.append(location_json)
         return Response(json.dumps(body), 200)
-        # This queries warehouse by id. maybe change it to query by name or smthg?
 
     def put(self, warehouse: Warehouse):
         """updates a single warehouse in the database
@@ -91,10 +86,6 @@ class WarehouseItem(Resource):
             validate(request.json, Warehouse.get_schema())
             warehouse.deserialize(request.json)
             db.session.commit()
-
-        except ValidationError as e:
-            db.session.rollback()
-            return create_error_response(400, "Invalid JSON document", str(e))
 
         except IntegrityError:
             db.session.rollback()
