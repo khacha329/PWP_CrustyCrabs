@@ -734,6 +734,7 @@ class TestStockItem(object):
         valid["item_id"] = 7
         resp = client.put(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 404
+        valid["item_id"] = 2
         valid["warehouse_id"] = 7
         resp = client.put(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 404
