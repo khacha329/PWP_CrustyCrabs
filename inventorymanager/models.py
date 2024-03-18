@@ -384,10 +384,13 @@ def init_db_command() -> None:
 @click.command("populate-db")
 @with_appcontext
 def create_dummy_data() -> None:
+    populate_db()
+
+
+def populate_db() -> None:
     """
     Adds dummy data to the database
     """
-    # Create dummy locations
     locations = [
         Location(
             latitude=60.1699,
@@ -407,26 +410,22 @@ def create_dummy_data() -> None:
         ),
     ]
 
-    # Create dummy warehouses
     warehouses = [
         Warehouse(manager="John Doe", location=locations[0]),
         Warehouse(manager="Jane Doe", location=locations[1]),
     ]
 
-    # Create dummy items
     items = [
-        Item(name="Laptop", category="Electronics", weight=1.5),
-        Item(name="Smartphone", category="Electronics", weight=0.2),
+        Item(name="Laptop-1", category="Electronics", weight=1.5),
+        Item(name="Smartphone-1", category="Electronics", weight=0.2),
+        Item(name="Laptop-3", category="Electronics", weight=1.7),
     ]
 
-    # Create dummy stocks
     stocks = [
         Stock(item=items[0], warehouse=warehouses[0], quantity=10, shelf_price=999.99),
         Stock(item=items[1], warehouse=warehouses[1], quantity=20, shelf_price=599.99),
-        # Stock(item=items[0], warehouse=warehouses[1], quantity=30, shelf_price=899.99),
     ]
 
-    # Create dummy catalogues
     catalogues = [
         Catalogue(
             item=items[0],
@@ -440,12 +439,6 @@ def create_dummy_data() -> None:
             min_order=10,
             order_price=550.00,
         ),
-        # Catalogue(
-        #     item=items[0],
-        #     supplier_name="TechSupplier B",
-        #     min_order=15,
-        #     order_price=850.00,
-        # ),
     ]
 
     # Add all to session and commit

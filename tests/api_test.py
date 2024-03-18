@@ -21,6 +21,7 @@ from inventorymanager.models import (
     Item,
     Stock,
     Catalogue,
+    populate_db,
 )
 
 
@@ -43,76 +44,15 @@ def client():
     # with app.app_context():
     db.create_all()
 
-    _populate_db()  # couldn't get create_dummy_data to work
+    populate_db()
+
+    # _populate_db()  # couldn't get create_dummy_data to work
 
     yield app.test_client()
 
     db.session.remove()
     os.close(db_fd)
     os.unlink(db_fname)
-
-
-def _populate_db():
-    """
-    Adds dummy data to the database
-    """
-    # Create dummy locations
-    locations = [
-        Location(
-            latitude=60.1699,
-            longitude=24.9384,
-            country="Finland",
-            postal_code="00100",
-            city="Helsinki",
-            street="Mannerheimintie",
-        ),
-        Location(
-            latitude=60.4518,
-            longitude=22.2666,
-            country="Finland",
-            postal_code="20100",
-            city="Turku",
-            street="Aurakatu",
-        ),
-    ]
-
-    # Create dummy warehouses
-    warehouses = [
-        Warehouse(manager="John Doe", location=locations[0]),
-        Warehouse(manager="Jane Doe", location=locations[1]),
-    ]
-
-    # Create dummy items
-    items = [
-        Item(name="Laptop-1", category="Electronics", weight=1.5),
-        Item(name="Smartphone-1", category="Electronics", weight=0.2),
-        Item(name="Laptop-3", category="Electronics", weight=1.7),
-    ]
-    # Create dummy stocks
-    stocks = [
-        Stock(item=items[0], warehouse=warehouses[0], quantity=10, shelf_price=999.99),
-        Stock(item=items[1], warehouse=warehouses[1], quantity=20, shelf_price=599.99),
-    ]
-
-    # Create dummy catalogues
-    catalogues = [
-        Catalogue(
-            item=items[0],
-            supplier_name="TechSupplier A",
-            min_order=5,
-            order_price=950.00,
-        ),
-        Catalogue(
-            item=items[1],
-            supplier_name="TechSupplier B",
-            min_order=10,
-            order_price=550.00,
-        ),
-    ]
-
-    # Add all to session and commit
-    db.session.add_all(locations + warehouses + items + stocks + catalogues)
-    db.session.commit()
 
 
 def _get_item_json(number=2):
