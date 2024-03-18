@@ -1,13 +1,18 @@
+"""
+This module contains the resources for the stock endpoints. 
+"""
+
 import json
 
 from flask import Response, abort, request, url_for
 from flask_restful import Resource
 from jsonschema import ValidationError, validate
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.exc import IntegrityError
 
 from inventorymanager import db
 from inventorymanager.builder import InventoryManagerBuilder
-from inventorymanager.constants import *
+from inventorymanager.constants import (INVENTORY_PROFILE, LINK_RELATIONS_URL,
+                                        MASON, NAMESPACE)
 from inventorymanager.models import Item, Stock, Warehouse
 from inventorymanager.utils import create_error_response
 
@@ -136,16 +141,18 @@ class StockItem(Resource):
         if not item_entry:
             return create_error_response(404, "Item doesn't exist")
         warehouse_entry = Warehouse.query.filter_by(
-        warehouse_id=request.json["warehouse_id"]
+            warehouse_id=request.json["warehouse_id"]
         ).first()
         if not warehouse_entry:
             return create_error_response(404, "Warehouse doesn't exist")
         try:
             validate(request.json, Stock.get_schema())
-            stock_entry = Stock.query.filter_by(item_id=item.item_id, warehouse_id=warehouse.warehouse_id).first()
+            stock_entry = Stock.query.filter_by(
+                item_id=item.item_id, warehouse_id=warehouse.warehouse_id
+            ).first()
             stock_entry.deserialize(request.json)
             db.session.commit()
-        
+
         except ValidationError as e:
             db.session.rollback()
             return create_error_response(400, "Invalid JSON document", str(e))

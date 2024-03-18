@@ -13,7 +13,7 @@ from inventorymanager.resources.catalogue import (
 )
 from inventorymanager.resources.item import ItemCollection, ItemItem
 from inventorymanager.resources.location import LocationCollection, LocationItem
-from inventorymanager.resources.Stock import (
+from inventorymanager.resources.stock import (
     StockCollection,
     StockItem,
     StockItemCollection,

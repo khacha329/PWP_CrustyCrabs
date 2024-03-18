@@ -3,12 +3,10 @@
     responses to the client. 
 """
 
-import json
+from flask import url_for
 
-from flask import Response, request, url_for
-
-from inventorymanager.constants import ERROR_PROFILE, MASON, NAMESPACE
-from inventorymanager.models import Catalogue, Item, Location, Stock, Warehouse
+from inventorymanager.constants import NAMESPACE
+from inventorymanager.models import Item, Warehouse
 
 
 # from https://github.com/enkwolf/pwp-course-sensorhub-api-example/tree/master
@@ -138,6 +136,10 @@ class InventoryManagerBuilder(MasonBuilder):
     """
 
     def add_control_all_items(self) -> None:
+        """
+        Adds a control to the Mason object that links to the collection of all
+        items in the database.
+        """
         self.add_control(
             f"{NAMESPACE}:items-all",
             url_for("api.itemcollection"),
@@ -146,6 +148,10 @@ class InventoryManagerBuilder(MasonBuilder):
         )
 
     def add_control_all_warehouses(self) -> None:
+        """
+        Adds a control to the Mason object that links to the collection of all
+        warehouses in the database.
+        """
         self.add_control(
             f"{NAMESPACE}:warehouses-all",
             url_for("api.warehousecollection"),
@@ -154,6 +160,10 @@ class InventoryManagerBuilder(MasonBuilder):
         )
 
     def add_control_all_stock(self) -> None:
+        """
+        Adds a control to the Mason object that links to the collection of all
+        stock in the database.
+        """
         self.add_control(
             f"{NAMESPACE}:stock-all",
             url_for("api.stockcollection"),
@@ -162,6 +172,10 @@ class InventoryManagerBuilder(MasonBuilder):
         )
 
     def add_control_all_catalogue(self) -> None:
+        """
+        Adds a control to the Mason object that links to the collection of all
+        catalogues in the database.
+        """
         self.add_control(
             f"{NAMESPACE}:catalogues-all",
             url_for("api.cataloguecollection"),
@@ -170,6 +184,10 @@ class InventoryManagerBuilder(MasonBuilder):
         )
 
     def add_control_all_locations(self) -> None:
+        """
+        Adds a control to the Mason object that links to the collection of all
+        locations in the database.
+        """
         self.add_control(
             f"{NAMESPACE}:locations-all",
             url_for("api.locationcollection"),
@@ -178,6 +196,11 @@ class InventoryManagerBuilder(MasonBuilder):
         )
 
     def add_control_all_catalogue_items(self, item: Item) -> None:
+        """Adds a control to the Mason object that links to the collection of all
+        catalogue entries of a specific item.
+
+        :param item: item to filter by
+        """
         self.add_control(
             f"{NAMESPACE}:catalogue-items-all",
             url_for("api.catalogueitemcollection", item=item),
@@ -186,6 +209,10 @@ class InventoryManagerBuilder(MasonBuilder):
         )
 
     def add_control_get_item(self, item: Item) -> None:
+        """Adds a control to the Mason object that links to a specific item.
+
+        :param item: item to get
+        """
         self.add_control(
             f"{NAMESPACE}:item",
             url_for("api.itemitem", item=item),
@@ -194,6 +221,10 @@ class InventoryManagerBuilder(MasonBuilder):
         )
 
     def add_control_get_warehouse(self, warehouse: Warehouse) -> None:
+        """Adds a control to the Mason object that links to a specific warehouse.
+
+        :param warehouse: warehouses to get
+        """
         self.add_control(
             f"{NAMESPACE}:warehouse",
             url_for("api.warehouseitem", warehouse=warehouse),
@@ -202,6 +233,11 @@ class InventoryManagerBuilder(MasonBuilder):
         )
 
     def add_control_all_stock_items(self, item: Item) -> None:
+        """Adds a control to the Mason object that links to the collection of all
+        stock entries of a specific item.
+
+        :param item: item to filter stock by
+        """
         self.add_control(
             f"{NAMESPACE}:stock-items-all",
             url_for("api.stockitemcollection", item=item),

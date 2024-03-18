@@ -1,3 +1,7 @@
+"""
+This module contains the resources for the catalogue endpoints.
+"""
+
 import json
 
 from flask import Response, abort, request, url_for
@@ -6,7 +10,6 @@ from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
 
 from inventorymanager import db
-from inventorymanager.constants import *
 from inventorymanager.models import Catalogue, Item
 from inventorymanager.utils import create_error_response
 
@@ -106,7 +109,7 @@ class CatalogueItem(Resource):
         try:
             validate(request.json, Catalogue.get_schema())
             catalogue_entry = Catalogue.query.filter_by(
-            supplier_name=supplier, item_id=item.item_id
+                supplier_name=supplier, item_id=item.item_id
             ).first()
             catalogue_entry.deserialize(request.json)
             db.session.commit()

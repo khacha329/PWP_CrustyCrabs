@@ -1,13 +1,16 @@
+"""
+This module contains the resources for the warehouse endpoints.
+"""
+
 import json
 
 from flask import Response, abort, request, url_for
 from flask_restful import Resource
-from jsonschema import ValidationError, validate
+from jsonschema import validate
 from sqlalchemy.exc import IntegrityError
 
 from inventorymanager import db
-from inventorymanager.constants import *
-from inventorymanager.models import Location, Warehouse
+from inventorymanager.models import Warehouse
 from inventorymanager.utils import create_error_response
 
 
