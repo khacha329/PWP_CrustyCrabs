@@ -62,6 +62,7 @@ To intialize the database and populate it with dummy data follow the [README fil
 Run these to format code and imports:
 
 ```
+pip install isort
 isort inventorymanager
 black inventorymanager
 ```
