@@ -65,6 +65,7 @@ class Location(db.Model):
         return {
             "type": "object",
             "properties": {
+                "location_id": {"type": "number"},
                 "latitude": {"type": "number"},
                 "longitude": {"type": "number"},
                 "country": {"type": "string"},
@@ -96,6 +97,7 @@ class Location(db.Model):
 
         :param doc: dictionary with location information
         """
+        self.location_id = doc.get("location_id", self.location_id)
         self.latitude = doc.get("latitude", self.latitude)
         self.longitude = doc.get("longitude", self.longitude)
         self.country = doc.get("country", self.country)
@@ -142,6 +144,7 @@ class Warehouse(db.Model):
         return {
             "type": "object",
             "properties": {
+                "warehouse_id": {"type": "number"},
                 "manager": {"type": "string"},
                 "location_id": {"type": "integer"},
             },
@@ -162,11 +165,15 @@ class Warehouse(db.Model):
 
         :param doc: dictionary with warehouse information
         """
+        self.warehouse_id = doc.get("warehouse_id", self.warehouse_id)
         self.manager = doc.get("manager", self.manager)
         self.location_id = doc.get("location_id", self.location_id)
 
     def __repr__(self):
-        return f"<Warehouse(id={self.warehouse_id}, manager='{self.manager}', location_id={self.location_id})>"
+        return (
+            f"<Warehouse(id={self.warehouse_id},"
+            f"manager='{self.manager}', location_id={self.location_id})>"
+        )
 
 
 # Item model
@@ -226,7 +233,10 @@ class Item(db.Model):
         self.weight = doc.get("weight", self.weight)
 
     def __repr__(self):
-        return f"<Item(id={self.item_id}, name='{self.name}', category='{self.category}', weight={self.weight})>"
+        return (
+            f"<Item(id={self.item_id}, name='{self.name}',"
+            f"category='{self.category}', weight={self.weight})>"
+        )
 
 
 # Stock model
@@ -262,7 +272,7 @@ class Stock(db.Model):
         return {
             "type": "object",
             "properties": {
-                "item_name": {"type": "string"},
+                "item_id": {"type": "number"},
                 "warehouse_id": {"type": "number"},
                 "quantity": {"type": "number"},
                 "shelf_price": {"type": "number"},
@@ -288,11 +298,16 @@ class Stock(db.Model):
 
         :param doc: dictionary with stock information
         """
+        self.item_id = doc.get("item_id", self.item_id)
+        self.warehouse_id = doc.get("warehouse_id", self.warehouse_id)
         self.quantity = doc.get("quantity", self.quantity)
         self.shelf_price = doc.get("shelf_price", self.shelf_price)
 
     def __repr__(self):
-        return f"<Stock(item_id={self.item_id}, warehouse_id={self.warehouse_id}, quantity={self.quantity}, shelf_price={self.shelf_price})>"
+        return (
+            f"<Stock(item_id={self.item_id}, warehouse_id={self.warehouse_id},"
+            f"quantity={self.quantity}, shelf_price={self.shelf_price})>"
+        )
 
 
 # Catalogue model
@@ -319,7 +334,7 @@ class Catalogue(db.Model):
         return {
             "type": "object",
             "properties": {
-                "item_name": {"type": "string"},
+                "item_id": {"type": "number"},
                 "supplier_name": {"type": "string"},
                 "min_order": {"type": "integer"},
                 "order_price": {"type": "number"},
@@ -345,12 +360,16 @@ class Catalogue(db.Model):
 
         :param doc: dictionary with catalogue information
         """
+        self.item_id = doc.get("item_id", self.item_id)
         self.supplier_name = doc.get("supplier_name", self.supplier_name)
         self.min_order = doc.get("min_order", self.min_order)
         self.order_price = doc.get("order_price", self.order_price)
 
     def __repr__(self):
-        return f"<Catalogue(item_id={self.item_id}, supplier_name='{self.supplier_name}', min_order={self.min_order}, order_price={self.order_price})>"
+        return (
+            f"<Catalogue(item_id={self.item_id}, supplier_name='{self.supplier_name}',"
+            f"min_order={self.min_order}, order_price={self.order_price})>"
+        )
 
 
 @click.command("init-db")
@@ -365,10 +384,13 @@ def init_db_command() -> None:
 @click.command("populate-db")
 @with_appcontext
 def create_dummy_data() -> None:
+    populate_db()
+
+
+def populate_db() -> None:
     """
     Adds dummy data to the database
     """
-    # Create dummy locations
     locations = [
         Location(
             latitude=60.1699,
@@ -388,26 +410,22 @@ def create_dummy_data() -> None:
         ),
     ]
 
-    # Create dummy warehouses
     warehouses = [
         Warehouse(manager="John Doe", location=locations[0]),
         Warehouse(manager="Jane Doe", location=locations[1]),
     ]
 
-    # Create dummy items
     items = [
-        Item(name="Laptop", category="Electronics", weight=1.5),
-        Item(name="Smartphone", category="Electronics", weight=0.2),
+        Item(name="Laptop-1", category="Electronics", weight=1.5),
+        Item(name="Smartphone-1", category="Electronics", weight=0.2),
+        Item(name="Laptop-3", category="Electronics", weight=1.7),
     ]
 
-    # Create dummy stocks
     stocks = [
         Stock(item=items[0], warehouse=warehouses[0], quantity=10, shelf_price=999.99),
         Stock(item=items[1], warehouse=warehouses[1], quantity=20, shelf_price=599.99),
-        # Stock(item=items[0], warehouse=warehouses[1], quantity=30, shelf_price=899.99),
     ]
 
-    # Create dummy catalogues
     catalogues = [
         Catalogue(
             item=items[0],
@@ -421,77 +439,8 @@ def create_dummy_data() -> None:
             min_order=10,
             order_price=550.00,
         ),
-        # Catalogue(
-        #     item=items[0],
-        #     supplier_name="TechSupplier B",
-        #     min_order=15,
-        #     order_price=850.00,
-        # ),
     ]
 
     # Add all to session and commit
     db.session.add_all(locations + warehouses + items + stocks + catalogues)
     db.session.commit()
-
-
-if __name__ == "__main__":
-    test_location = Location(
-        location_id=5,
-        latitude=60.1699,
-        longitude=24.9384,
-        country="Finland",
-        postal_code="00100",
-        city="Helsinki",
-        street="Mannerheimintie",
-    )
-    print(test_location.serialize())
-    test_location_json = {
-        "latitude": 69,
-        "longitude": 42,
-        "country": "Finland",
-        "postal_code": "00100",
-        "city": "Helsinki",
-        "street": "Mannerheimintie",
-    }
-    test_location.deserialize(test_location_json)
-    print(test_location)
-
-    test_warehouse = Warehouse(manager="John Doe", location=test_location)
-    print(test_warehouse.serialize())
-    test_warehouse_json = {"manager": "Jane Doe", "location_id": 5}
-    test_warehouse.deserialize(test_warehouse_json)
-    print(test_warehouse)
-
-    test_item = Item(name="Laptop", category="Electronics", weight=1.5)
-    print(test_item.serialize())
-    test_item_json = {"name": "Smartphone", "category": "Electronics", "weight": 0.2}
-    test_item.deserialize(test_item_json)
-    print(test_item)
-
-    test_stock = Stock(
-        item=test_item, warehouse=test_warehouse, quantity=10, shelf_price=999.99
-    )
-    print(test_stock.serialize())
-    test_stock_json = {"quantity": 20, "shelf_price": 599.99}
-    test_stock.deserialize(test_stock_json)
-    print(test_stock)
-
-    test_catalogue = Catalogue(
-        item=test_item, supplier_name="TechSupplier A", min_order=5, order_price=950.00
-    )
-    print(test_catalogue.serialize())
-    test_catalogue_json = {
-        "supplier_name": "TechSupplier B",
-        "min_order": 10,
-        "order_price": 550.00,
-    }
-    test_catalogue.deserialize(test_catalogue_json)
-    print(test_catalogue)
-
-    from jsonschema import validate
-
-    validate(test_location_json, Location.get_schema())
-    validate(test_warehouse_json, Warehouse.get_schema())
-    validate(test_item_json, Item.get_schema())
-    validate(test_stock_json, Stock.get_schema())
-    validate(test_catalogue_json, Catalogue.get_schema())

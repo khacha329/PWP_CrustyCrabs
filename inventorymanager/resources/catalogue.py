@@ -1,3 +1,7 @@
+"""
+This module contains the resources for the catalogue endpoints.
+"""
+
 import json
 
 from flask import Response, abort, request, url_for
@@ -6,7 +10,6 @@ from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
 
 from inventorymanager import db
-from inventorymanager.constants import *
 from inventorymanager.models import Catalogue, Item
 from inventorymanager.utils import create_error_response
 
@@ -36,10 +39,13 @@ class CatalogueCollection(Resource):
         return Response(json.dumps(body), 200)
 
     def post(self):
+        """Adds a new catalogue to the database
+
+        :return: Response
+        """
         try:
             validate(request.json, Catalogue.get_schema())
-            item_entry = Item.query.filter_by(name=request.json["item_name"]).first()
-
+            item_entry = Item.query.filter_by(item_id=request.json["item_id"]).first()
             if not item_entry:
                 return create_error_response(404, "Item doesn't exist")
             catalogue = Catalogue(item=item_entry)
@@ -49,9 +55,11 @@ class CatalogueCollection(Resource):
             db.session.commit()
 
         except ValidationError as e:
+            db.session.rollback()
             return abort(400, e.message)
 
         except IntegrityError:
+            db.session.rollback()
             return abort(409, "Catalogue already exists")
         # if api fails after this line, resource will be added to db anyway
         return Response(
@@ -82,8 +90,6 @@ class CatalogueItem(Resource):
         catalogue_entry = Catalogue.query.filter_by(
             supplier_name=supplier, item=item
         ).first()
-        if not catalogue_entry:
-            return create_error_response(404, "Catalogue entry doesn't exist")
         catalogue_json = catalogue_entry.serialize()
         catalogue_json["uri"] = url_for(
             "api.catalogueitem", supplier=supplier, item=item
@@ -97,25 +103,29 @@ class CatalogueItem(Resource):
         :param item: item name of the catalogue entry to update
         :return: Response
         """
-
-        catalogue_entry = Catalogue.query.filter_by(
-            supplier_name=supplier, item_id=item
-        ).first()
-        if not catalogue_entry:
-            return create_error_response(404, "Catalogue entry doesn't exist")
+        item_entry = Item.query.filter_by(item_id=request.json["item_id"]).first()
+        if not item_entry:
+            return create_error_response(404, "Item doesn't exist")
         try:
             validate(request.json, Catalogue.get_schema())
+            catalogue_entry = Catalogue.query.filter_by(
+                supplier_name=supplier, item_id=item.item_id
+            ).first()
             catalogue_entry.deserialize(request.json)
             db.session.commit()
 
         except ValidationError as e:
+            db.session.rollback()
             return create_error_response(400, "Invalid JSON document", str(e))
 
         except IntegrityError:
+            db.session.rollback()
             return create_error_response(
                 409,
                 "Already exists",
-                "Catalogue already exists",
+                "catalogue with item '{}' from supplier '{}'already exists.".format(
+                    request.json["item_id"], request.json["supplier_name"]
+                ),
             )
 
         return Response(status=204)
@@ -154,7 +164,13 @@ class CatalogueItemCollection(Resource):
         """
 
         body = []
-        for catalogue in Catalogue.query.filter_by(item=item).all():
+        item = Item.query.filter_by(item_id=item.item_id).first()
+
+        catalogue_entry = Catalogue.query.filter_by(item_id=item.item_id).first()
+        if not catalogue_entry:
+            return create_error_response(404, "No supplier has the requested item")
+
+        for catalogue in Catalogue.query.filter_by(item_id=item.item_id).all():
             catalogue_json = catalogue.serialize()
             catalogue_json["uri"] = url_for(
                 "api.catalogueitem",
@@ -179,6 +195,10 @@ class CatalogueSupplierCollection(Resource):
         """
 
         body = []
+        catalogue_entry = Catalogue.query.filter_by(supplier_name=supplier).first()
+        if not catalogue_entry:
+            return create_error_response(404, "supplier does not exist")
+
         for catalogue in Catalogue.query.filter_by(supplier_name=supplier).all():
             catalogue_json = catalogue.serialize()
             catalogue_json["uri"] = url_for(

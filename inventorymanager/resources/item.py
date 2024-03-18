@@ -8,15 +8,11 @@ from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
 
 from inventorymanager import db
+from inventorymanager.builder import InventoryManagerBuilder
+from inventorymanager.constants import (INVENTORY_PROFILE, LINK_RELATIONS_URL,
+                                        MASON, NAMESPACE)
 from inventorymanager.models import Item
 from inventorymanager.utils import create_error_response
-from inventorymanager.constants import (
-    MASON,
-    LINK_RELATIONS_URL,
-    NAMESPACE,
-    INVENTORY_PROFILE,
-)
-from inventorymanager.builder import InventoryManagerBuilder
 
 
 class ItemCollection(Resource):
@@ -64,9 +60,11 @@ class ItemCollection(Resource):
             db.session.commit()
 
         except ValidationError as e:
+            db.session.rollback()
             return abort(400, e.message)
 
         except IntegrityError:
+            db.session.rollback()
             return abort(409, "Item already exists")
 
         return Response(
@@ -86,8 +84,6 @@ class ItemItem(Resource):
         :param item: item to return
         :return: Response
         """
-        if not item:
-            return create_error_response(404, "Item doesn't exist")
 
         self_url = url_for("api.itemitem", item=item)
         body = InventoryManagerBuilder(item.serialize())
@@ -110,17 +106,17 @@ class ItemItem(Resource):
         :param item: Item to update
         :return: Response
         """
-        if not item:
-            return create_error_response(404, "Item doesn't exist")
         try:
             validate(request.json, Item.get_schema())
             item.deserialize(request.json)
             db.session.commit()
 
         except ValidationError as e:
+            db.session.rollback()
             return create_error_response(400, "Invalid JSON document", str(e))
 
         except IntegrityError:
+            db.session.rollback()
             return create_error_response(
                 409,
                 "Already exists",

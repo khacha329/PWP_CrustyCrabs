@@ -1,13 +1,22 @@
+"""
+This module contains the resources for the stock endpoints. 
+"""
+
 import json
 
 from flask import Response, abort, request, url_for
 from flask_restful import Resource
-from inventorymanager.builder import InventoryManagerBuilder
 from jsonschema import ValidationError, validate
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.exc import IntegrityError
 
 from inventorymanager import db
-from inventorymanager.constants import *
+from inventorymanager.builder import InventoryManagerBuilder
+from inventorymanager.constants import (
+    INVENTORY_PROFILE,
+    LINK_RELATIONS_URL,
+    MASON,
+    NAMESPACE,
+)
 from inventorymanager.models import Item, Stock, Warehouse
 from inventorymanager.utils import create_error_response
 
@@ -55,29 +64,29 @@ class StockCollection(Resource):
         """
         try:
             validate(request.json, Stock.get_schema())
-            item_name = request.json["item_name"]
-            item_entry = Item.query.filter_by(name=item_name).first()
+            item_id = request.json["item_id"]
+            item_entry = Item.query.filter_by(item_id=item_id).first()
             if not item_entry:
                 return create_error_response(404, "Item doesn't exist")
             warehouse_id = request.json["warehouse_id"]
             warehouse_entry = Warehouse.query.filter_by(
                 warehouse_id=warehouse_id
             ).first()
-            stock = Stock(item=item_entry, warehouse=warehouse_entry)
+            if not warehouse_entry:
+                return create_error_response(404, "Warehouse doesn't exist")
+            stock = Stock()
             stock.deserialize(request.json)
 
             db.session.add(stock)
             db.session.commit()
 
-        except SQLAlchemyError as e:
-            error = str(e.__dict__["orig"])
-            return abort(400, error)
         except ValidationError as e:
+            db.session.rollback()
             return abort(400, e.message)
 
         except IntegrityError:
+            db.session.rollback()
             return abort(409, "stock already exists")
-        # if api fails after this line, resource will be added to db anyway
         return Response(
             status=201,
             headers={
@@ -103,8 +112,6 @@ class StockItem(Resource):
         """
 
         stock = Stock.query.filter_by(warehouse=warehouse, item=item).first()
-        if not stock:
-            return create_error_response(404, "Stock entry not found ")
 
         self_url = url_for("api.stockitem", warehouse=warehouse, item=item)
         body = InventoryManagerBuilder(stock.serialize())
@@ -119,7 +126,13 @@ class StockItem(Resource):
         body.add_control_get_item(item)
         body.add_control_all_stock_items(item)
 
+        # body.add_control_all_catalogue()
+        # body.add_control_all_stock()
+        # body.add_control_all_catalogue_items(item)
+
         return Response(json.dumps(body), 200, mimetype=MASON)
+
+        # return Response(json.dumps(stock_json), 200)
 
     def put(self, warehouse: Warehouse, item: Item):
         """Updates a stock in the database
@@ -128,23 +141,34 @@ class StockItem(Resource):
         :param item: item name of the stock to update
         :return: Response
         """
-
-        stock_entry = Stock.query.filter_by(item=item, warehouse=warehouse).first()
-        if not stock_entry:
-            return create_error_response(404, "Stock entry not found ")
+        item_entry = Item.query.filter_by(item_id=request.json["item_id"]).first()
+        if not item_entry:
+            return create_error_response(404, "Item doesn't exist")
+        warehouse_entry = Warehouse.query.filter_by(
+            warehouse_id=request.json["warehouse_id"]
+        ).first()
+        if not warehouse_entry:
+            return create_error_response(404, "Warehouse doesn't exist")
         try:
             validate(request.json, Stock.get_schema())
+            stock_entry = Stock.query.filter_by(
+                item_id=item.item_id, warehouse_id=warehouse.warehouse_id
+            ).first()
             stock_entry.deserialize(request.json)
             db.session.commit()
 
         except ValidationError as e:
+            db.session.rollback()
             return create_error_response(400, "Invalid JSON document", str(e))
 
         except IntegrityError:
+            db.session.rollback()
             return create_error_response(
                 409,
                 "Already exists",
-                "stock with name '{}' already exists.".format(request.json["name"]),
+                "stock with item '{}' in warehouse with id '{}'already exists.".format(
+                    request.json["item_id"], request.json["warehouse_id"]
+                ),
             )
 
         return Response(status=204)
@@ -178,7 +202,10 @@ class StockItemCollection(Resource):
         :param item: item name to filter stocks with
         :return: Response
         """
-
+        item = Item.query.filter_by(item_id=item.item_id).first()
+        stock_entry = Stock.query.filter_by(item_id=item.item_id).first()
+        if not stock_entry:
+            return create_error_response(404, "item is out of stock in all warehouses")
         body = []
         for stock_entry in Stock.query.filter_by(item=item).all():
             stock_json = stock_entry.serialize()
@@ -202,6 +229,9 @@ class StockWarehouseCollection(Resource):
         :return: Response
         """
         body = []
+        warehouse = Warehouse.query.filter_by(
+            warehouse_id=warehouse.warehouse_id
+        ).first()
         for stock in Stock.query.filter_by(warehouse=warehouse).all():
             stock_json = stock.serialize()
             stock_json["uri"] = url_for(

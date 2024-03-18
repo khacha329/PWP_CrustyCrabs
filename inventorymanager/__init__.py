@@ -4,9 +4,9 @@ This module is used to start and retrieve a Flask application complete with all 
 
 import os
 
+from flasgger import Swagger
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flasgger import Swagger
 
 from inventorymanager.config import Config
 
@@ -68,11 +68,8 @@ def create_app(test_config=None) -> Flask:
     app.cli.add_command(create_dummy_data)
 
     from inventorymanager.api import api_bp
-    from inventorymanager.utils import (
-        ItemConverter,
-        LocationConverter,
-        WarehouseConverter,
-    )
+    from inventorymanager.utils import (ItemConverter, LocationConverter,
+                                        WarehouseConverter)
 
     app.url_map.converters["warehouse"] = WarehouseConverter
     app.url_map.converters["item"] = ItemConverter

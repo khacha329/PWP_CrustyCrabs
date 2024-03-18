@@ -5,20 +5,18 @@ Examples from PWP course exercise 2
 https://lovelace.oulu.fi/ohjelmoitava-web/ohjelmoitava-web/implementing-rest-apis-with-flask/#dynamic-schemas-static-methods
 """
 
-import os
 import json
+import os
 
-from flask import Response, request, url_for
-from flask_restful import Resource
 from flasgger import swag_from
+from flask import Response, abort, request, url_for
+from flask_restful import Resource
 from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
 
 from inventorymanager import db
-from inventorymanager.models import Location
 from inventorymanager.constants import DOC_FOLDER
-
-from inventorymanager.utils import create_error_response
+from inventorymanager.models import Location
 
 
 class LocationCollection(Resource):
@@ -84,8 +82,12 @@ class LocationItem(Resource):
         Returns:
             string: The matching location
         """
-
-        return location.serialize(), 200
+        location_entry = Location.query.filter_by(
+            location_id=location.location_id
+        ).first()
+        location_json = location_entry.serialize()
+        location_json["uri"] = url_for("api.locationitem", location=location)
+        return Response(json.dumps(location_json), 200)
 
     @swag_from(os.getcwd() + f"{DOC_FOLDER}location/item/put.yml")
     def put(self, location):
@@ -100,19 +102,19 @@ class LocationItem(Resource):
             return {"message": "Request must be JSON"}, 415
 
         data = request.get_json()
+
         try:
             validate(instance=data, schema=Location.get_schema())
-        except ValidationError as e:
-            return {"message": "Validation error", "errors": str(e)}, 400
-
-        location.deserialize(data)
-
-        try:
+            location.deserialize(data)
             db.session.add(location)
             db.session.commit()
-        except Exception as e:
+        except ValidationError as e:
             db.session.rollback()
-            return {"message": "Database error", "errors": str(e)}, 500
+            return abort(400, e.message)
+
+        except IntegrityError:
+            db.session.rollback()
+            return abort(409, "stock already exists")
 
         return {}, 204
 
@@ -129,5 +131,3 @@ class LocationItem(Resource):
         db.session.commit()
 
         return Response(status=204)
-
-

@@ -1,13 +1,16 @@
+"""
+This module contains the resources for the warehouse endpoints.
+"""
+
 import json
 
 from flask import Response, abort, request, url_for
 from flask_restful import Resource
-from jsonschema import ValidationError, validate
+from jsonschema import validate
 from sqlalchemy.exc import IntegrityError
 
 from inventorymanager import db
-from inventorymanager.constants import *
-from inventorymanager.models import Location, Warehouse
+from inventorymanager.models import Warehouse
 from inventorymanager.utils import create_error_response
 
 
@@ -43,12 +46,10 @@ class WarehouseCollection(Resource):
             db.session.add(warehouse)
             db.session.commit()
 
-        except ValidationError as e:
-            return abort(400, e.message)
-
         except IntegrityError:
+            db.session.rollback()
             return abort(409, "Warehouse already exists")
-        # if api fails after this line, resource will be added to db anyway
+
         return Response(
             status=201,
             headers={"Location": url_for("api.warehouseitem", warehouse=warehouse)},
@@ -77,7 +78,6 @@ class WarehouseItem(Resource):
         body.append(warehouse_json)
         body.append(location_json)
         return Response(json.dumps(body), 200)
-        # This queries warehouse by id. maybe change it to query by name or smthg?
 
     def put(self, warehouse: Warehouse):
         """updates a single warehouse in the database
@@ -90,14 +90,14 @@ class WarehouseItem(Resource):
             warehouse.deserialize(request.json)
             db.session.commit()
 
-        except ValidationError as e:
-            return create_error_response(400, "Invalid JSON document", str(e))
-
         except IntegrityError:
+            db.session.rollback()
             return create_error_response(
                 409,
                 "Already exists",
-                "warehouse with name '{}' already exists.".format(request.json["name"]),
+                "warehouse with id '{}' already exists.".format(
+                    request.json["warehouse_id"]
+                ),
             )
 
         return Response(status=204)
