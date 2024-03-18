@@ -132,9 +132,17 @@ class StockItem(Resource):
         :param item: item name of the stock to update
         :return: Response
         """
+        item_entry = Item.query.filter_by(item_id=request.json["item_id"]).first()
+        if not item_entry:
+            return create_error_response(404, "Item doesn't exist")
+        warehouse_entry = Warehouse.query.filter_by(
+        warehouse_id=request.json["warehouse_id"]
+        ).first()
+        if not warehouse_entry:
+            return create_error_response(404, "Warehouse doesn't exist")
         try:
             validate(request.json, Stock.get_schema())
-            stock_entry = Stock.query.filter_by(item=item, warehouse=warehouse).first()
+            stock_entry = Stock.query.filter_by(item_id=item.item_id, warehouse_id=warehouse.warehouse_id).first()
             stock_entry.deserialize(request.json)
             db.session.commit()
         

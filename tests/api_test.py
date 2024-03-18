@@ -562,7 +562,10 @@ class TestCatalogueItem(object):
 
         resp = client.put(self.INVALID_URL, json=valid)
         assert resp.status_code == 404
-        
+        # test for non existing item
+        valid["item_id"] = 7
+        resp = client.put(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 404
         # test with another catalogue id (item id + supplier name)
         valid["item_id"] = 2
         valid["supplier_name"] = "TechSupplier B"
@@ -710,7 +713,14 @@ class TestStockItem(object):
 
         resp = client.put(self.INVALID_URL, json=valid)
         assert resp.status_code == 404     
-        # test with another catalogue id (item id + supplier name)
+        # test for non existing item or warehouse
+        valid["item_id"] = 7
+        resp = client.put(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 404
+        valid["warehouse_id"] = 7
+        resp = client.put(self.RESOURCE_URL, json=valid)
+        assert resp.status_code == 404
+        # test with another warehouse id (item id + warehouse id)
         valid = _get_stock_json(2, 2)
         resp = client.put(self.RESOURCE_URL, json=valid)
         assert resp.status_code == 409

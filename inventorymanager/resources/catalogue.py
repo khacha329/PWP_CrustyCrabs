@@ -100,12 +100,14 @@ class CatalogueItem(Resource):
         :param item: item name of the catalogue entry to update
         :return: Response
         """
-
-        catalogue_entry = Catalogue.query.filter_by(
-            supplier_name=supplier, item_id=item.item_id
-        ).first()
+        item_entry = Item.query.filter_by(item_id=request.json["item_id"]).first()
+        if not item_entry:
+            return create_error_response(404, "Item doesn't exist")
         try:
             validate(request.json, Catalogue.get_schema())
+            catalogue_entry = Catalogue.query.filter_by(
+            supplier_name=supplier, item_id=item.item_id
+            ).first()
             catalogue_entry.deserialize(request.json)
             db.session.commit()
 
