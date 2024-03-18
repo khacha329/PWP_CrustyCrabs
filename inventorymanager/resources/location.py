@@ -5,19 +5,18 @@ Examples from PWP course exercise 2
 https://lovelace.oulu.fi/ohjelmoitava-web/ohjelmoitava-web/implementing-rest-apis-with-flask/#dynamic-schemas-static-methods
 """
 
-import os
 import json
+import os
 
-from flask import Response, request, url_for, abort
-from flask_restful import Resource
 from flasgger import swag_from
+from flask import Response, abort, request, url_for
+from flask_restful import Resource
 from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
 
 from inventorymanager import db
-from inventorymanager.models import Location
 from inventorymanager.constants import DOC_FOLDER
-
+from inventorymanager.models import Location
 from inventorymanager.utils import create_error_response
 
 
@@ -84,15 +83,14 @@ class LocationItem(Resource):
         Returns:
             string: The matching location
         """
-        location_entry = Location.query.filter_by(location_id=location.location_id).first()
+        location_entry = Location.query.filter_by(
+            location_id=location.location_id
+        ).first()
         if not location_entry:
             return create_error_response(404, "location doesn't exist")
         location_json = location_entry.serialize()
-        location_json["uri"] = url_for(
-            "api.locationitem", location=location
-        )
+        location_json["uri"] = url_for("api.locationitem", location=location)
         return Response(json.dumps(location_json), 200)
-
 
     @swag_from(os.getcwd() + f"{DOC_FOLDER}location/item/put.yml")
     def put(self, location):
@@ -140,5 +138,3 @@ class LocationItem(Resource):
         db.session.commit()
 
         return Response(status=204)
-
-

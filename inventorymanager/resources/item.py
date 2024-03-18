@@ -8,15 +8,15 @@ from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
 
 from inventorymanager import db
+from inventorymanager.builder import InventoryManagerBuilder
+from inventorymanager.constants import (
+    INVENTORY_PROFILE,
+    LINK_RELATIONS_URL,
+    MASON,
+    NAMESPACE,
+)
 from inventorymanager.models import Item
 from inventorymanager.utils import create_error_response
-from inventorymanager.constants import (
-    MASON,
-    LINK_RELATIONS_URL,
-    NAMESPACE,
-    INVENTORY_PROFILE,
-)
-from inventorymanager.builder import InventoryManagerBuilder
 
 
 class ItemCollection(Resource):

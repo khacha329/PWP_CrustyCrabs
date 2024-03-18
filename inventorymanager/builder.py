@@ -5,10 +5,10 @@
 
 import json
 
-from flask import url_for, request, Response
+from flask import Response, request, url_for
 
 from inventorymanager.constants import ERROR_PROFILE, MASON, NAMESPACE
-from inventorymanager.models import Item, Warehouse, Catalogue, Stock, Location
+from inventorymanager.models import Catalogue, Item, Location, Stock, Warehouse
 
 
 # from https://github.com/enkwolf/pwp-course-sensorhub-api-example/tree/master

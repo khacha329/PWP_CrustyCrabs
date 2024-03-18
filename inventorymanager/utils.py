@@ -11,9 +11,9 @@ from flask import Response, request, url_for
 from werkzeug.exceptions import NotFound
 from werkzeug.routing import BaseConverter
 
+from inventorymanager.builder import MasonBuilder
 from inventorymanager.constants import *
 from inventorymanager.models import Item, Location, Warehouse
-from inventorymanager.builder import MasonBuilder
 
 
 # from https://github.com/enkwolf/pwp-course-sensorhub-api-example/tree/master

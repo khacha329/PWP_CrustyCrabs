@@ -4,9 +4,9 @@ This module is used to start and retrieve a Flask application complete with all 
 
 import os
 
+from flasgger import Swagger
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flasgger import Swagger
 
 from inventorymanager.config import Config
 

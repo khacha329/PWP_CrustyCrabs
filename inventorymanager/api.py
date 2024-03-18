@@ -14,9 +14,9 @@ from inventorymanager.resources.catalogue import (
 from inventorymanager.resources.item import ItemCollection, ItemItem
 from inventorymanager.resources.location import LocationCollection, LocationItem
 from inventorymanager.resources.Stock import (
-    StockItemCollection,
     StockCollection,
     StockItem,
+    StockItemCollection,
     StockWarehouseCollection,
 )
 from inventorymanager.resources.warehouse import WarehouseCollection, WarehouseItem

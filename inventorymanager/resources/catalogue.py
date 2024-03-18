@@ -112,12 +112,14 @@ class CatalogueItem(Resource):
             db.session.rollback()
             return create_error_response(400, "Invalid JSON document", str(e))
 
-        except IntegrityError:         
+        except IntegrityError:
             db.session.rollback()
             return create_error_response(
                 409,
                 "Already exists",
-                "catalogue with item '{}' from supplier '{}'already exists.".format(request.json["item_id"], request.json["supplier_name"]),
+                "catalogue with item '{}' from supplier '{}'already exists.".format(
+                    request.json["item_id"], request.json["supplier_name"]
+                ),
             )
 
         return Response(status=204)
@@ -159,11 +161,11 @@ class CatalogueItemCollection(Resource):
         item = Item.query.filter_by(item_id=item.item_id).first()
         if not item:
             return create_error_response(404, "Item doesn't exist")
-        
+
         catalogue_entry = Catalogue.query.filter_by(item_id=item.item_id).first()
         if not catalogue_entry:
             return create_error_response(404, "No supplier has the requested item")
-        
+
         for catalogue in Catalogue.query.filter_by(item_id=item.item_id).all():
             catalogue_json = catalogue.serialize()
             catalogue_json["uri"] = url_for(
@@ -192,7 +194,7 @@ class CatalogueSupplierCollection(Resource):
         catalogue_entry = Catalogue.query.filter_by(supplier_name=supplier).first()
         if not catalogue_entry:
             return create_error_response(404, "supplier does not exist")
-        
+
         for catalogue in Catalogue.query.filter_by(supplier_name=supplier).all():
             catalogue_json = catalogue.serialize()
             catalogue_json["uri"] = url_for(

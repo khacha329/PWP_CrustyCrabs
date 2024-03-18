@@ -45,7 +45,7 @@ class Location(db.Model):
 
     warehouse = db.relationship(
         "Warehouse", back_populates="location", uselist=False
-    )  #can't be deleted if warehouse exists with location?
+    )  # can't be deleted if warehouse exists with location?
 
     __table_args__ = (
         CheckConstraint(

@@ -2,11 +2,11 @@ import json
 
 from flask import Response, abort, request, url_for
 from flask_restful import Resource
-from inventorymanager.builder import InventoryManagerBuilder
 from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from inventorymanager import db
+from inventorymanager.builder import InventoryManagerBuilder
 from inventorymanager.constants import *
 from inventorymanager.models import Item, Stock, Warehouse
 from inventorymanager.utils import create_error_response
@@ -125,7 +125,7 @@ class StockItem(Resource):
 
         return Response(json.dumps(body), 200, mimetype=MASON)
 
-        #return Response(json.dumps(stock_json), 200)
+        # return Response(json.dumps(stock_json), 200)
 
     def put(self, warehouse: Warehouse, item: Item):
         """Updates a stock in the database
@@ -152,7 +152,9 @@ class StockItem(Resource):
             return create_error_response(
                 409,
                 "Already exists",
-                "stock with item '{}' in warehouse with id '{}'already exists.".format(request.json["item_id"], request.json["warehouse_id"]),
+                "stock with item '{}' in warehouse with id '{}'already exists.".format(
+                    request.json["item_id"], request.json["warehouse_id"]
+                ),
             )
 
         return Response(status=204)
@@ -215,7 +217,9 @@ class StockWarehouseCollection(Resource):
         :return: Response
         """
         body = []
-        warehouse = Warehouse.query.filter_by(warehouse_id=warehouse.warehouse_id).first()
+        warehouse = Warehouse.query.filter_by(
+            warehouse_id=warehouse.warehouse_id
+        ).first()
         if not warehouse:
             return create_error_response(404, "warehouse doesn't exist")
         stock_entry = Stock.query.filter_by(item_id=warehouse.warehouse_id).first()
