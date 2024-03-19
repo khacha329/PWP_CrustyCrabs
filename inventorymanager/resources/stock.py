@@ -126,13 +126,7 @@ class StockItem(Resource):
         body.add_control_get_item(item)
         body.add_control_all_stock_items(item)
 
-        # body.add_control_all_catalogue()
-        # body.add_control_all_stock()
-        # body.add_control_all_catalogue_items(item)
-
         return Response(json.dumps(body), 200, mimetype=MASON)
-
-        # return Response(json.dumps(stock_json), 200)
 
     def put(self, warehouse: Warehouse, item: Item):
         """Updates a stock in the database
