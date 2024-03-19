@@ -3,10 +3,13 @@ This module is used to start and retrieve a Flask application complete with all 
 """
 
 import os
+import json
 
 from flasgger import Swagger
-from flask import Flask
+from flask import Flask, send_from_directory, Response
 from flask_sqlalchemy import SQLAlchemy
+from inventorymanager.constants import LINK_RELATIONS_URL, NAMESPACE, MASON
+
 
 from inventorymanager.config import Config
 
@@ -68,12 +71,47 @@ def create_app(test_config=None) -> Flask:
     app.cli.add_command(create_dummy_data)
 
     from inventorymanager.api import api_bp
-    from inventorymanager.utils import (ItemConverter, LocationConverter,
-                                        WarehouseConverter)
+    from inventorymanager.utils import (
+        ItemConverter,
+        LocationConverter,
+        WarehouseConverter,
+    )
 
     app.url_map.converters["warehouse"] = WarehouseConverter
     app.url_map.converters["item"] = ItemConverter
     app.url_map.converters["location"] = LocationConverter
     app.register_blueprint(api_bp)
+
+    # Static routes related to profiles and link relations
+    # from sensorhub project example and Exercise 3 material on Lovelace
+    @app.route("/profiles/<resource>/")
+    def send_profile_html(resource):
+        """
+        Send the profile file
+        :param resource: resource to send profile for
+        """
+        return send_from_directory(app.static_folder, f"profiles/{resource}.html")
+
+    @app.route(LINK_RELATIONS_URL)
+    def send_link_relations_html():
+        """
+        Send the link relations file
+        """
+        return send_from_directory(app.static_folder, "link-relations.html")
+
+    from inventorymanager.builder import InventoryManagerBuilder
+
+    @app.route("/api/")
+    def api_entrypoint() -> Response:
+        """
+        Entrypoint to the API
+        """
+        body = InventoryManagerBuilder()
+        body.add_namespace(NAMESPACE, LINK_RELATIONS_URL)
+        body.add_control_all_catalogue()
+        body.add_control_all_warehouses()
+        body.add_control_all_items()
+        body.add_control_all_stock()
+        return Response(json.dumps(body), 200, mimetype=MASON)
 
     return app

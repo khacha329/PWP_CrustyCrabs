@@ -9,7 +9,7 @@ from sqlalchemy.exc import IntegrityError
 
 from inventorymanager import db
 from inventorymanager.builder import InventoryManagerBuilder
-from inventorymanager.constants import (INVENTORY_PROFILE, LINK_RELATIONS_URL,
+from inventorymanager.constants import (ITEM_PROFILE, LINK_RELATIONS_URL,
                                         MASON, NAMESPACE)
 from inventorymanager.models import Item
 from inventorymanager.utils import create_error_response
@@ -34,7 +34,7 @@ class ItemCollection(Resource):
         for item_object in Item.query.all():
             item = InventoryManagerBuilder(item_object.serialize())
             item.add_control("self", url_for("api.itemitem", item=item_object))
-            item.add_control("profile", INVENTORY_PROFILE)
+            item.add_control("profile", ITEM_PROFILE)
             body["items"].append(item)
 
         body.add_control_post(
@@ -90,7 +90,7 @@ class ItemItem(Resource):
 
         body.add_namespace(NAMESPACE, LINK_RELATIONS_URL)
         body.add_control("self", self_url)
-        body.add_control("profile", INVENTORY_PROFILE)
+        body.add_control("profile", ITEM_PROFILE)
         body.add_control("collection", url_for("api.itemcollection"))
         body.add_control_put("Modify this item", self_url, Item.get_schema())
         body.add_control_delete("Delete this item", self_url)

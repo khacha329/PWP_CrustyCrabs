@@ -12,7 +12,7 @@ from sqlalchemy.exc import IntegrityError
 from inventorymanager import db
 from inventorymanager.builder import InventoryManagerBuilder
 from inventorymanager.constants import (
-    INVENTORY_PROFILE,
+    STOCK_PROFILE,
     LINK_RELATIONS_URL,
     MASON,
     NAMESPACE,
@@ -43,7 +43,7 @@ class StockCollection(Resource):
                 "self",
                 url_for("api.stockitem", warehouse=stock.warehouse, item=stock.item),
             )
-            item.add_control("profile", INVENTORY_PROFILE)
+            item.add_control("profile", STOCK_PROFILE)
             body["items"].append(item)
 
         body.add_control_post(
@@ -118,7 +118,7 @@ class StockItem(Resource):
 
         body.add_namespace(NAMESPACE, LINK_RELATIONS_URL)
         body.add_control("self", self_url)
-        body.add_control("profile", INVENTORY_PROFILE)
+        body.add_control("profile", STOCK_PROFILE)
         body.add_control("collection", url_for("api.stockcollection"))
         body.add_control_put("Modify this stock", self_url, Stock.get_schema())
         body.add_control_delete("Delete this stock", self_url)
