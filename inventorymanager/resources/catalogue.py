@@ -9,9 +9,9 @@ from flask_restful import Resource
 from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
 
-from inventorymanager import db
+from inventorymanager import db, cache
 from inventorymanager.models import Catalogue, Item
-from inventorymanager.utils import create_error_response
+from inventorymanager.utils import create_error_response, request_path_cache_key
 
 
 class CatalogueCollection(Resource):
@@ -19,7 +19,7 @@ class CatalogueCollection(Resource):
     Resource for the collection of catalogue entries, provides GET and POST methods
     /catalogue/
     """
-
+    @cache.cached(timeout=None, make_cache_key=request_path_cache_key)
     def get(self):
         """Returns a list of all catalogue entries in the database
 
@@ -79,7 +79,6 @@ class CatalogueItem(Resource):
     Resource for a single catalogue entry, provides GET, PUT and DELETE methods
     /catalogue/supplier/<string:supplier>/item/<item:item>/
     """
-
     def get(self, supplier, item):
         """returns a single catalogue entry in the database
 
@@ -155,7 +154,7 @@ class CatalogueItemCollection(Resource):
     Resource for the  ollection of catalogue entries filtered by item, provides GET method
     /catalogue/item/<item:item>/
     """
-
+    @cache.cached(timeout=None, make_cache_key=request_path_cache_key)
     def get(self, item: Item):
         """Returns a list of catalogue entries in the database filtered by item name
 
@@ -186,7 +185,7 @@ class CatalogueSupplierCollection(Resource):
     Resource for the collection of catalogue entries filtered by supplier, provides GET method
     /catalogue/supplier/<string:supplier>/
     """
-
+    @cache.cached(timeout=None, make_cache_key=request_path_cache_key)
     def get(self, supplier: str):
         """Returns a list of catalogue entries in the database filtered by supplier name
 

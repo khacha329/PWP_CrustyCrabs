@@ -7,10 +7,10 @@ import os
 from flasgger import Swagger
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-
-from inventorymanager.config import Config
+from flask_caching import Cache
 
 db = SQLAlchemy()
+cache = Cache()
 
 # Structure learned from the following sources:
 # https://flask-sqlalchemy.palletsprojects.com/en/3.0.x/quickstart/
@@ -32,8 +32,6 @@ def create_app(test_config=None) -> Flask:
         SQLALCHEMY_DATABASE_URI="sqlite:///"
         + os.path.join(app.instance_path, "development.db"),
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
-        # CACHE_TYPE="FileSystemCache",
-        # CACHE_DIR=os.path.join(app.instance_path, "cache"),
     )
 
     app.config["SWAGGER"] = {
@@ -60,12 +58,19 @@ def create_app(test_config=None) -> Flask:
     Swagger(app, template_file="doc/hub.yml")
 
     # Cache Initialization
+    app.config["CACHE_TYPE"] = "FileSystemCache"
+    if test_config is None or "CACHE_DIR" not in test_config:
+        app.config["CACHE_DIR"] = os.path.join(app.instance_path, "cache")
+    else:
+        app.config["CACHE_DIR"] = test_config["CACHE_DIR"]
 
+    cache.init_app(app)
     # CLI commands to populate db
-    from inventorymanager.models import create_dummy_data, init_db_command
+    from inventorymanager.models import create_dummy_data, init_db_command, generate_catalogue_key
 
     app.cli.add_command(init_db_command)
     app.cli.add_command(create_dummy_data)
+    app.cli.add_command(generate_catalogue_key)
 
     from inventorymanager.api import api_bp
     from inventorymanager.utils import (ItemConverter, LocationConverter,
