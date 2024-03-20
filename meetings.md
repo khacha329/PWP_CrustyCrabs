@@ -30,7 +30,7 @@ We discussed our database structure and details related to implementing the API 
 ### Action points
 *List here the actions points discussed with assistants*
 1) We could possibly implement Location as part of the Warehouse class. For example, Location doesn't use foreign keys.
-2) We hould validate the data either in the database or the API, but not both.
+2) We should validate the data either in the database or the API, but not both.
 3) Check if backref works since it was not used in the exercise example
 4) Change relationship between warehouse and items. It should not be direct. Change relationship diagram to match.
 5) Can't have stock where item does not exist. This relationship should be fixed.
