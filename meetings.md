@@ -19,21 +19,27 @@ The discussion of the meeting was about the 1st deliverable about the api descri
 
 
 ## Meeting 2.
-* **DATE:**
-* **ASSISTANTS:**
+* **DATE:2024-02-13**
+* **ASSISTANTS: Ivan Sanchez**
 
 ### Minutes
 *Summary of what was discussed during the meeting*
+We discussed our database structure and details related to implementing the API for the next deadline. Ivan said that expressing data to the client is more important than the performance of the API. The database structure does not need to be the same as the API structure. 
+
 
 ### Action points
 *List here the actions points discussed with assistants*
-
-
+1) We could possibly implement Location as part of the Warehouse class. For example, Location doesn't use foreign keys.
+2) We hould validate the data either in the database or the API, but not both.
+3) Check if backref works since it was not used in the exercise example
+4) Change relationship between warehouse and items. It should not be direct. Change relationship diagram to match.
+5) Can't have stock where item does not exist. This relationship should be fixed.
+6) Primary key as a string could be a problem
 
 
 ## Meeting 3.
-* **DATE:**
-* **ASSISTANTS:**
+* **DATE:2024-03-21**
+* **ASSISTANTS: Ivan Sanchez**
 
 ### Minutes
 *Summary of what was discussed during the meeting*
