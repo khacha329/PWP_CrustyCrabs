@@ -180,7 +180,7 @@ def _check_control_put_method(ctrl, client, obj, obj_json, identifier):
     assert resp.status_code == 204
 
 
-def _check_control_post_method(ctrl, client, obj, obj_json, identifier):
+def _check_control_post_method(ctrl, client, obj, obj_json):
     """
     Checks a POST type control from a JSON object be it root document or an item
     in a collection. In addition to checking the "href" attribute, also checks
@@ -201,6 +201,20 @@ def _check_control_post_method(ctrl, client, obj, obj_json, identifier):
     validate(body, schema)
     resp = client.post(href, json=body)
     assert resp.status_code == 201
+
+
+class TestEntryPoint(object):
+    RESOURCE_URL = "/api/"
+
+    def test_get(self, client: FlaskClient):
+        resp = client.get(self.RESOURCE_URL)
+        assert resp.status_code == 200
+        body = json.loads(resp.data)
+        _check_namespace(client, body)
+        _check_control_get_method(f"{NAMESPACE}:warehouses-all", client, body)
+        _check_control_get_method(f"{NAMESPACE}:items-all", client, body)
+        _check_control_get_method(f"{NAMESPACE}:stock-all", client, body)
+        _check_control_get_method(f"{NAMESPACE}:catalogues-all", client, body)
 
 
 class TestLocationCollection(object):
@@ -313,14 +327,18 @@ class TestItemCollection(object):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        items = Item.query.all()
-        assert len(body["items"]) == len(items)
+        _check_namespace(client, body)
+        _check_control_post_method(
+            f"{NAMESPACE}:add-item", client, body, _get_item_json()
+        )
+        _check_control_get_method("self", client, body)
+        _check_control_get_method(f"{NAMESPACE}:stock-all", client, body)
+        _check_control_get_method(f"{NAMESPACE}:catalogues-all", client, body)
 
+        assert len(body["items"]) == 3
         for item in body["items"]:
-
-            assert "@controls" in item
-            resp = client.get(item["@controls"]["self"]["href"])
-            assert resp.status_code == 200
+            _check_control_get_method("profile", client, item)
+            _check_control_get_method("profile", client, item)
 
     def test_post(self, client: FlaskClient):
         valid = _get_item_json()

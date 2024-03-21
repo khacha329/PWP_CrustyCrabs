@@ -9,8 +9,12 @@ from sqlalchemy.exc import IntegrityError
 
 from inventorymanager import db
 from inventorymanager.builder import InventoryManagerBuilder
-from inventorymanager.constants import (ITEM_PROFILE, LINK_RELATIONS_URL,
-                                        MASON, NAMESPACE)
+from inventorymanager.constants import (
+    ITEM_PROFILE,
+    LINK_RELATIONS_URL,
+    MASON,
+    NAMESPACE,
+)
 from inventorymanager.models import Item
 from inventorymanager.utils import create_error_response
 
@@ -42,7 +46,6 @@ class ItemCollection(Resource):
         )
         body.add_control_all_catalogue()
         body.add_control_all_stock()
-        body.add_control_all_warehouses()
 
         return Response(json.dumps(body), 200, mimetype=MASON)
 
