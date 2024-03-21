@@ -124,7 +124,8 @@ class StockItem(Resource):
         body.add_control_delete("Delete this stock", self_url)
         body.add_control_get_warehouse(warehouse)
         body.add_control_get_item(item)
-        body.add_control_all_stock_items(item)
+        body.add_control_all_stock_item(item)
+        body.add_control_all_stock_warehouse(warehouse)
 
         return Response(json.dumps(body), 200, mimetype=MASON)
 

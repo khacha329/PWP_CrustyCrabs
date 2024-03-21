@@ -304,11 +304,6 @@ class TestLocationItem(object):
         assert resp.status_code == 400
 
     def test_delete(self, client: FlaskClient):
-        with pytest.raises(IntegrityError):
-            resp = client.delete(self.RESOURCE_URL)
-        db.session.rollback()
-        # delete the stock
-        db.session.delete(Warehouse.query.filter_by(location_id=1).first())
 
         resp = client.delete(self.RESOURCE_URL)
         assert resp.status_code == 204
@@ -337,7 +332,7 @@ class TestItemCollection(object):
 
         assert len(body["items"]) == 3
         for item in body["items"]:
-            _check_control_get_method("profile", client, item)
+            _check_control_get_method("self", client, item)
             _check_control_get_method("profile", client, item)
 
     def test_post(self, client: FlaskClient):
@@ -375,19 +370,19 @@ class TestItemItem(object):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        assert len(body) == 6
 
         _check_namespace(client, body)
         _check_control_get_method("self", client, body)
         _check_control_get_method("profile", client, body)
         _check_control_put_method("edit", client, body, _get_item_json(), "name")
-        _check_control_delete_method(f"{NAMESPACE}:delete", client, body)
 
         _check_control_get_method("collection", client, body)
         _check_control_get_method(f"{NAMESPACE}:catalogues-all", client, body)
         _check_control_get_method(f"{NAMESPACE}:stock-all", client, body)
         _check_control_get_method(f"{NAMESPACE}:catalogue-item-all", client, body)
         _check_control_get_method(f"{NAMESPACE}:stock-item-all", client, body)
+
+        _check_control_delete_method(f"{NAMESPACE}:delete", client, body)
 
         resp = client.get(self.INVALID_URL)
         assert resp.status_code == 404
@@ -421,14 +416,8 @@ class TestItemItem(object):
         assert resp.status_code == 400
 
     def test_delete(self, client: FlaskClient):
-        with pytest.raises(AssertionError):
-            resp = client.delete(self.RESOURCE_URL)
-        db.session.rollback()
-        # delete the stock
-        db.session.delete(Stock.query.filter_by(item_id=1).first())
         resp = client.delete(self.RESOURCE_URL)
         assert resp.status_code == 204
-
         resp = client.delete(self.RESOURCE_URL)
         assert resp.status_code == 404
         resp = client.delete(self.INVALID_URL)
@@ -687,14 +676,18 @@ class TestStockCollection(object):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        stocks = Stock.query.all()
-        assert len(body["items"]) == len(stocks)
+        _check_namespace(client, body)
+        _check_control_post_method(
+            f"{NAMESPACE}:add-stock", client, body, _get_stock_json(2, 1)
+        )
+        _check_control_get_method("self", client, body)
+        _check_control_get_method(f"{NAMESPACE}:items-all", client, body)
+        _check_control_get_method(f"{NAMESPACE}:warehouses-all", client, body)
 
-        for stock in body["items"]:
-
-            assert "@controls" in stock
-            resp = client.get(stock["@controls"]["self"]["href"])
-            assert resp.status_code == 200
+        assert len(body["items"]) == 2
+        for item in body["items"]:
+            _check_control_get_method("self", client, item)
+            _check_control_get_method("profile", client, item)
 
     def test_post(self, client: FlaskClient):
         valid = _get_stock_json(1, 2)
@@ -745,12 +738,23 @@ class TestStockItem(object):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        assert len(body) == 6
 
-        assert "@controls" in body
-        resp = client.get(body["@controls"]["self"]["href"])
-        assert resp.status_code == 200
-        resp = client.put(self.INVALID_URL)
+        _check_namespace(client, body)
+        _check_control_get_method("self", client, body)
+        _check_control_get_method("profile", client, body)
+        _check_control_put_method(
+            "edit", client, body, _get_stock_json(1, 1), "item_id"
+        )  # should be combinaton of warehouse_id and stock_id in theory
+
+        _check_control_get_method("collection", client, body)
+        _check_control_get_method(f"{NAMESPACE}:item", client, body)
+        _check_control_get_method(f"{NAMESPACE}:warehouse", client, body)
+        _check_control_get_method(f"{NAMESPACE}:stock-warehouse-all", client, body)
+        _check_control_get_method(f"{NAMESPACE}:stock-item-all", client, body)
+
+        _check_control_delete_method(f"{NAMESPACE}:delete", client, body)
+
+        resp = client.get(self.INVALID_URL)
         assert resp.status_code == 404
 
     def test_put(self, client: FlaskClient):
@@ -809,7 +813,7 @@ class TestStockItemCollection(object):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        assert len(body) == 1
+        assert len(body["items"]) == 1
 
         for catalogue in body:
 
@@ -820,6 +824,18 @@ class TestStockItemCollection(object):
         assert resp.status_code == 404
         resp = client.get(self.OUTOFSTOCK_URL)
         assert resp.status_code == 404
+
+        resp = client.get(self.RESOURCE_URL)
+        assert resp.status_code == 200
+        body = json.loads(resp.data)
+        _check_namespace(client, body)
+        _check_control_get_method("self", client, body)
+        _check_control_get_method(f"{NAMESPACE}:stock-all", client, body)
+
+        assert len(body["items"]) == 1
+        for item in body["items"]:
+            _check_control_get_method("self", client, item)
+            _check_control_get_method("profile", client, item)
 
 
 class TestStockWarehouseCollection(object):
