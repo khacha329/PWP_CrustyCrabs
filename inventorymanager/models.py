@@ -387,6 +387,9 @@ def init_db_command() -> None:
 @click.command("populate-db")
 @with_appcontext
 def create_dummy_data() -> None:
+    """
+    Populates the database with dummy data as click function
+    """
     populate_db()
 
 
