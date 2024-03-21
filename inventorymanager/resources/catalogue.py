@@ -3,7 +3,9 @@ This module contains the resources for the catalogue endpoints.
 """
 
 import json
+import os
 
+from flasgger import swag_from
 from flask import Response, abort, request, url_for
 from flask_restful import Resource
 from jsonschema import ValidationError, validate
@@ -11,6 +13,7 @@ from sqlalchemy.exc import IntegrityError
 
 from inventorymanager import db
 from inventorymanager.models import Catalogue, Item
+from inventorymanager.constants import DOC_FOLDER
 from inventorymanager.utils import create_error_response
 
 
