@@ -371,26 +371,26 @@ class TestItemItem(object):
     RESOURCE_URL = "/api/items/Laptop-1/"
     INVALID_URL = "/api/items/NotAnItem/"
 
-    #     def test_get(self, client):
-    #         resp = client.get(self.RESOURCE_URL)
-    #         assert resp.status_code == 200
-    #         body = json.loads(resp.data)
-    #         _check_namespace(client, body)
-    #         _check_control_get_method("profile", client, body)
-    #         _check_control_get_method("collection", client, body)
-    #         _check_control_put_method("edit", client, body)
-    #         _check_control_delete_method("senhub:delete", client, body)
-    #         resp = client.get(self.INVALID_URL)
-    #         assert resp.status_code == 404
     def test_get(self, client):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
         assert len(body) == 6
 
-        assert "@controls" in body
-        resp = client.get(body["@controls"]["self"]["href"])
-        assert resp.status_code == 200
+        _check_namespace(client, body)
+        _check_control_get_method("self", client, body)
+        _check_control_get_method("profile", client, body)
+        _check_control_put_method("edit", client, body, _get_item_json(), "name")
+        _check_control_delete_method(f"{NAMESPACE}:delete", client, body)
+
+        _check_control_get_method("collection", client, body)
+        _check_control_get_method(f"{NAMESPACE}:catalogues-all", client, body)
+        _check_control_get_method(f"{NAMESPACE}:stock-all", client, body)
+        _check_control_get_method(f"{NAMESPACE}:catalogue-item-all", client, body)
+        _check_control_get_method(f"{NAMESPACE}:stock-item-all", client, body)
+
+        resp = client.get(self.INVALID_URL)
+        assert resp.status_code == 404
 
     def test_put(self, client: FlaskClient):
         valid = _get_item_json(number=2)
