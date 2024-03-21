@@ -20,9 +20,9 @@ from inventorymanager.utils import create_error_response
 class WarehouseCollection(Resource):
     """
     Resource for the collection of warehouses, provides GET and POST methods
-    \warehouses\
+    /warehouses/
     """
-    @swag_from(os.getcwd() + f"{DOC_FOLDER}warehouse\collection\get.yml")
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}warehouse/collection/get.yml")
     def get(self):
         """Returns a list of all warehouses in the database
 
@@ -36,7 +36,7 @@ class WarehouseCollection(Resource):
 
         return Response(json.dumps(body), 200)
 
-    @swag_from(os.getcwd() + f"{DOC_FOLDER}warehouse\collection\post.yml")
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}warehouse/collection/post.yml")
     def post(self):
         """Adds a new warehouse to the database
 
@@ -63,9 +63,9 @@ class WarehouseCollection(Resource):
 class WarehouseItem(Resource):
     """
     Resource for a single warehouse, provides GET, PUT and DELETE methods
-    \warehouses\<warehouse:warehouse>\
+    /warehouses/<warehouse:warehouse>/
     """
-    @swag_from(os.getcwd() + f"{DOC_FOLDER}warehouse\item\get.yml")
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}warehouse/item/get.yml")
     def get(self, warehouse):
         """returns a single warehouse in the database with its location details
 
@@ -83,7 +83,7 @@ class WarehouseItem(Resource):
         body.append(location_json)
         return Response(json.dumps(body), 200)
 
-    @swag_from(os.getcwd() + f"{DOC_FOLDER}warehouse\item\post.yml")
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}warehouse/item/put.yml")
     def put(self, warehouse: Warehouse):
         """updates a single warehouse in the database
 
@@ -107,7 +107,7 @@ class WarehouseItem(Resource):
 
         return Response(status=204)
 
-    @swag_from(os.getcwd() + f"{DOC_FOLDER}warehouse\item\delete.yml")
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}warehouse/item/delete.yml")
     def delete(self, warehouse: Warehouse):
         """deletes a single warehouse in the database
 
