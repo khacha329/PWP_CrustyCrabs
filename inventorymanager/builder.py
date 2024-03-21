@@ -195,14 +195,14 @@ class InventoryManagerBuilder(MasonBuilder):
             title="All locations",
         )
 
-    def add_control_all_catalogue_items(self, item: Item) -> None:
+    def add_control_all_catalogue_item(self, item: Item) -> None:
         """Adds a control to the Mason object that links to the collection of all
         catalogue entries of a specific item.
 
         :param item: item to filter by
         """
         self.add_control(
-            f"{NAMESPACE}:catalogue-items-all",
+            f"{NAMESPACE}:catalogue-item-all",
             url_for("api.catalogueitemcollection", item=item),
             method="GET",
             title="All catalogue entries for this item",
@@ -232,15 +232,28 @@ class InventoryManagerBuilder(MasonBuilder):
             title="Get warehouse",
         )
 
-    def add_control_all_stock_items(self, item: Item) -> None:
+    def add_control_all_stock_item(self, item: Item) -> None:
         """Adds a control to the Mason object that links to the collection of all
         stock entries of a specific item.
 
         :param item: item to filter stock by
         """
         self.add_control(
-            f"{NAMESPACE}:stock-items-all",
+            f"{NAMESPACE}:stock-item-all",
             url_for("api.stockitemcollection", item=item),
             method="GET",
             title="All stock entries for this item",
+        )
+
+    def add_control_all_stock_warehouse(self, warehouse: Warehouse) -> None:
+        """Adds a control to the Mason object that links to the collection of all
+        stock entries of a specific warehouse.
+
+        :param warehouse: warehouse to filter stock by
+        """
+        self.add_control(
+            f"{NAMESPACE}:stock-warehouse-all",
+            url_for("api.stockwarehousecollection", warehouse=warehouse),
+            method="GET",
+            title="All stock entries for this warehouse",
         )

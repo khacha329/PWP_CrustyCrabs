@@ -44,7 +44,10 @@ class Location(db.Model):
     street = db.Column(db.String(64), nullable=False)
 
     warehouse = db.relationship(
-        "Warehouse", back_populates="location", uselist=False
+        "Warehouse",
+        back_populates="location",
+        cascade="all, delete-orphan",
+        uselist=False,
     )  # can't be deleted if warehouse exists with location?
 
     __table_args__ = (
@@ -121,7 +124,7 @@ class Warehouse(db.Model):
     manager = db.Column(db.String(64), nullable=True)
     location_id = db.Column(
         db.Integer,
-        db.ForeignKey("location.location_id", ondelete="RESTRICT"),
+        db.ForeignKey("location.location_id", ondelete="CASCADE"),
         nullable=False,
     )
 
@@ -186,8 +189,8 @@ class Item(db.Model):
     weight = db.Column(db.Float, nullable=True)
 
     stock = db.relationship(
-        "Stock", back_populates="item", uselist=True
-    )  # don't cascade so that it throws an error if stock exists with item when deleted
+        "Stock", back_populates="item", uselist=True, cascade="all, delete-orphan"
+    )
     catalogue = db.relationship(
         "Catalogue", back_populates="item", cascade="all, delete-orphan", uselist=True
     )

@@ -24,6 +24,17 @@ from inventorymanager.models import (
     populate_db,
 )
 
+from inventorymanager.constants import (
+    ITEM_PROFILE,
+    WAREHOUSE_PROFILE,
+    CATALOGUE_PROFILE,
+    STOCK_PROFILE,
+    LOCATION_PROFILE,
+    LINK_RELATIONS_URL,
+    MASON,
+    NAMESPACE,
+)
+
 
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
@@ -108,83 +119,102 @@ def _get_catalogue_json(number):
     }
 
 
-# def _check_namespace(client, response):
-#     """
-#     Checks that the "senhub" namespace is found from the response body, and
-#     that its "name" attribute is a URL that can be accessed.
-#     """
+# from https://github.com/enkwolf/pwp-course-sensorhub-api-example/blob/master/tests/resource_test.py
+def _check_namespace(client, response):
+    """
+    Checks that the "senhub" namespace is found from the response body, and
+    that its "name" attribute is a URL that can be accessed.
+    """
 
-#     ns_href = response["@namespaces"]["senhub"]["name"]
-#     resp = client.get(ns_href)
-#     assert resp.status_code == 200
+    ns_href = response["@namespaces"][NAMESPACE]["name"]
+    resp = client.get(ns_href)
+    assert resp.status_code == 200
 
-# def _check_control_get_method(ctrl, client, obj):
-#     """
-#     Checks a GET type control from a JSON object be it root document or an item
-#     in a collection. Also checks that the URL of the control can be accessed.
-#     """
 
-#     href = obj["@controls"][ctrl]["href"]
-#     resp = client.get(href)
-#     assert resp.status_code == 200
+def _check_control_get_method(ctrl, client, obj):
+    """
+    Checks a GET type control from a JSON object be it root document or an item
+    in a collection. Also checks that the URL of the control can be accessed.
+    """
 
-# def _check_control_delete_method(ctrl, client, obj):
-#     """
-#     Checks a DELETE type control from a JSON object be it root document or an
-#     item in a collection. Checks the contrl's method in addition to its "href".
-#     Also checks that using the control results in the correct status code of 204.
-#     """
+    href = obj["@controls"][ctrl]["href"]
+    resp = client.get(href)
+    assert resp.status_code == 200
 
-#     href = obj["@controls"][ctrl]["href"]
-#     method = obj["@controls"][ctrl]["method"].lower()
-#     assert method == "delete"
-#     resp = client.delete(href)
-#     assert resp.status_code == 204
 
-# def _check_control_put_method(ctrl, client, obj):
-#     """
-#     Checks a PUT type control from a JSON object be it root document or an item
-#     in a collection. In addition to checking the "href" attribute, also checks
-#     that method, encoding and schema can be found from the control. Also
-#     validates a valid sensor against the schema of the control to ensure that
-#     they match. Finally checks that using the control results in the correct
-#     status code of 204.
-#     """
+def _check_control_delete_method(ctrl, client, obj):
+    """
+    Checks a DELETE type control from a JSON object be it root document or an
+    item in a collection. Checks the contrl's method in addition to its "href".
+    Also checks that using the control results in the correct status code of 204.
+    """
 
-#     ctrl_obj = obj["@controls"][ctrl]
-#     href = ctrl_obj["href"]
-#     method = ctrl_obj["method"].lower()
-#     encoding = ctrl_obj["encoding"].lower()
-#     schema = ctrl_obj["schema"]
-#     assert method == "put"
-#     assert encoding == "json"
-#     body = _get_sensor_json()
-#     body["name"] = obj["name"]
-#     validate(body, schema)
-#     resp = client.put(href, json=body)
-#     assert resp.status_code == 204
+    href = obj["@controls"][ctrl]["href"]
+    method = obj["@controls"][ctrl]["method"].lower()
+    assert method == "delete"
+    resp = client.delete(href)
+    assert resp.status_code == 204
 
-# def _check_control_post_method(ctrl, client, obj, obj_to_post): # currently not used
-#     """
-#     Checks a POST type control from a JSON object be it root document or an item
-#     in a collection. In addition to checking the "href" attribute, also checks
-#     that method, encoding and schema can be found from the control. Also
-#     validates a valid sensor against the schema of the control to ensure that
-#     they match. Finally checks that using the control results in the correct
-#     status code of 201.
-#     """
 
-#     ctrl_obj = obj["@controls"][ctrl]
-#     href = ctrl_obj["href"]
-#     method = ctrl_obj["method"].lower()
-#     encoding = ctrl_obj["encoding"].lower()
-#     schema = ctrl_obj["schema"]
-#     assert method == "post"
-#     assert encoding == "json"
-#     body = obj_to_post
-#     validate(body, schema)
-#     resp = client.post(href, json=body)
-#     assert resp.status_code == 201
+def _check_control_put_method(ctrl, client, obj, obj_json, identifier):
+    """
+    Checks a PUT type control from a JSON object be it root document or an item
+    in a collection. In addition to checking the "href" attribute, also checks
+    that method, encoding and schema can be found from the control. Also
+    validates a valid sensor against the schema of the control to ensure that
+    they match. Finally checks that using the control results in the correct
+    status code of 204.
+    """
+
+    ctrl_obj = obj["@controls"][ctrl]
+    href = ctrl_obj["href"]
+    method = ctrl_obj["method"].lower()
+    encoding = ctrl_obj["encoding"].lower()
+    schema = ctrl_obj["schema"]
+    assert method == "put"
+    assert encoding == "json"
+    body = obj_json
+    body[identifier] = obj[identifier]
+    validate(body, schema)
+    resp = client.put(href, json=body)
+    assert resp.status_code == 204
+
+
+def _check_control_post_method(ctrl, client, obj, obj_json):
+    """
+    Checks a POST type control from a JSON object be it root document or an item
+    in a collection. In addition to checking the "href" attribute, also checks
+    that method, encoding and schema can be found from the control. Also
+    validates a valid sensor against the schema of the control to ensure that
+    they match. Finally checks that using the control results in the correct
+    status code of 201.
+    """
+
+    ctrl_obj = obj["@controls"][ctrl]
+    href = ctrl_obj["href"]
+    method = ctrl_obj["method"].lower()
+    encoding = ctrl_obj["encoding"].lower()
+    schema = ctrl_obj["schema"]
+    assert method == "post"
+    assert encoding == "json"
+    body = obj_json
+    validate(body, schema)
+    resp = client.post(href, json=body)
+    assert resp.status_code == 201
+
+
+class TestEntryPoint(object):
+    RESOURCE_URL = "/api/"
+
+    def test_get(self, client: FlaskClient):
+        resp = client.get(self.RESOURCE_URL)
+        assert resp.status_code == 200
+        body = json.loads(resp.data)
+        _check_namespace(client, body)
+        _check_control_get_method(f"{NAMESPACE}:warehouses-all", client, body)
+        _check_control_get_method(f"{NAMESPACE}:items-all", client, body)
+        _check_control_get_method(f"{NAMESPACE}:stock-all", client, body)
+        _check_control_get_method(f"{NAMESPACE}:catalogues-all", client, body)
 
 
 class TestLocationCollection(object):
@@ -274,11 +304,6 @@ class TestLocationItem(object):
         assert resp.status_code == 400
 
     def test_delete(self, client: FlaskClient):
-        with pytest.raises(IntegrityError):
-            resp = client.delete(self.RESOURCE_URL)
-        db.session.rollback()
-        # delete the stock
-        db.session.delete(Warehouse.query.filter_by(location_id=1).first())
 
         resp = client.delete(self.RESOURCE_URL)
         assert resp.status_code == 204
@@ -297,14 +322,18 @@ class TestItemCollection(object):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        items = Item.query.all()
-        assert len(body["items"]) == len(items)
+        _check_namespace(client, body)
+        _check_control_post_method(
+            f"{NAMESPACE}:add-item", client, body, _get_item_json()
+        )
+        _check_control_get_method("self", client, body)
+        _check_control_get_method(f"{NAMESPACE}:stock-all", client, body)
+        _check_control_get_method(f"{NAMESPACE}:catalogues-all", client, body)
 
+        assert len(body["items"]) == 3
         for item in body["items"]:
-
-            assert "@controls" in item
-            resp = client.get(item["@controls"]["self"]["href"])
-            assert resp.status_code == 200
+            _check_control_get_method("self", client, item)
+            _check_control_get_method("profile", client, item)
 
     def test_post(self, client: FlaskClient):
         valid = _get_item_json()
@@ -337,26 +366,26 @@ class TestItemItem(object):
     RESOURCE_URL = "/api/items/Laptop-1/"
     INVALID_URL = "/api/items/NotAnItem/"
 
-    #     def test_get(self, client):
-    #         resp = client.get(self.RESOURCE_URL)
-    #         assert resp.status_code == 200
-    #         body = json.loads(resp.data)
-    #         _check_namespace(client, body)
-    #         _check_control_get_method("profile", client, body)
-    #         _check_control_get_method("collection", client, body)
-    #         _check_control_put_method("edit", client, body)
-    #         _check_control_delete_method("senhub:delete", client, body)
-    #         resp = client.get(self.INVALID_URL)
-    #         assert resp.status_code == 404
     def test_get(self, client):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        assert len(body) == 6
 
-        assert "@controls" in body
-        resp = client.get(body["@controls"]["self"]["href"])
-        assert resp.status_code == 200
+        _check_namespace(client, body)
+        _check_control_get_method("self", client, body)
+        _check_control_get_method("profile", client, body)
+        _check_control_put_method("edit", client, body, _get_item_json(), "name")
+
+        _check_control_get_method("collection", client, body)
+        _check_control_get_method(f"{NAMESPACE}:catalogues-all", client, body)
+        _check_control_get_method(f"{NAMESPACE}:stock-all", client, body)
+        _check_control_get_method(f"{NAMESPACE}:catalogue-item-all", client, body)
+        _check_control_get_method(f"{NAMESPACE}:stock-item-all", client, body)
+
+        _check_control_delete_method(f"{NAMESPACE}:delete", client, body)
+
+        resp = client.get(self.INVALID_URL)
+        assert resp.status_code == 404
 
     def test_put(self, client: FlaskClient):
         valid = _get_item_json(number=2)
@@ -387,14 +416,8 @@ class TestItemItem(object):
         assert resp.status_code == 400
 
     def test_delete(self, client: FlaskClient):
-        with pytest.raises(AssertionError):
-            resp = client.delete(self.RESOURCE_URL)
-        db.session.rollback()
-        # delete the stock
-        db.session.delete(Stock.query.filter_by(item_id=1).first())
         resp = client.delete(self.RESOURCE_URL)
         assert resp.status_code == 204
-
         resp = client.delete(self.RESOURCE_URL)
         assert resp.status_code == 404
         resp = client.delete(self.INVALID_URL)
@@ -653,14 +676,18 @@ class TestStockCollection(object):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        stocks = Stock.query.all()
-        assert len(body["items"]) == len(stocks)
+        _check_namespace(client, body)
+        _check_control_post_method(
+            f"{NAMESPACE}:add-stock", client, body, _get_stock_json(2, 1)
+        )
+        _check_control_get_method("self", client, body)
+        _check_control_get_method(f"{NAMESPACE}:items-all", client, body)
+        _check_control_get_method(f"{NAMESPACE}:warehouses-all", client, body)
 
-        for stock in body["items"]:
-
-            assert "@controls" in stock
-            resp = client.get(stock["@controls"]["self"]["href"])
-            assert resp.status_code == 200
+        assert len(body["items"]) == 2
+        for item in body["items"]:
+            _check_control_get_method("self", client, item)
+            _check_control_get_method("profile", client, item)
 
     def test_post(self, client: FlaskClient):
         valid = _get_stock_json(1, 2)
@@ -711,12 +738,23 @@ class TestStockItem(object):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        assert len(body) == 6
 
-        assert "@controls" in body
-        resp = client.get(body["@controls"]["self"]["href"])
-        assert resp.status_code == 200
-        resp = client.put(self.INVALID_URL)
+        _check_namespace(client, body)
+        _check_control_get_method("self", client, body)
+        _check_control_get_method("profile", client, body)
+        _check_control_put_method(
+            "edit", client, body, _get_stock_json(1, 1), "item_id"
+        )  # should be combinaton of warehouse_id and stock_id in theory
+
+        _check_control_get_method("collection", client, body)
+        _check_control_get_method(f"{NAMESPACE}:item", client, body)
+        _check_control_get_method(f"{NAMESPACE}:warehouse", client, body)
+        _check_control_get_method(f"{NAMESPACE}:stock-warehouse-all", client, body)
+        _check_control_get_method(f"{NAMESPACE}:stock-item-all", client, body)
+
+        _check_control_delete_method(f"{NAMESPACE}:delete", client, body)
+
+        resp = client.get(self.INVALID_URL)
         assert resp.status_code == 404
 
     def test_put(self, client: FlaskClient):
@@ -768,23 +806,23 @@ class TestStockItem(object):
 
 class TestStockItemCollection(object):
     RESOURCE_URL = "/api/stocks/item/Laptop-1/"
-    NOITEM_URL = "/api/stocks/item/Laptop-2/"
-    OUTOFSTOCK_URL = "/api/stocks/item/Laptop-3/"
+    NOITEM_URL = "/api/stocks/item/Laptop-69/"
 
     def test_get(self, client: FlaskClient):
+
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        assert len(body) == 1
+        _check_namespace(client, body)
+        _check_control_get_method("self", client, body)
+        _check_control_get_method(f"{NAMESPACE}:stock-all", client, body)
 
-        for catalogue in body:
+        assert len(body["items"]) == 1
+        for item in body["items"]:
+            _check_control_get_method("self", client, item)
+            _check_control_get_method("profile", client, item)
 
-            assert "uri" in catalogue
-            resp = client.get(catalogue["uri"])
-            assert resp.status_code == 200
         resp = client.get(self.NOITEM_URL)
-        assert resp.status_code == 404
-        resp = client.get(self.OUTOFSTOCK_URL)
         assert resp.status_code == 404
 
 
@@ -796,15 +834,14 @@ class TestStockWarehouseCollection(object):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        assert len(body) == 1
+        _check_namespace(client, body)
+        _check_control_get_method("self", client, body)
+        _check_control_get_method(f"{NAMESPACE}:stock-all", client, body)
 
-        for catalogue in body:
-            assert "uri" in catalogue
-            resp = client.get(catalogue["uri"])
-            assert resp.status_code == 200
-            resp = client.get(self.NOWAREHOUSE_URL)
-            assert resp.status_code == 404
+        assert len(body["items"]) == 1
+        for item in body["items"]:
+            _check_control_get_method("self", client, item)
+            _check_control_get_method("profile", client, item)
 
-
-if __name__ == "__main__":
-    client()
+        resp = client.get(self.NOWAREHOUSE_URL)
+        assert resp.status_code == 404
