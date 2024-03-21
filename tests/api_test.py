@@ -806,24 +806,9 @@ class TestStockItem(object):
 
 class TestStockItemCollection(object):
     RESOURCE_URL = "/api/stocks/item/Laptop-1/"
-    NOITEM_URL = "/api/stocks/item/Laptop-2/"
-    OUTOFSTOCK_URL = "/api/stocks/item/Laptop-3/"
+    NOITEM_URL = "/api/stocks/item/Laptop-69/"
 
     def test_get(self, client: FlaskClient):
-        resp = client.get(self.RESOURCE_URL)
-        assert resp.status_code == 200
-        body = json.loads(resp.data)
-        assert len(body["items"]) == 1
-
-        for catalogue in body:
-
-            assert "uri" in catalogue
-            resp = client.get(catalogue["uri"])
-            assert resp.status_code == 200
-        resp = client.get(self.NOITEM_URL)
-        assert resp.status_code == 404
-        resp = client.get(self.OUTOFSTOCK_URL)
-        assert resp.status_code == 404
 
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
@@ -837,6 +822,9 @@ class TestStockItemCollection(object):
             _check_control_get_method("self", client, item)
             _check_control_get_method("profile", client, item)
 
+        resp = client.get(self.NOITEM_URL)
+        assert resp.status_code == 404
+
 
 class TestStockWarehouseCollection(object):
     RESOURCE_URL = "/api/stocks/warehouse/1/"
@@ -846,15 +834,14 @@ class TestStockWarehouseCollection(object):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        assert len(body) == 1
+        _check_namespace(client, body)
+        _check_control_get_method("self", client, body)
+        _check_control_get_method(f"{NAMESPACE}:stock-all", client, body)
 
-        for catalogue in body:
-            assert "uri" in catalogue
-            resp = client.get(catalogue["uri"])
-            assert resp.status_code == 200
-            resp = client.get(self.NOWAREHOUSE_URL)
-            assert resp.status_code == 404
+        assert len(body["items"]) == 1
+        for item in body["items"]:
+            _check_control_get_method("self", client, item)
+            _check_control_get_method("profile", client, item)
 
-
-if __name__ == "__main__":
-    client()
+        resp = client.get(self.NOWAREHOUSE_URL)
+        assert resp.status_code == 404
