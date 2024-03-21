@@ -1,0 +1,27 @@
+description: Retrieves details of a specific warehouse by its ID from the database.
+tags:
+  - warehouses
+parameters:
+  - in: path
+    name: warehouse_id
+    required: true
+    schema:
+      type: integer
+    description: The ID of the warehouse to retrieve.
+responses:
+  "200":
+    description: Details of the specified warehouse.
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/warehouse"
+        example:
+          warehouse_id: 1
+          manager: "John Doe"
+          location_id: 1
+  "404":
+    description: warehouse not found.
+    content:
+      application/json:
+        example:
+          message: "warehouse not found"

@@ -1,0 +1,30 @@
+description: Retrieves details of a specific location by its ID from the database.
+tags:
+  - Locations
+parameters:
+  - in: path
+    name: location_id
+    required: true
+    schema:
+      type: integer
+    description: The ID of the location to retrieve.
+responses:
+  "200":
+    description: Details of the specified location.
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/Location"
+        example:
+          city: "New York"
+          country: "USA"
+          latitude: 40.7128
+          longitude: -74.0060
+          postal_code: "10001"
+          street: "5th Avenue"
+  "404":
+    description: Location not found.
+    content:
+      application/json:
+        example:
+          message: "Location not found"

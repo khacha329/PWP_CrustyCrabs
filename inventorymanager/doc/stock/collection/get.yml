@@ -1,0 +1,21 @@
+description: Retrieves a list of all warehouses from the database, including a URI for accessing each individual warehouse's details.
+tags:
+  - warehouses
+responses:
+  "200":
+    description: A list of all warehouse warehouses, each with a URI to access more details.
+    content:
+      application/json:
+        schema:
+          type: array
+          # items:
+          #   $ref: "#/components/schemas/warehouseWithURI"
+        example:
+          - warehouse_id: 1
+            manager: "John Doe"
+            location_id: 1
+            uri: "http://example.com/api/warehouses/1"
+          - warehouse_id: 2
+            manager: "Jane Doe"
+            location_id: 2
+            uri: "http://example.com/api/warehouses/2"
