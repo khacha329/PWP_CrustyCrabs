@@ -9,19 +9,19 @@ parameters:
       type: integer
     description: The ID of the item to retrieve.
 responses:
-  "200":
-    description: Details of the specified item.
-    content:
-      application/json:
-        schema:
-          $ref: "#/components/schemas/item"
+"200":
+  description: Details of the specified item.
+  content:
+    application/json:
+      schema:
+        $ref: "#/components/schemas/item"
         example:
-          item_id: 1
-          manager: "John Doe"
-          location_id: 1
+          name: "Item Name",
+          category: "Item Category",
+          weight: 1.5
   "404":
-    description: item not found.
+    description: The specified item was not found in the database.
     content:
       application/json:
         example:
-          message: "item not found"
+          message: "Item not found"
