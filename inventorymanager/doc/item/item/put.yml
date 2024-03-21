@@ -35,11 +35,11 @@ responses:
     content:
       application/json:
         example:
-          message: Request must be JSON
+          message: "Request must be JSON"
   "500":
     description: Database error during the update process.
     content:
       application/json:
         example:
-          message: Database error
+          message: "Database error"
           errors: Details about the database error
