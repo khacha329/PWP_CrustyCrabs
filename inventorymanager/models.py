@@ -128,6 +128,7 @@ class Warehouse(db.Model):
         nullable=False,
     )
 
+    api_key = db.relationship("ApiKey", back_populates="warehouse", uselist=False)
     location = db.relationship("Location", back_populates="warehouse", uselist=False)
     stock = db.relationship(
         "Stock", back_populates="warehouse", cascade="all, delete-orphan", uselist=True

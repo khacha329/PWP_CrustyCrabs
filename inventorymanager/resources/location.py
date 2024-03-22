@@ -62,9 +62,16 @@ class LocationCollection(Resource):
             db.session.rollback()
             return {"message": "Location already exists"}, 409
 
+        self._clear_cache()
+        
         return Response(
             status=201,
             headers={"Location": url_for("api.locationitem", location=location)},
+        )
+
+    def _clear_cache(self):
+        cache.delete(
+            request.path
         )
 
 
@@ -74,6 +81,7 @@ class LocationItem(Resource):
     """
 
     @swag_from(os.getcwd() + f"{DOC_FOLDER}location/item/get.yml")
+    @cache.cached(timeout=None, make_cache_key=request_path_cache_key)
     def get(self, location):
         """Retrieves location
 
@@ -116,7 +124,8 @@ class LocationItem(Resource):
         except IntegrityError:
             db.session.rollback()
             return abort(409, "stock already exists")
-
+        
+        self._clear_cache()
         return {}, 204
 
     @swag_from(os.getcwd() + f"{DOC_FOLDER}location/item/delete.yml")
@@ -131,4 +140,12 @@ class LocationItem(Resource):
         db.session.delete(location)
         db.session.commit()
 
+        self._clear_cache()
         return Response(status=204)
+
+    def _clear_cache(self):
+        collection_path = url_for("api.locationcollection")
+        cache.delete_many(
+            collection_path,
+            request.path
+        )

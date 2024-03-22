@@ -50,11 +50,16 @@ class WarehouseCollection(Resource):
             db.session.rollback()
             return abort(409, "Warehouse already exists")
 
+        self._clear_cache()
         return Response(
             status=201,
             headers={"Location": url_for("api.warehouseitem", warehouse=warehouse)},
         )
 
+    def _clear_cache(self):
+        cache.delete(
+            request.path
+        )
 
 class WarehouseItem(Resource):
     """
@@ -100,6 +105,7 @@ class WarehouseItem(Resource):
                 ),
             )
 
+        self._clear_cache()
         return Response(status=204)
 
     def delete(self, warehouse: Warehouse):
@@ -111,4 +117,12 @@ class WarehouseItem(Resource):
         db.session.delete(warehouse)
         db.session.commit()
 
+        self._clear_cache()
         return Response(status=204)
+
+    def _clear_cache(self):
+        collection_path = url_for("api.warehousecollection ")
+        cache.delete_many(
+            collection_path,
+            request.path
+        )
