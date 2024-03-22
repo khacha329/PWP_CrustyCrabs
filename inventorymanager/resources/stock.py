@@ -3,7 +3,9 @@ This module contains the resources for the stock endpoints.
 """
 
 import json
+import os
 
+from flasgger import swag_from
 from flask import Response, abort, request, url_for
 from flask_restful import Resource
 from jsonschema import ValidationError, validate
@@ -12,7 +14,7 @@ from sqlalchemy.exc import IntegrityError
 from inventorymanager import db
 from inventorymanager.builder import InventoryManagerBuilder
 from inventorymanager.constants import (INVENTORY_PROFILE, LINK_RELATIONS_URL,
-                                        MASON, NAMESPACE)
+                                        MASON, NAMESPACE, DOC_FOLDER)
 from inventorymanager.models import Item, Stock, Warehouse
 from inventorymanager.utils import create_error_response
 
@@ -22,7 +24,7 @@ class StockCollection(Resource):
     Resource for the collection of stocks, provides GET and POST methods
     /stocks/
     """
-
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}stock/collection/get.yml")
     def get(self):
         """Returns a list of all stocks in the database
 
@@ -53,6 +55,7 @@ class StockCollection(Resource):
 
         return Response(json.dumps(body), 200)
 
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}stock/collection/post.yml")
     def post(self):
         """Adds a new stock to the database
 
@@ -99,6 +102,7 @@ class StockItem(Resource):
     /stocks/<warehouse:warehouse>/item/<item:item>/
     """
 
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}stock/item/get.yml")
     def get(self, warehouse: Warehouse, item: Item):
         """returns a single stock in the database
 
@@ -130,6 +134,7 @@ class StockItem(Resource):
 
         # return Response(json.dumps(stock_json), 200)
 
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}stock/item/put.yml")
     def put(self, warehouse: Warehouse, item: Item):
         """Updates a stock in the database
 
@@ -169,6 +174,7 @@ class StockItem(Resource):
 
         return Response(status=204)
 
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}stock/item/delete.yml")
     def delete(self, warehouse: Warehouse, item: Item):
         """Deletes a stock in the database
 
