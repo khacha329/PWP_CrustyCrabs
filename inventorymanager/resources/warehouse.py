@@ -9,9 +9,9 @@ from flask_restful import Resource
 from jsonschema import validate
 from sqlalchemy.exc import IntegrityError
 
-from inventorymanager import db
+from inventorymanager import db, cache
 from inventorymanager.models import Warehouse
-from inventorymanager.utils import create_error_response
+from inventorymanager.utils import create_error_response, request_path_cache_key
 
 
 class WarehouseCollection(Resource):
@@ -19,7 +19,7 @@ class WarehouseCollection(Resource):
     Resource for the collection of warehouses, provides GET and POST methods
     /warehouses/
     """
-
+    @cache.cached(timeout=None, make_cache_key=request_path_cache_key)
     def get(self):
         """Returns a list of all warehouses in the database
 
@@ -50,18 +50,23 @@ class WarehouseCollection(Resource):
             db.session.rollback()
             return abort(409, "Warehouse already exists")
 
+        self._clear_cache()
         return Response(
             status=201,
             headers={"Location": url_for("api.warehouseitem", warehouse=warehouse)},
         )
 
+    def _clear_cache(self):
+        cache.delete(
+            request.path
+        )
 
 class WarehouseItem(Resource):
     """
     Resource for a single warehouse, provides GET, PUT and DELETE methods
     /warehouses/<warehouse:warehouse>/
     """
-
+    @cache.cached(timeout=None, make_cache_key=request_path_cache_key)
     def get(self, warehouse):
         """returns a single warehouse in the database with its location details
 
@@ -100,6 +105,7 @@ class WarehouseItem(Resource):
                 ),
             )
 
+        self._clear_cache()
         return Response(status=204)
 
     def delete(self, warehouse: Warehouse):
@@ -111,4 +117,12 @@ class WarehouseItem(Resource):
         db.session.delete(warehouse)
         db.session.commit()
 
+        self._clear_cache()
         return Response(status=204)
+
+    def _clear_cache(self):
+        collection_path = url_for("api.warehousecollection ")
+        cache.delete_many(
+            collection_path,
+            request.path
+        )

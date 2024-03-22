@@ -7,7 +7,7 @@ from flask_restful import Resource
 from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
 
-from inventorymanager import db
+from inventorymanager import db, cache
 from inventorymanager.builder import InventoryManagerBuilder
 from inventorymanager.constants import (
     ITEM_PROFILE,
@@ -16,7 +16,7 @@ from inventorymanager.constants import (
     NAMESPACE,
 )
 from inventorymanager.models import Item
-from inventorymanager.utils import create_error_response
+from inventorymanager.utils import create_error_response, request_path_cache_key
 
 
 class ItemCollection(Resource):
@@ -24,7 +24,7 @@ class ItemCollection(Resource):
     Resource for the collection of items, provides GET and POST methods
     /items/
     """
-
+    @cache.cached(timeout=None, make_cache_key=request_path_cache_key)
     def get(self) -> Response:
         """Returns a list of all items in the database
 
@@ -70,8 +70,14 @@ class ItemCollection(Resource):
             db.session.rollback()
             return abort(409, "Item already exists")
 
+        self._clear_cache()
         return Response(
             status=201, headers={"Location": url_for("api.itemitem", item=item)}
+        )
+    
+    def _clear_cache(self):
+        cache.delete(
+            request.path
         )
 
 
@@ -80,7 +86,7 @@ class ItemItem(Resource):
     Resource for a single item, provides PUT and DELETE methods
     /items/<item:item>/
     """
-
+    @cache.cached(timeout=None, make_cache_key=request_path_cache_key)
     def get(self, item: Item) -> Response:
         """returns a single item
 
@@ -126,7 +132,7 @@ class ItemItem(Resource):
                 "Already exists",
                 f"Item with name {request.json['name']} already exists.",
             )
-
+        self._clear_cache()
         return Response(status=204)
 
     def delete(self, item: Item) -> Response:
@@ -138,5 +144,12 @@ class ItemItem(Resource):
 
         db.session.delete(item)
         db.session.commit()
-
+        self._clear_cache()
         return Response(status=204)
+    
+    def _clear_cache(self):
+        collection_path = url_for("api.itemcollection")
+        cache.delete_many(
+            collection_path,
+            request.path
+        )
