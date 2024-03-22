@@ -12,12 +12,12 @@ responses:
              # $ref: "#/components/schemas/ItemWithURI"
         example:
           - item_id: 1
+            category: "electronics"
             name: "Laptop"
-            manager: "electronics"
             weight: 1
             uri: "http://example.com/api/items/1"
           - item_id: 2
+            category: "electronics"
             name: "Smartphone"
-            manager: "electronics"
             weight: 1
             uri: "http://example.com/api/items/2"

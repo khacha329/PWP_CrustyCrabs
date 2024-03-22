@@ -13,7 +13,7 @@ requestBody:
   content:
     application/json:
       schema:
-        $ref: "#/components/schemas/item"
+        $ref: "#/components/schemas/items"
 responses:
   "204":
     description: The item was successfully updated.

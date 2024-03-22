@@ -14,7 +14,7 @@ responses:
   content:
     application/json:
       schema:
-        $ref: "#/components/schemas/item"
+        $ref: "#/components/schemas/items"
         example:
           item_id: 1
           name: "Laptop"
