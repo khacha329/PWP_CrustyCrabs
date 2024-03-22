@@ -103,7 +103,7 @@ class ItemItem(Resource):
 
         return Response(json.dumps(body), 200, mimetype=MASON)
 
-    @swag_from(os.getcwd() + f"{DOC_FOLDER}item/item/put.yml")
+    #@swag_from(os.getcwd() + f"{DOC_FOLDER}item/item/put.yml")
     def put(self, item: Item) -> Response:
         """Updates an item in the database
 
@@ -129,7 +129,7 @@ class ItemItem(Resource):
 
         return Response(status=204)
 
-    @swag_from(os.getcwd() + f"{DOC_FOLDER}item/item/delete.yml")
+    #@swag_from(os.getcwd() + f"{DOC_FOLDER}item/item/delete.yml")
     def delete(self, item: Item) -> Response:
         """deletes an item from the database
 

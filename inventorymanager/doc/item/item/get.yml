@@ -16,8 +16,9 @@ responses:
       schema:
         $ref: "#/components/schemas/item"
         example:
-          name: "Item Name",
-          category: "Item Category",
+          item_id: 1
+          name: "Laptop"
+          category: "Electronics"
           weight: 1.5
   "404":
     description: The specified item was not found in the database.

@@ -1,0 +1,26 @@
+description: Deletes an existing item given a unique identifier. Returns status code 204 if the deletion is successful, or 404 if the item is not found.
+tags:
+  - items
+parameters:
+  - in: path
+    name: item_id
+    required: true
+    schema:
+      type: integer
+    description: Unique identifier of the item to be deleted.
+responses:
+  "204":
+    description: The item was successfully deleted. No content is returned.
+  "404":
+    description: The specified item was not found in the database.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+        examples:
+          itemNotFound:
+            value:
+              message: "item not found"
