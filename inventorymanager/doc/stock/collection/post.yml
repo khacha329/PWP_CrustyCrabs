@@ -10,13 +10,15 @@ requestBody:
       examples:
         example1:
           value:
-            manager: "John Doe"
-            location_id: 1
+            item_id: 1
+            warehouse_id: 1
+            quantity: 100
+            shelf_price: 10.5
 responses:
   "201":
-    description: stock successfully created. The 'stock' header contains the URI of the new resource.
+    description: Stock successfully created. The 'Location' header contains the URI of the new resource.
     headers:
-      stock:
+      Location:
         description: URI of the created stock.
         schema:
           type: string
@@ -26,11 +28,17 @@ responses:
     content:
       application/json:
         example:
-          message: Validation error
-          errors: Details about the validation error
-  "409":
-    description: stock already exists.
+          message: "Validation error"
+          errors: "Details about the validation error"
+  "404":
+    description: Item or Warehouse doesn't exist.
     content:
       application/json:
         example:
-          message: stock already exists
+          message: "Item or Warehouse doesn't exist"
+  "409":
+    description: Stock already exists.
+    content:
+      application/json:
+        example:
+          message: "Stock already exists"
