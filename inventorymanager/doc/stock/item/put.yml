@@ -1,22 +1,22 @@
-description: Updates an existing location by location_id after validating the input data against the Location JSON schema.
+description: Updates an existing stock by stock_id after validating the input data against the stock JSON schema.
 tags:
-  - Locations
+  - stocks
 parameters:
   - in: path
-    name: location_id
+    name: stock_id
     required: true
     schema:
       type: integer
-    description: Integer ID of the location object to update.
+    description: Integer ID of the stock object to update.
 requestBody:
   required: true
   content:
     application/json:
       schema:
-        $ref: "#/components/schemas/Location"
+        $ref: "#/components/schemas/stock"
 responses:
   "204":
-    description: The location was successfully updated.
+    description: The stock was successfully updated.
   "400":
     description: Validation error with the input data.
     content:
@@ -25,11 +25,11 @@ responses:
           message: Validation error
           errors: Details about the validation error
   "404":
-    description: Location not found.
+    description: stock not found.
     content:
       application/json:
         example:
-          message: Location not found
+          message: stock not found
   "415":
     description: Unsupported Media Type. Request must be JSON.
     content:

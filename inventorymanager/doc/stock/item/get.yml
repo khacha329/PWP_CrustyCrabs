@@ -1,30 +1,29 @@
-description: Retrieves details of a specific location by its ID from the database.
+description: Retrieves details of a specific stock by its ID from the database.
 tags:
-  - Locations
+  - stocks
 parameters:
   - in: path
-    name: location_id
+    name: stock_id
     required: true
     schema:
       type: integer
-    description: The ID of the location to retrieve.
+    description: The ID of the stock to retrieve.
 responses:
   "200":
-    description: Details of the specified location.
+    description: Details of the specified stock.
     content:
       application/json:
         schema:
-          $ref: "#/components/schemas/Location"
+          $ref: "#/components/schemas/stock"
         example:
-          city: "New York"
-          country: "USA"
-          latitude: 40.7128
-          longitude: -74.0060
-          postal_code: "10001"
-          street: "5th Avenue"
+          - item_id: 1
+            warehouse_id: 1
+            quantity: 100
+            shelf_price: 10.5
+            uri: "http://example.com/api/stocks/1"
   "404":
-    description: Location not found.
+    description: stock not found.
     content:
       application/json:
         example:
-          message: "Location not found"
+          message: "stock not found"

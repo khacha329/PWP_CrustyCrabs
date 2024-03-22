@@ -1,18 +1,18 @@
-description: Deletes an existing location given a unique identifier. Returns status code 204 if the deletion is successful, or 404 if the location is not found.
+description: Deletes an existing stock given a unique identifier. Returns status code 204 if the deletion is successful, or 404 if the stock is not found.
 tags:
-  - Locations
+  - stocks
 parameters:
   - in: path
-    name: location_id
+    name: stock_id
     required: true
     schema:
       type: integer
-    description: Unique identifier of the location to be deleted.
+    description: Unique identifier of the stock to be deleted.
 responses:
   "204":
-    description: The location was successfully deleted. No content is returned.
+    description: The stock was successfully deleted. No content is returned.
   "404":
-    description: The specified location was not found in the database.
+    description: The specified stock was not found in the database.
     content:
       application/json:
         schema:
@@ -21,6 +21,6 @@ responses:
             message:
               type: string
         examples:
-          locationNotFound:
+          stockNotFound:
             value:
-              message: Location not found
+              message: stock not found
