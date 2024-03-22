@@ -9,6 +9,7 @@ parameters:
       type: string
     description: The name of the item to retrieve.
 responses:
+<<<<<<< Updated upstream
   "200":
     description: Details of the specified item.
     content:
@@ -20,6 +21,19 @@ responses:
             name: "Laptop"
             category: "Electronics"
             weight: 1.5
+=======
+ "200":
+  description: Details of the specified item.
+  content:
+    application/json:
+      schema:
+        $ref: "#/components/schemas/items"
+        example:
+          item_id: 1
+          name: "Laptop"
+          category: "Electronics"
+          weight: 1.5
+>>>>>>> Stashed changes
   "404":
     description: The specified item was not found in the database.
     content:
