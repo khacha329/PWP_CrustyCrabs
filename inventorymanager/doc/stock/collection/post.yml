@@ -1,12 +1,12 @@
-description: Adds a new warehouse to the database.
+description: Adds a new stock to the database.
 tags:
-  - warehouses
+  - stocks
 requestBody:
   required: true
   content:
     application/json:
       schema:
-        $ref: "#/components/schemas/warehouse"
+        $ref: "#/components/schemas/stock"
       examples:
         example1:
           value:
@@ -14,10 +14,10 @@ requestBody:
             location_id: 1
 responses:
   "201":
-    description: warehouse successfully created. The 'warehouse' header contains the URI of the new resource.
+    description: stock successfully created. The 'stock' header contains the URI of the new resource.
     headers:
-      warehouse:
-        description: URI of the created warehouse.
+      stock:
+        description: URI of the created stock.
         schema:
           type: string
           format: uri
@@ -29,8 +29,8 @@ responses:
           message: Validation error
           errors: Details about the validation error
   "409":
-    description: warehouse already exists.
+    description: stock already exists.
     content:
       application/json:
         example:
-          message: warehouse already exists
+          message: stock already exists

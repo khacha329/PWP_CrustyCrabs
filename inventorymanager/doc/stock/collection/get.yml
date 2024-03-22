@@ -8,8 +8,8 @@ responses:
       application/json:
         schema:
           type: array
-          # items:
-          #   $ref: "#/components/schemas/stockWithURI"
+           items:
+             $ref: "#/components/schemas/stockWithURI"
         example:
           - item_id: 1
             warehouse_id: 1
@@ -21,9 +21,3 @@ responses:
             quantity: 200
             shelf_price: 20.5
             uri: "http://example.com/api/stocks/2"
-  "404":
-    description: No stock items found.
-    content:
-      application/json:
-        example:
-          message: "No stock items found"
