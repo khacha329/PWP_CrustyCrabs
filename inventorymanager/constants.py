@@ -4,9 +4,15 @@ This module contains constants used by the API
 
 MASON = "application/vnd.mason+json"
 LINK_RELATIONS_URL = "/inventorymanager/link-relations/"
-ERROR_PROFILE = "/profiles/error/"
 DOC_FOLDER = "/inventorymanager/doc/"
-INVENTORY_PROFILE = "/profiles/inventory/"
+
+# profile paths for all resources
+ITEM_PROFILE = "/profiles/item/"
+LOCATION_PROFILE = "/profiles/location/"
+WAREHOUSE_PROFILE = "/profiles/warehouse/"
+CATALOGUE_PROFILE = "/profiles/catalogue/"
+STOCK_PROFILE = "/profiles/stock/"
+ERROR_PROFILE = "/profiles/error/"
 
 NAMESPACE = "invmanager"
 

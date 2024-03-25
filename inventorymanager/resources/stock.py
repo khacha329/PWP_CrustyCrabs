@@ -13,8 +13,13 @@ from sqlalchemy.exc import IntegrityError
 
 from inventorymanager import db
 from inventorymanager.builder import InventoryManagerBuilder
-from inventorymanager.constants import (INVENTORY_PROFILE, LINK_RELATIONS_URL,
-                                        MASON, NAMESPACE, DOC_FOLDER)
+from inventorymanager.constants import (
+    STOCK_PROFILE,
+    LINK_RELATIONS_URL,
+    MASON,
+    NAMESPACE,
+    DOC_FOLDER
+)
 from inventorymanager.models import Item, Stock, Warehouse
 from inventorymanager.utils import create_error_response
 
@@ -41,7 +46,7 @@ class StockCollection(Resource):
                 "self",
                 url_for("api.stockitem", warehouse=stock.warehouse, item=stock.item),
             )
-            item.add_control("profile", INVENTORY_PROFILE)
+            item.add_control("profile", STOCK_PROFILE)
             body["items"].append(item)
 
         body.add_control_post(
@@ -118,17 +123,14 @@ class StockItem(Resource):
 
         body.add_namespace(NAMESPACE, LINK_RELATIONS_URL)
         body.add_control("self", self_url)
-        body.add_control("profile", INVENTORY_PROFILE)
+        body.add_control("profile", STOCK_PROFILE)
         body.add_control("collection", url_for("api.stockcollection"))
         body.add_control_put("Modify this stock", self_url, Stock.get_schema())
         body.add_control_delete("Delete this stock", self_url)
         body.add_control_get_warehouse(warehouse)
         body.add_control_get_item(item)
-        body.add_control_all_stock_items(item)
-
-        # body.add_control_all_catalogue()
-        # body.add_control_all_stock()
-        # body.add_control_all_catalogue_items(item)
+        body.add_control_all_stock_item(item)
+        body.add_control_all_stock_warehouse(warehouse)
 
         return Response(json.dumps(body), 200, mimetype=MASON)
 
@@ -204,17 +206,21 @@ class StockItemCollection(Resource):
         :param item: item name to filter stocks with
         :return: Response
         """
-        item = Item.query.filter_by(item_id=item.item_id).first()
-        stock_entry = Stock.query.filter_by(item_id=item.item_id).first()
-        if not stock_entry:
-            return create_error_response(404, "item is out of stock in all warehouses")
-        body = []
-        for stock_entry in Stock.query.filter_by(item=item).all():
-            stock_json = stock_entry.serialize()
-            stock_json["uri"] = url_for(
-                "api.stockitem", warehouse=stock_entry.warehouse, item=item
+
+        body = InventoryManagerBuilder(items=[])
+        body.add_namespace(NAMESPACE, LINK_RELATIONS_URL)
+        body.add_control("self", url_for("api.stockitemcollection", item=item))
+        for stock in Stock.query.filter_by(item=item):
+            item = InventoryManagerBuilder(stock.serialize())
+            item.add_control(
+                "self",
+                url_for("api.stockitem", warehouse=stock.warehouse, item=stock.item),
             )
-            body.append(stock_json)
+            item.add_control("profile", STOCK_PROFILE)
+            body["items"].append(item)
+
+        body.add_control_all_stock()
+
         return Response(json.dumps(body), 200)
 
 
@@ -230,14 +236,21 @@ class StockWarehouseCollection(Resource):
         :param warehouse: warehouse id to filter stocks with
         :return: Response
         """
-        body = []
-        warehouse = Warehouse.query.filter_by(
-            warehouse_id=warehouse.warehouse_id
-        ).first()
-        for stock in Stock.query.filter_by(warehouse=warehouse).all():
-            stock_json = stock.serialize()
-            stock_json["uri"] = url_for(
-                "api.stockitem", warehouse=stock.warehouse, item=stock.item
+
+        body = InventoryManagerBuilder(items=[])
+        body.add_namespace(NAMESPACE, LINK_RELATIONS_URL)
+        body.add_control(
+            "self", url_for("api.stockwarehousecollection", warehouse=warehouse)
+        )
+        for stock in Stock.query.filter_by(warehouse=warehouse):
+            item = InventoryManagerBuilder(stock.serialize())
+            item.add_control(
+                "self",
+                url_for("api.stockitem", warehouse=stock.warehouse, item=stock.item),
             )
-            body.append(stock_json)
+            item.add_control("profile", STOCK_PROFILE)
+            body["items"].append(item)
+
+        body.add_control_all_stock()
+
         return Response(json.dumps(body), 200)

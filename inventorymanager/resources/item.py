@@ -9,12 +9,17 @@ from flask_restful import Resource
 from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
 
-from inventorymanager import db
+from inventorymanager import db, cache
 from inventorymanager.builder import InventoryManagerBuilder
-from inventorymanager.constants import (INVENTORY_PROFILE, LINK_RELATIONS_URL,
-                                        MASON, NAMESPACE, DOC_FOLDER)
+from inventorymanager.constants import (
+    ITEM_PROFILE,
+    LINK_RELATIONS_URL,
+    MASON,
+    NAMESPACE,
+    DOC_FOLDER
+)
 from inventorymanager.models import Item
-from inventorymanager.utils import create_error_response
+from inventorymanager.utils import create_error_response, request_path_cache_key
 
 
 class ItemCollection(Resource):
@@ -22,7 +27,9 @@ class ItemCollection(Resource):
     Resource for the collection of items, provides GET and POST methods
     /items/
     """
+    
     @swag_from(os.getcwd() + f"{DOC_FOLDER}item/collection/get.yml")
+    @cache.cached(timeout=None, make_cache_key=request_path_cache_key)
     def get(self) -> Response:
         """Returns a list of all items in the database
 
@@ -36,7 +43,7 @@ class ItemCollection(Resource):
         for item_object in Item.query.all():
             item = InventoryManagerBuilder(item_object.serialize())
             item.add_control("self", url_for("api.itemitem", item=item_object))
-            item.add_control("profile", INVENTORY_PROFILE)
+            item.add_control("profile", ITEM_PROFILE)
             body["items"].append(item)
 
         body.add_control_post(
@@ -44,7 +51,6 @@ class ItemCollection(Resource):
         )
         body.add_control_all_catalogue()
         body.add_control_all_stock()
-        body.add_control_all_warehouses()
 
         return Response(json.dumps(body), 200, mimetype=MASON)
 
@@ -70,8 +76,14 @@ class ItemCollection(Resource):
             db.session.rollback()
             return abort(409, "Item already exists")
 
+        self._clear_cache()
         return Response(
             status=201, headers={"Location": url_for("api.itemitem", item=item)}
+        )
+    
+    def _clear_cache(self):
+        cache.delete(
+            request.path
         )
 
 
@@ -80,7 +92,9 @@ class ItemItem(Resource):
     Resource for a single item, provides PUT and DELETE methods
     /items/<item:item>/
     """
+    
     @swag_from(os.getcwd() + f"{DOC_FOLDER}item/item/get.yml")
+    @cache.cached(timeout=None, make_cache_key=request_path_cache_key)
     def get(self, item: Item) -> Response:
         """returns a single item
 
@@ -93,13 +107,14 @@ class ItemItem(Resource):
 
         body.add_namespace(NAMESPACE, LINK_RELATIONS_URL)
         body.add_control("self", self_url)
-        body.add_control("profile", INVENTORY_PROFILE)
+        body.add_control("profile", ITEM_PROFILE)
         body.add_control("collection", url_for("api.itemcollection"))
         body.add_control_put("Modify this item", self_url, Item.get_schema())
         body.add_control_delete("Delete this item", self_url)
         body.add_control_all_catalogue()
         body.add_control_all_stock()
-        body.add_control_all_catalogue_items(item)
+        body.add_control_all_catalogue_item(item)
+        body.add_control_all_stock_item(item)
 
         return Response(json.dumps(body), 200, mimetype=MASON)
 
@@ -126,7 +141,7 @@ class ItemItem(Resource):
                 "Already exists",
                 f"Item with name {request.json['name']} already exists.",
             )
-
+        self._clear_cache()
         return Response(status=204)
 
     @swag_from(os.getcwd() + f"{DOC_FOLDER}item/item/delete.yml")
@@ -139,5 +154,12 @@ class ItemItem(Resource):
 
         db.session.delete(item)
         db.session.commit()
-
+        self._clear_cache()
         return Response(status=204)
+    
+    def _clear_cache(self):
+        collection_path = url_for("api.itemcollection")
+        cache.delete_many(
+            collection_path,
+            request.path
+        )

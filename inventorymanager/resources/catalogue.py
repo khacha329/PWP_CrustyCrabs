@@ -11,10 +11,10 @@ from flask_restful import Resource
 from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
 
-from inventorymanager import db
+from inventorymanager import db, cache
 from inventorymanager.models import Catalogue, Item
 from inventorymanager.constants import DOC_FOLDER
-from inventorymanager.utils import create_error_response
+from inventorymanager.utils import create_error_response, request_path_cache_key
 
 
 class CatalogueCollection(Resource):
@@ -23,6 +23,7 @@ class CatalogueCollection(Resource):
     /catalogue/
     """
     @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/collection/get.yml")
+    @cache.cached(timeout=None, make_cache_key=request_path_cache_key)
     def get(self):
         """Returns a list of all catalogue entries in the database
 
@@ -66,6 +67,7 @@ class CatalogueCollection(Resource):
             db.session.rollback()
             return abort(409, "Catalogue already exists")
         # if api fails after this line, resource will be added to db anyway
+        self._clear_cache()
         return Response(
             status=201,
             headers={
@@ -76,7 +78,11 @@ class CatalogueCollection(Resource):
                 )
             },
         )
-
+    
+    def _clear_cache(self):
+        cache.delete(
+            request.path
+        )
 
 class CatalogueItem(Resource):
     """
@@ -84,6 +90,7 @@ class CatalogueItem(Resource):
     /catalogue/supplier/<string:supplier>/item/<item:item>/
     """
     @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/item/get.yml")
+    @cache.cached(timeout=None, make_cache_key=request_path_cache_key)
     def get(self, supplier, item):
         """returns a single catalogue entry in the database
 
@@ -133,6 +140,7 @@ class CatalogueItem(Resource):
                 ),
             )
 
+        self._clear_cache()
         return Response(status=204)
 
     @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/item/delete.yml")
@@ -153,7 +161,15 @@ class CatalogueItem(Resource):
         db.session.delete(catalogue_entry)
         db.session.commit()
 
+        self._clear_cache()
         return Response(status=204)
+    
+    def _clear_cache(self):
+        collection_path = url_for("api.cataloguecollection")
+        cache.delete_many(
+            collection_path,
+            request.path
+        )
 
 
 class CatalogueItemCollection(Resource):
@@ -161,6 +177,7 @@ class CatalogueItemCollection(Resource):
     Resource for the collection of catalogue entries filtered by item, provides GET method
     /catalogue/item/<item:item>/
     """
+
     @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/itemcollection/get.yml")
     def get(self, item: Item):
         """Returns a list of catalogue entries in the database filtered by item name
@@ -192,6 +209,7 @@ class CatalogueSupplierCollection(Resource):
     Resource for the collection of catalogue entries filtered by supplier, provides GET method
     /catalogue/supplier/<string:supplier>/
     """
+    
     @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/suppliercollection/get.yml")
     def get(self, supplier: str):
         """Returns a list of catalogue entries in the database filtered by supplier name

@@ -10,7 +10,10 @@ The classes are:
 The functions are responsible for initiliazing and populating the database
 """
 
+import hashlib
+import secrets
 import click
+
 from flask.cli import with_appcontext
 from sqlalchemy import CheckConstraint, event, text
 from sqlalchemy.engine import Engine
@@ -44,7 +47,10 @@ class Location(db.Model):
     street = db.Column(db.String(64), nullable=False)
 
     warehouse = db.relationship(
-        "Warehouse", back_populates="location", uselist=False
+        "Warehouse",
+        back_populates="location",
+        cascade="all, delete-orphan",
+        uselist=False,
     )  # can't be deleted if warehouse exists with location?
 
     __table_args__ = (
@@ -121,10 +127,11 @@ class Warehouse(db.Model):
     manager = db.Column(db.String(64), nullable=True)
     location_id = db.Column(
         db.Integer,
-        db.ForeignKey("location.location_id", ondelete="RESTRICT"),
+        db.ForeignKey("location.location_id", ondelete="CASCADE"),
         nullable=False,
     )
 
+    api_key = db.relationship("ApiKey", back_populates="warehouse", uselist=False)
     location = db.relationship("Location", back_populates="warehouse", uselist=False)
     stock = db.relationship(
         "Stock", back_populates="warehouse", cascade="all, delete-orphan", uselist=True
@@ -186,8 +193,8 @@ class Item(db.Model):
     weight = db.Column(db.Float, nullable=True)
 
     stock = db.relationship(
-        "Stock", back_populates="item", uselist=True
-    )  # don't cascade so that it throws an error if stock exists with item when deleted
+        "Stock", back_populates="item", uselist=True, cascade="all, delete-orphan"
+    )
     catalogue = db.relationship(
         "Catalogue", back_populates="item", cascade="all, delete-orphan", uselist=True
     )
@@ -371,6 +378,27 @@ class Catalogue(db.Model):
             f"min_order={self.min_order}, order_price={self.order_price})>"
         )
 
+# APIKey Model
+class ApiKey(db.Model):
+    '''
+        A class representing the API keys saved in the database. Keys can be admin (Write permission to Catalogue)
+        or Manager (Write permission to a single related warehouse)
+    '''
+
+    key = db.Column(db.String(32), nullable=False, unique=True, primary_key=True)
+    warehouse_id = db.Column( db.Integer, db.ForeignKey("warehouse.warehouse_id"), nullable=True)
+    admin = db.Column(db.Boolean, default=False)
+
+    warehouse = db.relationship("Warehouse", back_populates="api_key", uselist=False)
+
+    @staticmethod
+    def key_hash(key):
+        """
+        Generates the hash for the given randomly generated token
+        :param key: a string representing the token to use for the API
+        :return: the sha256 digest of the key parameter
+        """
+        return hashlib.sha256(key.encode()).hexdigest()
 
 @click.command("init-db")
 @with_appcontext
@@ -384,7 +412,28 @@ def init_db_command() -> None:
 @click.command("populate-db")
 @with_appcontext
 def create_dummy_data() -> None:
+    """
+    Populates the database with dummy data as click function
+    """
     populate_db()
+
+
+@click.command("catalogue-key")
+@with_appcontext
+def generate_catalogue_key():
+    """
+    Click function callable from the command line, used to generate the admin key for the Catalogue.
+    Prints the key after adding it.
+    """
+    # admin key
+    token = secrets.token_urlsafe()
+    db_key = ApiKey(
+        key=ApiKey.key_hash(token),
+        admin=True
+    )
+    db.session.add(db_key)
+    db.session.commit()
+    print("Catalogue key: " + token)
 
 
 def populate_db() -> None:
@@ -441,6 +490,17 @@ def populate_db() -> None:
         ),
     ]
 
+    # Create APIKeys for Warehouses
+    warehouse_api_keys = []
+    for warehouse in warehouses:
+        token = secrets.token_urlsafe()
+        db_key = ApiKey (
+        key=ApiKey.key_hash(token),
+        warehouse_id = warehouse.warehouse_id )
+
+        warehouse_api_keys.append(db_key)
+        print(f"Key for Warehouse {warehouse.warehouse_id}: {token}")
+
     # Add all to session and commit
-    db.session.add_all(locations + warehouses + items + stocks + catalogues)
+    db.session.add_all(locations + warehouses + items + stocks + catalogues + warehouse_api_keys)
     db.session.commit()
