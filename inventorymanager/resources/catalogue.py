@@ -22,7 +22,7 @@ class CatalogueCollection(Resource):
     Resource for the collection of catalogue entries, provides GET and POST methods
     /catalogue/
     """
-
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/collection/get.yml")
     def get(self):
         """Returns a list of all catalogue entries in the database
 
@@ -41,6 +41,7 @@ class CatalogueCollection(Resource):
 
         return Response(json.dumps(body), 200)
 
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/collection/post.yml")
     def post(self):
         """Adds a new catalogue to the database
 
@@ -82,7 +83,7 @@ class CatalogueItem(Resource):
     Resource for a single catalogue entry, provides GET, PUT and DELETE methods
     /catalogue/supplier/<string:supplier>/item/<item:item>/
     """
-
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/item/get.yml")
     def get(self, supplier, item):
         """returns a single catalogue entry in the database
 
@@ -99,6 +100,7 @@ class CatalogueItem(Resource):
         )
         return Response(json.dumps(catalogue_json), 200)
 
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/item/put.yml")
     def put(self, supplier, item):
         """updates a single catalogue entry in the database
 
@@ -133,6 +135,7 @@ class CatalogueItem(Resource):
 
         return Response(status=204)
 
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/item/delete.yml")
     def delete(self, supplier, item):
         """deletes a single catalogue entry in the database
 
