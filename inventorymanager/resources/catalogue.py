@@ -158,10 +158,10 @@ class CatalogueItem(Resource):
 
 class CatalogueItemCollection(Resource):
     """
-    Resource for the  ollection of catalogue entries filtered by item, provides GET method
+    Resource for the collection of catalogue entries filtered by item, provides GET method
     /catalogue/item/<item:item>/
     """
-
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/itemcollection/get.yml")
     def get(self, item: Item):
         """Returns a list of catalogue entries in the database filtered by item name
 
@@ -192,7 +192,7 @@ class CatalogueSupplierCollection(Resource):
     Resource for the collection of catalogue entries filtered by supplier, provides GET method
     /catalogue/supplier/<string:supplier>/
     """
-
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/suppliercollection/get.yml")
     def get(self, supplier: str):
         """Returns a list of catalogue entries in the database filtered by supplier name
 
