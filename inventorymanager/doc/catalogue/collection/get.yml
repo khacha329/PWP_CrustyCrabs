@@ -9,14 +9,7 @@ responses:
         schema:
           type: array
           items:
-            $ref: "#/components/schemas/CatalogueWithURI'"
-            properties:
-              supplier_name:
-                type: string
-              item:
-                type: string
-              uri:
-                type: string
+            $ref: "#/components/schemas/CatalogueWithURI"
         example:
           - supplier_name: "Supplier1"
             item: "Laptop"
