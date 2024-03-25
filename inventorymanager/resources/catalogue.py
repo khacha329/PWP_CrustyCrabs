@@ -232,3 +232,4 @@ class CatalogueSupplierCollection(Resource):
             )
             body.append(catalogue_json)
         return Response(json.dumps(body), 200)
+    
