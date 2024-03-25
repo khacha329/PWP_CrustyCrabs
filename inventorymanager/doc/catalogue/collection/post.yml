@@ -1,23 +1,23 @@
-description: Adds a new warehouse to the database.
+description: Adds a new catalogue entry to the database.
 tags:
-  - warehouses
+  - catalogue
 requestBody:
   required: true
   content:
     application/json:
       schema:
-        $ref: "#/components/schemas/warehouse"
+        $ref: "#/components/schemas/catalogue"
       examples:
         example1:
           value:
-            manager: "John Doe"
-            location_id: 1
+            supplier_name: "Supplier1"
+            item: "Laptop"
 responses:
   "201":
-    description: warehouse successfully created. The 'warehouse' header contains the URI of the new resource.
+    description: catalogue successfully created. The 'catalogue' header contains the URI of the new resource.
     headers:
-      warehouse:
-        description: URI of the created warehouse.
+      catalogue:
+        description: URI of the created catalogue entry.
         schema:
           type: string
           format: uri
@@ -29,8 +29,8 @@ responses:
           message: Validation error
           errors: Details about the validation error
   "409":
-    description: warehouse already exists.
+    description: catalogue already exists.
     content:
       application/json:
         example:
-          message: warehouse already exists
+          message: catalogue entry already exists
