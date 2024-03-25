@@ -1,22 +1,28 @@
-description: Updates an existing location by location_id after validating the input data against the Location JSON schema.
+description: Updates an existing catalogue item identified by its supplier name and item name after validating the input data against the CatalogueItem JSON schema.
 tags:
-  - Locations
+  - catalogue
 parameters:
   - in: path
-    name: location_id
+    name: supplier_name
     required: true
     schema:
-      type: integer
-    description: Integer ID of the location object to update.
+      type: string
+    description: The name of the supplier of the catalogue item to update.
+  - in: path
+    name: item
+    required: true
+    schema:
+      type: string
+    description: The name of the item to update.
 requestBody:
   required: true
   content:
     application/json:
       schema:
-        $ref: "#/components/schemas/Location"
+        $ref: "#/components/schemas/CatalogueItem"
 responses:
   "204":
-    description: The location was successfully updated.
+    description: The catalogue item was successfully updated.
   "400":
     description: Validation error with the input data.
     content:
@@ -25,11 +31,11 @@ responses:
           message: Validation error
           errors: Details about the validation error
   "404":
-    description: Location not found.
+    description: Catalogue item not found.
     content:
       application/json:
         example:
-          message: Location not found
+          message: "Catalogue item not found"
   "415":
     description: Unsupported Media Type. Request must be JSON.
     content:

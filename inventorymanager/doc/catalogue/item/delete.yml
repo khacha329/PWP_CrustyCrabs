@@ -1,18 +1,24 @@
-description: Deletes an existing location given a unique identifier. Returns status code 204 if the deletion is successful, or 404 if the location is not found.
+description: Deletes an existing catalogue item identified by its supplier name and item name. Returns status code 204 if the deletion is successful, or 404 if the catalogue item is not found.
 tags:
-  - Locations
+  - catalogue
 parameters:
   - in: path
-    name: location_id
+    name: supplier_name
     required: true
     schema:
-      type: integer
-    description: Unique identifier of the location to be deleted.
+      type: string
+    description: The name of the supplier of the catalogue item to delete.
+  - in: path
+    name: item
+    required: true
+    schema:
+      type: string
+    description: The name of the item to delete.
 responses:
   "204":
-    description: The location was successfully deleted. No content is returned.
+    description: The catalogue item was successfully deleted. No content is returned.
   "404":
-    description: The specified location was not found in the database.
+    description: The specified catalogue item was not found in the database.
     content:
       application/json:
         schema:
@@ -21,6 +27,6 @@ responses:
             message:
               type: string
         examples:
-          locationNotFound:
+          catalogueItemNotFound:
             value:
-              message: Location not found
+              message: "Catalogue item not found"
