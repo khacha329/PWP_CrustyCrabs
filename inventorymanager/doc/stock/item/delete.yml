@@ -3,11 +3,17 @@ tags:
   - stocks
 parameters:
   - in: path
-    name: stock_id
+    name: warehouse
     required: true
     schema:
-      type: integer
-    description: Unique identifier of the stock to be deleted.
+      type: string
+    description: The warehouse of the stock to delete.
+  - in: path
+    name: item
+    required: true
+    schema:
+      type: string
+    description: The item of the stock to delete.
 responses:
   "204":
     description: The stock was successfully deleted. No content is returned.

@@ -1,13 +1,19 @@
-description: Updates an existing stock by stock_id after validating the input data against the stock JSON schema.
+description: Updates an existing stock by warehouse and item after validating the input data against the stock JSON schema.
 tags:
   - stocks
 parameters:
   - in: path
-    name: stock_id
+    name: warehouse
     required: true
     schema:
-      type: integer
-    description: Integer ID of the stock object to update.
+      type: string
+    description: The warehouse of the stock to update.
+  - in: path
+    name: item
+    required: true
+    schema:
+      type: string
+    description: The item of the stock to update.
 requestBody:
   required: true
   content:
@@ -23,7 +29,9 @@ responses:
       application/json:
         example:
           message: Validation error
-          errors: Details about the validation error
+          errors: 
+            item: "Item is required."
+            warehouse: "Warehouse is required."
   "404":
     description: stock not found.
     content:
@@ -42,4 +50,3 @@ responses:
       application/json:
         example:
           message: Database error
-          errors: Details about the database error
