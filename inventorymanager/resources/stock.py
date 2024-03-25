@@ -197,7 +197,7 @@ class StockItemCollection(Resource):
     Resource for the collection of stocks filtered by item, provides GET method
     /stocks/item/<item:item>/
     """
-
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}stock/itemcollection/get.yml")
     def get(self, item: Item):
         """Returns a list of stocks in the database filtered by item name
 
@@ -223,7 +223,7 @@ class StockWarehouseCollection(Resource):
     Resource for the collection of stocks filtered by name, provides GET method
     /stocks/warehouse/<warehouse:warehouse>/
     """
-
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}stock/warehousecollection/get.yml")
     def get(self, warehouse: Warehouse):
         """Returns a list of stocks in the database filtered by warehouse id
 

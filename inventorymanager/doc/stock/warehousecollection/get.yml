@@ -1,0 +1,41 @@
+description: Retrieves a list of all stock entries for a specific warehouse from the database, including a URI for accessing each individual entry's details.
+tags:
+  - stock
+parameters:
+  - in: path
+    name: warehouse
+    required: true
+    schema:
+      type: string
+    description: The ID of the warehouse to retrieve stock entries for.
+responses:
+  "200":
+    description: A list of all stock entries for the specified warehouse, each with a URI to access more details.
+    content:
+      application/json:
+        schema:
+          type: array
+          items:
+            $ref: "#/components/schemas/StockWithURI"
+        example:
+          - warehouse_id: "Warehouse1"
+            item_id: "Laptop"
+            quantity: 100
+            uri: "http://example.com/api/stocks/Warehouse1/Laptop"
+          - warehouse_id: "Warehouse1"
+            item_id: "Smartphone"
+            quantity: 50
+            uri: "http://example.com/api/stocks/Warehouse1/Smartphone"
+  "404":
+    description: Warehouse does not exist.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+        examples:
+          warehouseNotFound:
+            value:
+              message: "Warehouse does not exist"
