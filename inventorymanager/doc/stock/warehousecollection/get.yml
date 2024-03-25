@@ -1,6 +1,6 @@
 description: Retrieves a list of all stock entries for a specific warehouse from the database, including a URI for accessing each individual entry's details.
 tags:
-  - stock
+  - stocks
 parameters:
   - in: path
     name: warehouse
