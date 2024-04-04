@@ -223,13 +223,19 @@ class TestLocationCollection(object):
     def test_get(self, client):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
-        body = json.loads(resp.data)
-        assert len(body) == 2
 
-        for item in body:
-            assert "uri" in item
-            resp = client.get(item["uri"])
-            assert resp.status_code == 200
+        body = json.loads(resp.data)
+        _check_namespace(client, body)
+        _check_control_post_method(
+            f"{NAMESPACE}:add-location", client, body, _get_location_json(97)
+        )
+        _check_control_get_method("self", client, body)
+        _check_control_get_method(f"{NAMESPACE}:warehouses-all", client, body)
+        
+        assert len(body["locations"]) == 2
+        for item in body["locations"]:
+            _check_control_get_method("self", client, item)
+            _check_control_get_method("profile", client, item)
 
     def test_post(self, client):
         valid = _get_location_json(3)
@@ -268,11 +274,20 @@ class TestLocationItem(object):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        assert len(body) == 8
 
-        assert "uri" in body
-        resp = client.get(body["uri"])
-        assert resp.status_code == 200
+        _check_namespace(client, body)
+        _check_control_get_method("self", client, body)
+        _check_control_get_method("profile", client, body)
+        # _check_control_put_method("edit", client, body, _get_location_json(4), "city")
+        _check_control_get_method("collection", client, body)
+
+        _check_control_delete_method(f"{NAMESPACE}:delete", client, body)
+        
+        # assert len(body) == 9
+
+        # assert "uri" in body
+        resp = client.get(self.INVALID_URL)
+        assert resp.status_code == 404
 
     def test_put(self, client: FlaskClient):
         valid = _get_location_json(1)
