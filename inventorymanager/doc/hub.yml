@@ -32,7 +32,7 @@ components:
       schema:
         type: int
   schemas:
-    Warehouse:
+    warehouse:
       properties:
         location_id:
           description: Unique Identifier for the warehosue

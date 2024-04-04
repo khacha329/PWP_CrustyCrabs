@@ -105,10 +105,10 @@ class WarehouseItem(Resource):
         :return: Response
         """
 
-        location = warehouse.location
-        location_json = location.serialize()
-        # Retrieve the stock entry based on warehouse ID and item ID
-        warehouse_json = warehouse.serialize()
+        # location = warehouse.location
+        # location_json = location.serialize()
+        # # Retrieve the stock entry based on warehouse ID and item ID
+        # warehouse_json = warehouse.serialize()
 
         self_url = url_for("api.warehouseitem", warehouse=warehouse)
         body = InventoryManagerBuilder(warehouse.serialize())
