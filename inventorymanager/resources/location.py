@@ -15,7 +15,14 @@ from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
 
 from inventorymanager import db, cache
-from inventorymanager.constants import DOC_FOLDER
+from inventorymanager.builder import InventoryManagerBuilder
+from inventorymanager.constants import (
+    DOC_FOLDER, 
+    NAMESPACE,
+    LINK_RELATIONS_URL,
+    LOCATION_PROFILE,
+    MASON
+)
 from inventorymanager.models import Location
 from inventorymanager.utils import request_path_cache_key
 
@@ -32,13 +39,27 @@ class LocationCollection(Resource):
         Returns:
             Array: List of all locations
         """
-        body = []
-        for location in Location.query.all():
-            location_json = location.serialize()
-            location_json["uri"] = url_for("api.locationitem", location=location)
-            body.append(location_json)
+        self_url = url_for("api.locationcollection")
+        body = InventoryManagerBuilder(locations=[])
+        body.add_namespace(NAMESPACE, LINK_RELATIONS_URL)
+        body.add_control("self", self_url)
 
-        return Response(json.dumps(body), 200, mimetype="application/json")
+        for location_object in Location.query.all():
+            location = InventoryManagerBuilder(location_object.serialize())
+            location.add_control("self", url_for("api.locationitem", location=location_object))
+            location.add_control("profile", LOCATION_PROFILE)
+            body["locations"].append(location)
+
+        body.add_control_post(
+            "add-location", 
+            "Add new location",
+            url_for("api.locationcollection"), 
+            Location.get_schema()
+        )
+
+        body.add_control_all_warehouses()
+
+        return Response(json.dumps(body), 200, mimetype=MASON)
 
     @swag_from(os.getcwd() + f"{DOC_FOLDER}location/collection/post.yml")
     def post(self):
@@ -82,7 +103,7 @@ class LocationItem(Resource):
 
     @swag_from(os.getcwd() + f"{DOC_FOLDER}location/item/get.yml")
     @cache.cached(timeout=None, make_cache_key=request_path_cache_key)
-    def get(self, location):
+    def get(self, location: Location) -> Response:
         """Retrieves location
 
         Args:
@@ -90,13 +111,28 @@ class LocationItem(Resource):
 
         Returns:
             string: The matching location
+            
         """
         location_entry = Location.query.filter_by(
             location_id=location.location_id
         ).first()
-        location_json = location_entry.serialize()
-        location_json["uri"] = url_for("api.locationitem", location=location)
-        return Response(json.dumps(location_json), 200)
+        self_url = url_for("api.locationitem", location=location_entry)
+        body = InventoryManagerBuilder(location_entry.serialize())
+
+        body.add_namespace(NAMESPACE, LINK_RELATIONS_URL)
+        body.add_control("self", self_url)
+        body.add_control("profile", LOCATION_PROFILE)
+        body.add_control("collection", url_for("api.locationcollection"))
+        body.add_control_put("Modify this Location", self_url, Location.get_schema())
+        body.add_control_delete("Delete this Location", self_url)
+        body.add_control_get_warehouse("Warehouse at this location", self_url, location.warehouse)
+
+        # location_entry = Location.query.filter_by(
+        #     location_id=location.location_id
+        # ).first()
+        # location_json = location_entry.serialize()
+        # location_json["uri"] = url_for("api.locationitem", location=location)
+        return Response(json.dumps(body), 200, mimetype=MASON)
 
     @swag_from(os.getcwd() + f"{DOC_FOLDER}location/item/put.yml")
     def put(self, location):
