@@ -12,10 +12,16 @@ from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
 
 from inventorymanager import db, cache
+from inventorymanager.builder import InventoryManagerBuilder
 from inventorymanager.models import Catalogue, Item
 from inventorymanager.constants import DOC_FOLDER
 from inventorymanager.utils import create_error_response, request_path_cache_key
-
+from inventorymanager.constants import (
+    NAMESPACE,
+    LINK_RELATIONS_URL,
+    CATALOGUE_PROFILE,
+    MASON
+)
 
 class CatalogueCollection(Resource):
     """
@@ -29,18 +35,29 @@ class CatalogueCollection(Resource):
 
         :return: Response
         """
-        body = []
-        for catalogue in Catalogue.query.all():
-
-            catalogue_json = catalogue.serialize()
-            catalogue_json["uri"] = url_for(
-                "api.catalogueitem",
-                supplier=catalogue.supplier_name,
-                item=catalogue.item,
+        body = InventoryManagerBuilder(catalogues=[])
+        body.add_namespace(NAMESPACE, LINK_RELATIONS_URL)
+        body.add_control("self", url_for("api.cataloguecollection"))
+        
+        for catalogue_object in Catalogue.query.all():
+            catalogue = InventoryManagerBuilder(catalogue_object.serialize())
+            catalogue.add_control(
+                "self",
+                url_for("api.catalogueitem", supplier=catalogue_object.supplier_name, item=catalogue_object.item,),
             )
-            body.append(catalogue_json)
+            catalogue.add_control("profile", CATALOGUE_PROFILE)
+            body["catalogues"].append(catalogue)
 
-        return Response(json.dumps(body), 200)
+        body.add_control_post(
+            "add-catalogue",
+            "Add new Catalogue",
+            url_for("api.cataloguecollection"),
+            Catalogue.get_schema()
+        )
+
+        body.add_control_all_items()
+
+        return Response(json.dumps(body), 200, mimetype=MASON)
 
     @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/collection/post.yml")
     def post(self):
@@ -101,11 +118,23 @@ class CatalogueItem(Resource):
         catalogue_entry = Catalogue.query.filter_by(
             supplier_name=supplier, item=item
         ).first()
-        catalogue_json = catalogue_entry.serialize()
-        catalogue_json["uri"] = url_for(
-            "api.catalogueitem", supplier=supplier, item=item
-        )
-        return Response(json.dumps(catalogue_json), 200)
+
+        if not catalogue_entry:
+            return create_error_response(404, "supplier and item combination does not exist")
+
+        self_url = url_for("api.catalogueitem", supplier=supplier, item=item)
+        body = InventoryManagerBuilder(catalogue_entry.serialize())
+
+        body.add_namespace(NAMESPACE, LINK_RELATIONS_URL)
+        body.add_control("self", self_url)
+        body.add_control("profile", CATALOGUE_PROFILE)
+        body.add_control("collection", url_for("api.cataloguecollection"))
+        body.add_control_put("Modify this catalogue item", self_url, Catalogue.get_schema())
+        body.add_control_delete("Delete this catalogue item", self_url)
+        body.add_control_get_item(item)
+        body.add_control_all_catalogue_supplier(supplier)
+
+        return Response(json.dumps(body), 200, mimetype=MASON)
 
     @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/item/put.yml")
     def put(self, supplier, item):
@@ -186,22 +215,27 @@ class CatalogueItemCollection(Resource):
         :return: Response
         """
 
-        body = []
         item = Item.query.filter_by(item_id=item.item_id).first()
-
+        
+        body = InventoryManagerBuilder(catalogues=[])
+        body.add_namespace(NAMESPACE, LINK_RELATIONS_URL)
+        body.add_control("self", url_for("api.catalogueitemcollection", item=item))
         catalogue_entry = Catalogue.query.filter_by(item_id=item.item_id).first()
         if not catalogue_entry:
             return create_error_response(404, "No supplier has the requested item")
 
-        for catalogue in Catalogue.query.filter_by(item_id=item.item_id).all():
-            catalogue_json = catalogue.serialize()
-            catalogue_json["uri"] = url_for(
-                "api.catalogueitem",
-                supplier=catalogue.supplier_name,
-                item=item,
+        for catalogue_obj in Catalogue.query.filter_by(item_id=item.item_id).all():
+            catalogue = InventoryManagerBuilder(catalogue_obj.serialize())
+            catalogue.add_control(
+                "self",
+                url_for("api.catalogueitem", supplier=catalogue_obj.supplier_name, item=catalogue_obj.item )     
             )
-            body.append(catalogue_json)
-        return Response(json.dumps(body), 200)
+            catalogue.add_control("profile", CATALOGUE_PROFILE)
+            body["catalogues"].append(catalogue)
+
+        body.add_control_all_catalogue()
+        
+        return Response(json.dumps(body), 200, mimetype=MASON)
 
 
 class CatalogueSupplierCollection(Resource):
@@ -217,19 +251,25 @@ class CatalogueSupplierCollection(Resource):
         :param supplier: supplier name to filter catalogue entry with
         :return: Response
         """
-
-        body = []
         catalogue_entry = Catalogue.query.filter_by(supplier_name=supplier).first()
         if not catalogue_entry:
             return create_error_response(404, "supplier does not exist")
-
+        
+        self_url = url_for("api.cataloguesuppliercollection", supplier=supplier)
+        body = InventoryManagerBuilder(catalogues=[])
+        body.add_namespace(NAMESPACE, LINK_RELATIONS_URL)
+        body.add_control("self", self_url)
+ 
         for catalogue in Catalogue.query.filter_by(supplier_name=supplier).all():
-            catalogue_json = catalogue.serialize()
-            catalogue_json["uri"] = url_for(
-                "api.catalogueitem",
-                supplier=catalogue.supplier_name,
-                item=catalogue.item,
+            supplier_catalogue = InventoryManagerBuilder(catalogue.serialize())
+            supplier_catalogue.add_control(
+                "self",
+                url_for("api.catalogueitem", supplier=catalogue.supplier_name, item=catalogue.item),
             )
-            body.append(catalogue_json)
-        return Response(json.dumps(body), 200)
+            supplier_catalogue.add_control("profile", CATALOGUE_PROFILE)
+            body["catalogues"].append(supplier_catalogue)
+        
+        body.add_control_all_catalogue()
+
+        return Response(json.dumps(body), 200, mimetype=MASON)
     
