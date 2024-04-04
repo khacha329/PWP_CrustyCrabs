@@ -1,0 +1,32 @@
+description: Deletes an existing stock given a unique identifier. Returns status code 204 if the deletion is successful, or 404 if the stock is not found.
+tags:
+  - stocks
+parameters:
+  - in: path
+    name: warehouse
+    required: true
+    schema:
+      type: string
+    description: The warehouse of the stock to delete.
+  - in: path
+    name: item
+    required: true
+    schema:
+      type: string
+    description: The item of the stock to delete.
+responses:
+  "204":
+    description: The stock was successfully deleted. No content is returned.
+  "404":
+    description: The specified stock was not found in the database.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+        examples:
+          stockNotFound:
+            value:
+              message: stock not found

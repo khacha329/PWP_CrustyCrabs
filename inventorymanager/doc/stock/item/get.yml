@@ -1,0 +1,35 @@
+description: Retrieves details of a specific stock by its warehouse and item from the database.
+tags:
+  - stocks
+parameters:
+  - in: path
+    name: warehouse
+    required: true
+    schema:
+      type: string
+    description: The warehouse of the stock to retrieve.
+  - in: path
+    name: item
+    required: true
+    schema:
+      type: string
+    description: The item of the stock to retrieve.
+responses:
+  "200":
+    description: Details of the specified stock.
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/stock"
+        example:
+          item_id: 1
+          warehouse_id: 1
+          quantity: 100
+          shelf_price: 10.5
+          uri: "http://example.com/api/stocks/1"
+  "404":
+    description: stock not found.
+    content:
+      application/json:
+        example:
+          message: "stock not found"

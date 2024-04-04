@@ -1,0 +1,28 @@
+description: Retrieves details of a specific item by its ID from the database.
+tags:
+  - items
+parameters:
+  - in: path
+    name: name
+    required: true
+    schema:
+      type: string
+    description: The name of the item to retrieve.
+responses:
+  "200":
+    description: Details of the specified item.
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/items"
+          example:
+            item_id: 1
+            name: "Laptop"
+            category: "Electronics"
+            weight: 1.5
+  "404":
+    description: The specified item was not found in the database.
+    content:
+      application/json:
+        example:
+          message: "Item not found"

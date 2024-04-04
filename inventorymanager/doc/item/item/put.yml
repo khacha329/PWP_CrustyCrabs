@@ -1,0 +1,45 @@
+description: Updates an existing item by item_id after validating the input data against the item JSON schema.
+tags:
+  - items
+parameters:
+  - in: path
+    name: item_id
+    required: true
+    schema:
+      type: integer
+    description: Integer ID of the item object to update.
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: "#/components/schemas/items"
+responses:
+  "204":
+    description: The item was successfully updated.
+  "400":
+    description: Validation error with the input data.
+    content:
+      application/json:
+        example:
+          message: Validation error
+          errors: Details about the validation error
+  "404":
+    description: item not found.
+    content:
+      application/json:
+        example:
+          message: item not found
+  "415":
+    description: Unsupported Media Type. Request must be JSON.
+    content:
+      application/json:
+        example:
+          message: "Request must be JSON"
+  "500":
+    description: Database error during the update process.
+    content:
+      application/json:
+        example:
+          message: "Database error"
+          errors: Details about the database error

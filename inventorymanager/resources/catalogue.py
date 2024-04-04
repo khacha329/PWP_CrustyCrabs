@@ -3,7 +3,9 @@ This module contains the resources for the catalogue endpoints.
 """
 
 import json
+import os
 
+from flasgger import swag_from
 from flask import Response, abort, request, url_for
 from flask_restful import Resource
 from jsonschema import ValidationError, validate
@@ -11,6 +13,7 @@ from sqlalchemy.exc import IntegrityError
 
 from inventorymanager import db, cache
 from inventorymanager.models import Catalogue, Item
+from inventorymanager.constants import DOC_FOLDER
 from inventorymanager.utils import create_error_response, request_path_cache_key
 
 
@@ -19,6 +22,7 @@ class CatalogueCollection(Resource):
     Resource for the collection of catalogue entries, provides GET and POST methods
     /catalogue/
     """
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/collection/get.yml")
     @cache.cached(timeout=None, make_cache_key=request_path_cache_key)
     def get(self):
         """Returns a list of all catalogue entries in the database
@@ -38,6 +42,7 @@ class CatalogueCollection(Resource):
 
         return Response(json.dumps(body), 200)
 
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/collection/post.yml")
     def post(self):
         """Adds a new catalogue to the database
 
@@ -84,6 +89,7 @@ class CatalogueItem(Resource):
     Resource for a single catalogue entry, provides GET, PUT and DELETE methods
     /catalogue/supplier/<string:supplier>/item/<item:item>/
     """
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/item/get.yml")
     @cache.cached(timeout=None, make_cache_key=request_path_cache_key)
     def get(self, supplier, item):
         """returns a single catalogue entry in the database
@@ -101,6 +107,7 @@ class CatalogueItem(Resource):
         )
         return Response(json.dumps(catalogue_json), 200)
 
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/item/put.yml")
     def put(self, supplier, item):
         """updates a single catalogue entry in the database
 
@@ -136,6 +143,7 @@ class CatalogueItem(Resource):
         self._clear_cache()
         return Response(status=204)
 
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/item/delete.yml")
     def delete(self, supplier, item):
         """deletes a single catalogue entry in the database
 
@@ -166,10 +174,11 @@ class CatalogueItem(Resource):
 
 class CatalogueItemCollection(Resource):
     """
-    Resource for the  ollection of catalogue entries filtered by item, provides GET method
+    Resource for the collection of catalogue entries filtered by item, provides GET method
     /catalogue/item/<item:item>/
     """
-    
+
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/itemcollection/get.yml")
     def get(self, item: Item):
         """Returns a list of catalogue entries in the database filtered by item name
 
@@ -200,7 +209,8 @@ class CatalogueSupplierCollection(Resource):
     Resource for the collection of catalogue entries filtered by supplier, provides GET method
     /catalogue/supplier/<string:supplier>/
     """
-
+    
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/suppliercollection/get.yml")
     def get(self, supplier: str):
         """Returns a list of catalogue entries in the database filtered by supplier name
 
@@ -222,3 +232,4 @@ class CatalogueSupplierCollection(Resource):
             )
             body.append(catalogue_json)
         return Response(json.dumps(body), 200)
+    

@@ -1,0 +1,38 @@
+description: Adds a new item to the database.
+tags:
+  - items
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: "#/components/schemas/items"
+      examples:
+        example1:
+          value:
+            item_id: 1
+            name: "Laptop"
+            category: "Electronics"
+            weight: 1.5
+responses:
+  "201":
+    description: item successfully created. The 'item' header contains the URI of the new resource.
+    headers:
+      item:
+        description: URI of the created item.
+        schema:
+          type: string
+          format: uri
+  "400":
+    description: Validation error with the input data.
+    content:
+      application/json:
+        example:
+          message: Validation error
+          errors: Details about the validation error
+  "409":
+    description: item already exists.
+    content:
+      application/json:
+        example:
+          message: item already exists

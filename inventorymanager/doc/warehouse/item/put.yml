@@ -1,0 +1,45 @@
+description: Updates an existing warehouse by warehouse_id after validating the input data against the warehouse JSON schema.
+tags:
+  - warehouses
+parameters:
+  - in: path
+    name: warehouse_id
+    required: true
+    schema:
+      type: integer
+    description: Integer ID of the warehouse object to update.
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: "#/components/schemas/warehouse"
+responses:
+  "204":
+    description: The warehouse was successfully updated.
+  "400":
+    description: Validation error with the input data.
+    content:
+      application/json:
+        example:
+          message: Validation error
+          errors: Details about the validation error
+  "404":
+    description: warehouse not found.
+    content:
+      application/json:
+        example:
+          message: warehouse not found
+  "415":
+    description: Unsupported Media Type. Request must be JSON.
+    content:
+      application/json:
+        example:
+          message: Request must be JSON
+  "500":
+    description: Database error during the update process.
+    content:
+      application/json:
+        example:
+          message: Database error
+          errors: Details about the database error

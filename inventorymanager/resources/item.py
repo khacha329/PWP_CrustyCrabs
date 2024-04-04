@@ -1,7 +1,9 @@
 """ Item resource module """
 
 import json
+import os
 
+from flasgger import swag_from
 from flask import Response, abort, request, url_for
 from flask_restful import Resource
 from jsonschema import ValidationError, validate
@@ -14,6 +16,7 @@ from inventorymanager.constants import (
     LINK_RELATIONS_URL,
     MASON,
     NAMESPACE,
+    DOC_FOLDER
 )
 from inventorymanager.models import Item
 from inventorymanager.utils import create_error_response, request_path_cache_key
@@ -24,6 +27,8 @@ class ItemCollection(Resource):
     Resource for the collection of items, provides GET and POST methods
     /items/
     """
+    
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}item/collection/get.yml")
     @cache.cached(timeout=None, make_cache_key=request_path_cache_key)
     def get(self) -> Response:
         """Returns a list of all items in the database
@@ -49,6 +54,7 @@ class ItemCollection(Resource):
 
         return Response(json.dumps(body), 200, mimetype=MASON)
 
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}item/collection/post.yml")
     def post(self) -> Response:
         """Adds a new item to the database
 
@@ -86,6 +92,8 @@ class ItemItem(Resource):
     Resource for a single item, provides PUT and DELETE methods
     /items/<item:item>/
     """
+    
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}item/item/get.yml")
     @cache.cached(timeout=None, make_cache_key=request_path_cache_key)
     def get(self, item: Item) -> Response:
         """returns a single item
@@ -110,6 +118,7 @@ class ItemItem(Resource):
 
         return Response(json.dumps(body), 200, mimetype=MASON)
 
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}item/item/put.yml")
     def put(self, item: Item) -> Response:
         """Updates an item in the database
 
@@ -135,6 +144,7 @@ class ItemItem(Resource):
         self._clear_cache()
         return Response(status=204)
 
+    @swag_from(os.getcwd() + f"{DOC_FOLDER}item/item/delete.yml")
     def delete(self, item: Item) -> Response:
         """deletes an item from the database
 

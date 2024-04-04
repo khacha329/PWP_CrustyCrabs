@@ -1,0 +1,32 @@
+description: Retrieves details of a specific catalogue item by its supplier name and item name from the database.
+tags:
+  - catalogue
+parameters:
+  - in: path
+    name: supplier_name
+    required: true
+    schema:
+      type: string
+    description: The name of the supplier of the catalogue item to retrieve.
+  - in: path
+    name: item
+    required: true
+    schema:
+      type: string
+    description: The name of the item to retrieve.
+responses:
+  "200":
+    description: Details of the specified catalogue item.
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/CatalogueWithURI"
+        example:
+          supplier_name: "Supplier1"
+          item: "Laptop"
+  "404":
+    description: Catalogue item not found.
+    content:
+      application/json:
+        example:
+          message: "Catalogue item not found"

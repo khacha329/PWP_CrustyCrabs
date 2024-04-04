@@ -1,0 +1,23 @@
+description: Retrieves a list of all items from the database, including a URI for accessing each individual item's details.
+tags:
+  - items
+responses:
+  "200":
+    description: A list of all item items, each with a URI to access more details.
+    content:
+      application/json:
+        schema:
+          type: array
+            #items:
+             # $ref: "#/components/schemas/ItemWithURI"
+        example:
+          - item_id: 1
+            category: "electronics"
+            name: "Laptop"
+            weight: 1
+            uri: "http://example.com/api/items/1"
+          - item_id: 2
+            category: "electronics"
+            name: "Smartphone"
+            weight: 1
+            uri: "http://example.com/api/items/2"

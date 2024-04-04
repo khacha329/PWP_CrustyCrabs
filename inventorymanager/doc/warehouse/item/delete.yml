@@ -1,0 +1,26 @@
+description: Deletes an existing warehouse given a unique identifier. Returns status code 204 if the deletion is successful, or 404 if the warehouse is not found.
+tags:
+  - warehouses
+parameters:
+  - in: path
+    name: warehouse_id
+    required: true
+    schema:
+      type: integer
+    description: Unique identifier of the warehouse to be deleted.
+responses:
+  "204":
+    description: The warehouse was successfully deleted. No content is returned.
+  "404":
+    description: The specified warehouse was not found in the database.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+        examples:
+          warehouseNotFound:
+            value:
+              message: warehouse not found

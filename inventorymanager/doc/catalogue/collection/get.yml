@@ -1,0 +1,19 @@
+description: Retrieves a list of all catalogue entries from the database, including a URI for accessing each individual entry's details.
+tags:
+  - catalogue
+responses:
+  "200":
+    description: A list of all catalogue entries, each with a URI to access more details.
+    content:
+      application/json:
+        schema:
+          type: array
+          items:
+            $ref: "#/components/schemas/CatalogueWithURI"
+        example:
+          - supplier_name: "Supplier1"
+            item: "Laptop"
+            uri: "http://example.com/api/catalogue/Supplier1/Laptop"
+          - supplier_name: "Supplier2"
+            item: "Smartphone"
+            uri: "http://example.com/api/catalogue/Supplier2/Smartphone"

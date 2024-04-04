@@ -1,0 +1,23 @@
+description: Retrieves a list of all stock items from the database, including a URI for accessing each individual stock item's details.
+tags:
+  - stocks
+responses:
+  "200":
+    description: A list of all stock items, each with a URI to access more details.
+    content:
+      application/json:
+        schema:
+          type: array
+          # items:
+          #   $ref: "#/components/schemas/stockWithURI"
+        example:
+          - item_id: 1
+            warehouse_id: 1
+            quantity: 100
+            shelf_price: 10.5
+            uri: "http://example.com/api/stocks/1"
+          - item_id: 2
+            warehouse_id: 2
+            quantity: 200
+            shelf_price: 20.5
+            uri: "http://example.com/api/stocks/2"

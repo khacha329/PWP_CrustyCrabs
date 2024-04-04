@@ -1,0 +1,32 @@
+description: Deletes an existing catalogue item identified by its supplier name and item name. Returns status code 204 if the deletion is successful, or 404 if the catalogue item is not found.
+tags:
+  - catalogue
+parameters:
+  - in: path
+    name: supplier_name
+    required: true
+    schema:
+      type: string
+    description: The name of the supplier of the catalogue item to delete.
+  - in: path
+    name: item
+    required: true
+    schema:
+      type: string
+    description: The name of the item to delete.
+responses:
+  "204":
+    description: The catalogue item was successfully deleted. No content is returned.
+  "404":
+    description: The specified catalogue item was not found in the database.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+        examples:
+          catalogueItemNotFound:
+            value:
+              message: "Catalogue item not found"

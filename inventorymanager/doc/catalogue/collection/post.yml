@@ -1,0 +1,36 @@
+description: Adds a new catalogue entry to the database.
+tags:
+  - catalogue
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: "#/components/schemas/catalogue"
+      examples:
+        example1:
+          value:
+            supplier_name: "Supplier1"
+            item: "Laptop"
+responses:
+  "201":
+    description: catalogue successfully created. The 'catalogue' header contains the URI of the new resource.
+    headers:
+      catalogue:
+        description: URI of the created catalogue entry.
+        schema:
+          type: string
+          format: uri
+  "400":
+    description: Validation error with the input data.
+    content:
+      application/json:
+        example:
+          message: Validation error
+          errors: Details about the validation error
+  "409":
+    description: catalogue already exists.
+    content:
+      application/json:
+        example:
+          message: catalogue entry already exists

@@ -84,6 +84,42 @@ components:
       - city
       - street
       type: object
+    Catalogue:
+      additionalProperties: false
+      properties:
+        item_id:
+          description: Id of the item that can be ordered
+          type: number
+        supplier_name:
+          description: The name of the supplier to order from
+          type: string
+        min_order:
+          description: min number of items in 1 order
+          type: number
+        order_price:
+          description: price of order per item
+          type: number
+      required:
+      - min_order
+      type: object
+    Stock:
+      additionalProperties: false
+      properties:
+        item_id:
+          description: Id of the item that is available
+          type: number
+        warehouse_id:
+          description: Id of warehouse it is available in
+          type: string
+        quantity:
+          description: Quantity of available item in warehouse
+          type: number
+        shelf_price:
+          description: Price per item in the warehouse
+          type: number
+      required:
+      - quantity
+      type: object
   securitySchemes:
     catalogueKey:
       type: apiKey
