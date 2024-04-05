@@ -102,7 +102,7 @@ components:
       required:
       - min_order
       type: object
-    Stock:
+    stock:
       additionalProperties: false
       properties:
         item_id:

@@ -3,10 +3,10 @@ tags:
   - warehouses
 parameters:
   - in: path
-    name: warehouse_id
+    name: warehouse
     required: true
     schema:
-      type: integer
+      type: string
     description: Integer ID of the warehouse object to update.
 requestBody:
   required: true
