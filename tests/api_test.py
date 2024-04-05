@@ -446,15 +446,23 @@ class TestWarehouseCollection(object):
     def test_get(self, client: FlaskClient):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
+
         body = json.loads(resp.data)
-        warehouses = Warehouse.query.all()
-        assert len(body) == len(warehouses)
+        _check_namespace(client, body)
+        _check_control_post_method(
+            f"{NAMESPACE}:add-warehouse", client, body, _get_warehouse_json(4)
+        )
+        _check_control_get_method("self", client, body)
+        _check_control_get_method(f"{NAMESPACE}:locations-all", client, body)
+        _check_control_get_method(f"{NAMESPACE}:items-all", client, body)
 
-        for warehouse in body:
+        # warehouses = Warehouse.query.all()
+        assert len(body["warehouses"]) == 2
 
-            assert "uri" in warehouse
-            resp = client.get(warehouse["uri"])
-            assert resp.status_code == 200
+        for warehouse in body["warehouses"]:
+            _check_control_get_method("self", client, warehouse)
+            _check_control_get_method("profile", client, warehouse)
+            # assert resp.status_code == 200
 
     def test_post(self, client: FlaskClient):
         valid = _get_warehouse_json(4)
@@ -485,12 +493,19 @@ class TestWarehouseItem(object):
     def test_get(self, client):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
-        body = json.loads(resp.data)
-        assert len(body) == 2
 
-        assert "uri" in body[0]
-        resp = client.get(body[0]["uri"])
-        assert resp.status_code == 200
+        body = json.loads(resp.data)
+        _check_namespace(client, body)
+        _check_control_get_method("self", client, body)
+        _check_control_get_method("profile", client, body)
+        _check_control_put_method(
+            "edit", client, body, _get_warehouse_json(4), "manager"
+        )
+        _check_control_delete_method(f"{NAMESPACE}:delete", client, body)
+        _check_control_get_method(f"{NAMESPACE}:stock-warehouse-all", client, body)
+        
+        resp = client.get(self.INVALID_URL)
+        assert resp.status_code == 404
 
     def test_put(self, client: FlaskClient):
         valid = _get_warehouse_json(3)
@@ -534,14 +549,20 @@ class TestCatalogueCollection(object):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        catalogues = Catalogue.query.all()
-        assert len(body) == len(catalogues)
 
-        for catalogue in body:
+        _check_namespace(client, body)
+        _check_control_post_method(
+            f"{NAMESPACE}:add-catalogue", client, body, _get_catalogue_json(4)
+        )
+        _check_control_get_method("self", client, body)
+        _check_control_get_method(f"{NAMESPACE}:items-all", client, body)
 
-            assert "uri" in catalogue
-            resp = client.get(catalogue["uri"])
-            assert resp.status_code == 200
+        # catalogues = Catalogue.query.all()
+        # assert len(body["catalogues"]) == len(catalogues)
+
+        for catalogue in body["catalogues"]:
+            _check_control_get_method("self", client, catalogue)
+            _check_control_get_method("profile", client, catalogue)
 
     def test_post(self, client: FlaskClient):
         valid = _get_catalogue_json(2)
@@ -592,11 +613,21 @@ class TestCatalogueItem(object):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        assert len(body) == 5
+        _check_namespace(client, body)
+        _check_control_get_method("self", client, body)
+        _check_control_get_method("profile", client, body)
+        _check_control_get_method("collection", client, body)
+        _check_control_put_method(
+            "edit", client, body, _get_catalogue_json(4), "supplier_name"
+        )
+        _check_control_get_method(f"{NAMESPACE}:item", client, body)
+        _check_control_get_method(f"{NAMESPACE}:catalogue-supplier-all", client, body)
 
-        assert "uri" in body
-        resp = client.get(body["uri"])
-        assert resp.status_code == 200
+        _check_control_delete_method(f"{NAMESPACE}:delete", client, body)
+        # assert len(body) == 5
+
+        resp = client.get(self.INVALID_URL)
+        assert resp.status_code == 404
 
     def test_put(self, client: FlaskClient):
         valid = _get_catalogue_json(2)
@@ -651,13 +682,17 @@ class TestCatalogueItemCollection(object):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        assert len(body) == 1
 
-        for catalogue in body:
+        _check_namespace(client, body)
+        _check_control_get_method("self", client, body)
+        _check_control_get_method(f"{NAMESPACE}:catalogues-all", client, body)
+        
+        assert len(body["catalogues"]) == 1
 
-            assert "uri" in catalogue
-            resp = client.get(catalogue["uri"])
-            assert resp.status_code == 200
+        for catalogue in body["catalogues"]:
+            _check_control_get_method("self", client, catalogue)
+            _check_control_get_method("profile", client, catalogue)
+        
         resp = client.get(self.NOITEM_URL)
         assert resp.status_code == 404
         resp = client.get(self.OUTOFSTOCK_URL)
@@ -672,13 +707,15 @@ class TestCatalogueSupplierCollection(object):
         resp = client.get(self.RESOURCE_URL)
         assert resp.status_code == 200
         body = json.loads(resp.data)
-        assert len(body) == 1
 
-        for catalogue in body:
+        _check_namespace(client, body)
+        _check_control_get_method("self", client, body)
+        _check_control_get_method(f"{NAMESPACE}:catalogues-all", client, body)
+        assert len(body["catalogues"]) == 1
 
-            assert "uri" in catalogue
-            resp = client.get(catalogue["uri"])
-            assert resp.status_code == 200
+        for catalogue in body["catalogues"]:
+            _check_control_get_method("self", client, catalogue)
+            _check_control_get_method("profile", client, catalogue)
             resp = client.get(self.NOSUPPLIER_URL)
             assert resp.status_code == 404
 

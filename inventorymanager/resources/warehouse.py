@@ -162,7 +162,7 @@ class WarehouseItem(Resource):
         return Response(status=204)
 
     def _clear_cache(self):
-        collection_path = url_for("api.warehousecollection ")
+        collection_path = url_for("api.warehousecollection")
         cache.delete_many(
             collection_path,
             request.path
