@@ -3,10 +3,10 @@ tags:
   - Locations
 parameters:
   - in: path
-    name: location_id
+    name: location
     required: true
     schema:
-      type: integer
+      type: string
     description: Integer ID of the location object to update.
 requestBody:
   required: true

@@ -3,10 +3,10 @@ tags:
   - warehouses
 parameters:
   - in: path
-    name: warehouse_id
+    name: warehouse
     required: true
     schema:
-      type: integer
+      type: string
     description: The ID of the warehouse to retrieve.
 responses:
   "200":

@@ -16,7 +16,7 @@ responses:
         schema:
           type: array
           items:
-            $ref: "#/components/schemas/CatalogueWithURI"
+            $ref: "#/components/schemas/Catalogue"
         example:
           - supplier_name: "Supplier1"
             item: "Laptop"

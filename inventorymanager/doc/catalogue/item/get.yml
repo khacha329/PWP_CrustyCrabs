@@ -3,7 +3,7 @@ tags:
   - catalogue
 parameters:
   - in: path
-    name: supplier_name
+    name: supplier
     required: true
     schema:
       type: string
@@ -20,7 +20,7 @@ responses:
     content:
       application/json:
         schema:
-          $ref: "#/components/schemas/CatalogueWithURI"
+          $ref: "#/components/schemas/Catalogue"
         example:
           supplier_name: "Supplier1"
           item: "Laptop"
