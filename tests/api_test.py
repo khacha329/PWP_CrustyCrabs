@@ -237,7 +237,7 @@ class TestLocationCollection(object):
             _check_control_get_method("self", client, item)
             _check_control_get_method("profile", client, item)
 
-    def test_post(self, client):
+    def test_post(self, client: FlaskClient):
         valid = _get_location_json(3)
 
         # test with wrong content type
@@ -499,10 +499,11 @@ class TestWarehouseItem(object):
         _check_control_get_method("self", client, body)
         _check_control_get_method("profile", client, body)
         _check_control_put_method(
-            "edit", client, body, _get_warehouse_json(4), "manager"
+            "edit", client, body, _get_warehouse_json(1), "manager"
         )
-        _check_control_delete_method(f"{NAMESPACE}:delete", client, body)
         _check_control_get_method(f"{NAMESPACE}:stock-warehouse-all", client, body)
+        _check_control_delete_method(f"{NAMESPACE}:delete", client, body)
+        
         
         resp = client.get(self.INVALID_URL)
         assert resp.status_code == 404
@@ -552,8 +553,9 @@ class TestCatalogueCollection(object):
 
         _check_namespace(client, body)
         _check_control_post_method(
-            f"{NAMESPACE}:add-catalogue", client, body, _get_catalogue_json(4)
+            f"{NAMESPACE}:add-catalogue", client, body, _get_catalogue_json(2)
         )
+        # import pdb; pdb.set_trace()
         _check_control_get_method("self", client, body)
         _check_control_get_method(f"{NAMESPACE}:items-all", client, body)
 
@@ -618,7 +620,7 @@ class TestCatalogueItem(object):
         _check_control_get_method("profile", client, body)
         _check_control_get_method("collection", client, body)
         _check_control_put_method(
-            "edit", client, body, _get_catalogue_json(4), "supplier_name"
+            "edit", client, body, _get_catalogue_json(1), "supplier_name"
         )
         _check_control_get_method(f"{NAMESPACE}:item", client, body)
         _check_control_get_method(f"{NAMESPACE}:catalogue-supplier-all", client, body)

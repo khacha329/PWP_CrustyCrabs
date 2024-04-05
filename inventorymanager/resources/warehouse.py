@@ -119,7 +119,7 @@ class WarehouseItem(Resource):
         body.add_control("collection", url_for("api.warehousecollection"))
         body.add_control_put("Modify this warehouse", self_url, Warehouse.get_schema())
         body.add_control_delete("Delete this warehouse", self_url)
-        body.add_control_all_stock_warehouse(warehouse=warehouse)
+        body.add_control_all_stock_warehouse(warehouse)
 
         return Response(json.dumps(body), 200, mimetype=MASON)
 
