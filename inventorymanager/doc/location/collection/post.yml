@@ -14,7 +14,7 @@ requestBody:
             country: USA
             latitude: 40.7128
             longitude: -74.0060
-            postal_code: 10001
+            postal_code: "10001"
             street: 5th Avenue
 responses:
   "201":
