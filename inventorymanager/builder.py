@@ -259,15 +259,14 @@ class InventoryManagerBuilder(MasonBuilder):
         )
 
     def add_control_all_catalogue_supplier(self, supplier) -> None:
-        """Adds a control to the Mason object that links to the catalogue entries 
+        """Adds a control to the Mason object that links to the catalogue entries
         filtered by supplier name.
 
         :param supplier: supplier name to use as filter
-        """       
-        self.add_control( 
+        """
+        self.add_control(
             f"{NAMESPACE}:catalogue-supplier-all",
             url_for("api.cataloguesuppliercollection", supplier=supplier),
             method="GET",
             title="All catalogue entries filtered by supplier name",
         )
-        

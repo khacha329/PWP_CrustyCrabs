@@ -14,11 +14,11 @@ from sqlalchemy.exc import IntegrityError
 from inventorymanager import db
 from inventorymanager.builder import InventoryManagerBuilder
 from inventorymanager.constants import (
-    STOCK_PROFILE,
+    DOC_FOLDER,
     LINK_RELATIONS_URL,
     MASON,
     NAMESPACE,
-    DOC_FOLDER
+    STOCK_PROFILE,
 )
 from inventorymanager.models import Item, Stock, Warehouse
 from inventorymanager.utils import create_error_response
@@ -29,6 +29,7 @@ class StockCollection(Resource):
     Resource for the collection of stocks, provides GET and POST methods
     /stocks/
     """
+
     @swag_from(os.getcwd() + f"{DOC_FOLDER}stock/collection/get.yml")
     def get(self):
         """Returns a list of all stocks in the database
@@ -199,6 +200,7 @@ class StockItemCollection(Resource):
     Resource for the collection of stocks filtered by item, provides GET method
     /stocks/item/<item:item>/
     """
+
     @swag_from(os.getcwd() + f"{DOC_FOLDER}stock/itemcollection/get.yml")
     def get(self, item: Item):
         """Returns a list of stocks in the database filtered by item name
@@ -229,6 +231,7 @@ class StockWarehouseCollection(Resource):
     Resource for the collection of stocks filtered by name, provides GET method
     /stocks/warehouse/<warehouse:warehouse>/
     """
+
     @swag_from(os.getcwd() + f"{DOC_FOLDER}stock/warehousecollection/get.yml")
     def get(self, warehouse: Warehouse):
         """Returns a list of stocks in the database filtered by warehouse id

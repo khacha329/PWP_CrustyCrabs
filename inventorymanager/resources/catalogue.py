@@ -11,23 +11,25 @@ from flask_restful import Resource
 from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
 
-from inventorymanager import db, cache
+from inventorymanager import cache, db
 from inventorymanager.builder import InventoryManagerBuilder
-from inventorymanager.models import Catalogue, Item
-from inventorymanager.constants import DOC_FOLDER
-from inventorymanager.utils import create_error_response, request_path_cache_key
 from inventorymanager.constants import (
-    NAMESPACE,
-    LINK_RELATIONS_URL,
     CATALOGUE_PROFILE,
-    MASON
+    DOC_FOLDER,
+    LINK_RELATIONS_URL,
+    MASON,
+    NAMESPACE,
 )
+from inventorymanager.models import Catalogue, Item
+from inventorymanager.utils import create_error_response, request_path_cache_key
+
 
 class CatalogueCollection(Resource):
     """
     Resource for the collection of catalogue entries, provides GET and POST methods
     /catalogue/
     """
+
     @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/collection/get.yml")
     @cache.cached(timeout=None, make_cache_key=request_path_cache_key)
     def get(self):
@@ -38,12 +40,16 @@ class CatalogueCollection(Resource):
         body = InventoryManagerBuilder(catalogues=[])
         body.add_namespace(NAMESPACE, LINK_RELATIONS_URL)
         body.add_control("self", url_for("api.cataloguecollection"))
-        
+
         for catalogue_object in Catalogue.query.all():
             catalogue = InventoryManagerBuilder(catalogue_object.serialize())
             catalogue.add_control(
                 "self",
-                url_for("api.catalogueitem", supplier=catalogue_object.supplier_name, item=catalogue_object.item,),
+                url_for(
+                    "api.catalogueitem",
+                    supplier=catalogue_object.supplier_name,
+                    item=catalogue_object.item,
+                ),
             )
             catalogue.add_control("profile", CATALOGUE_PROFILE)
             body["catalogues"].append(catalogue)
@@ -52,7 +58,7 @@ class CatalogueCollection(Resource):
             "add-catalogue",
             "Add new Catalogue",
             url_for("api.cataloguecollection"),
-            Catalogue.get_schema()
+            Catalogue.get_schema(),
         )
 
         body.add_control_all_items()
@@ -95,17 +101,17 @@ class CatalogueCollection(Resource):
                 )
             },
         )
-    
+
     def _clear_cache(self):
-        cache.delete(
-            request.path
-        )
+        cache.delete(request.path)
+
 
 class CatalogueItem(Resource):
     """
     Resource for a single catalogue entry, provides GET, PUT and DELETE methods
     /catalogue/supplier/<string:supplier>/item/<item:item>/
     """
+
     @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/item/get.yml")
     @cache.cached(timeout=None, make_cache_key=request_path_cache_key)
     def get(self, supplier, item):
@@ -120,7 +126,9 @@ class CatalogueItem(Resource):
         ).first()
 
         if not catalogue_entry:
-            return create_error_response(404, "supplier and item combination does not exist")
+            return create_error_response(
+                404, "supplier and item combination does not exist"
+            )
 
         self_url = url_for("api.catalogueitem", supplier=supplier, item=item)
         body = InventoryManagerBuilder(catalogue_entry.serialize())
@@ -129,7 +137,9 @@ class CatalogueItem(Resource):
         body.add_control("self", self_url)
         body.add_control("profile", CATALOGUE_PROFILE)
         body.add_control("collection", url_for("api.cataloguecollection"))
-        body.add_control_put("Modify this catalogue item", self_url, Catalogue.get_schema())
+        body.add_control_put(
+            "Modify this catalogue item", self_url, Catalogue.get_schema()
+        )
         body.add_control_delete("Delete this catalogue item", self_url)
         body.add_control_get_item(item)
         body.add_control_all_catalogue_supplier(supplier)
@@ -192,13 +202,10 @@ class CatalogueItem(Resource):
 
         self._clear_cache()
         return Response(status=204)
-    
+
     def _clear_cache(self):
         collection_path = url_for("api.cataloguecollection")
-        cache.delete_many(
-            collection_path,
-            request.path
-        )
+        cache.delete_many(collection_path, request.path)
 
 
 class CatalogueItemCollection(Resource):
@@ -216,7 +223,7 @@ class CatalogueItemCollection(Resource):
         """
 
         item = Item.query.filter_by(item_id=item.item_id).first()
-        
+
         body = InventoryManagerBuilder(catalogues=[])
         body.add_namespace(NAMESPACE, LINK_RELATIONS_URL)
         body.add_control("self", url_for("api.catalogueitemcollection", item=item))
@@ -228,13 +235,17 @@ class CatalogueItemCollection(Resource):
             catalogue = InventoryManagerBuilder(catalogue_obj.serialize())
             catalogue.add_control(
                 "self",
-                url_for("api.catalogueitem", supplier=catalogue_obj.supplier_name, item=catalogue_obj.item )     
+                url_for(
+                    "api.catalogueitem",
+                    supplier=catalogue_obj.supplier_name,
+                    item=catalogue_obj.item,
+                ),
             )
             catalogue.add_control("profile", CATALOGUE_PROFILE)
             body["catalogues"].append(catalogue)
 
         body.add_control_all_catalogue()
-        
+
         return Response(json.dumps(body), 200, mimetype=MASON)
 
 
@@ -243,7 +254,7 @@ class CatalogueSupplierCollection(Resource):
     Resource for the collection of catalogue entries filtered by supplier, provides GET method
     /catalogue/supplier/<string:supplier>/
     """
-    
+
     @swag_from(os.getcwd() + f"{DOC_FOLDER}catalogue/suppliercollection/get.yml")
     def get(self, supplier: str):
         """Returns a list of catalogue entries in the database filtered by supplier name
@@ -254,22 +265,25 @@ class CatalogueSupplierCollection(Resource):
         catalogue_entry = Catalogue.query.filter_by(supplier_name=supplier).first()
         if not catalogue_entry:
             return create_error_response(404, "supplier does not exist")
-        
+
         self_url = url_for("api.cataloguesuppliercollection", supplier=supplier)
         body = InventoryManagerBuilder(catalogues=[])
         body.add_namespace(NAMESPACE, LINK_RELATIONS_URL)
         body.add_control("self", self_url)
- 
+
         for catalogue in Catalogue.query.filter_by(supplier_name=supplier).all():
             supplier_catalogue = InventoryManagerBuilder(catalogue.serialize())
             supplier_catalogue.add_control(
                 "self",
-                url_for("api.catalogueitem", supplier=catalogue.supplier_name, item=catalogue.item),
+                url_for(
+                    "api.catalogueitem",
+                    supplier=catalogue.supplier_name,
+                    item=catalogue.item,
+                ),
             )
             supplier_catalogue.add_control("profile", CATALOGUE_PROFILE)
             body["catalogues"].append(supplier_catalogue)
-        
+
         body.add_control_all_catalogue()
 
         return Response(json.dumps(body), 200, mimetype=MASON)
-    

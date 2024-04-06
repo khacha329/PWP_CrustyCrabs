@@ -2,19 +2,16 @@
 This module is used to start and retrieve a Flask application complete with all the required setups
 """
 
-import os
 import json
+import os
 
 from flasgger import Swagger
-from flask import Flask, send_from_directory, Response
+from flask import Flask, Response, send_from_directory
+from flask_caching import Cache
 from flask_sqlalchemy import SQLAlchemy
 
-from flask_caching import Cache
-
-from inventorymanager.constants import LINK_RELATIONS_URL, NAMESPACE, MASON
-
 from inventorymanager.config import Config
-
+from inventorymanager.constants import LINK_RELATIONS_URL, MASON, NAMESPACE
 
 db = SQLAlchemy()
 cache = Cache()
@@ -73,7 +70,11 @@ def create_app(test_config=None) -> Flask:
 
     cache.init_app(app)
     # CLI commands to populate db
-    from inventorymanager.models import create_dummy_data, init_db_command, generate_catalogue_key
+    from inventorymanager.models import (
+        create_dummy_data,
+        generate_catalogue_key,
+        init_db_command,
+    )
 
     app.cli.add_command(init_db_command)
     app.cli.add_command(create_dummy_data)

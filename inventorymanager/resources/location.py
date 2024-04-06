@@ -14,14 +14,14 @@ from flask_restful import Resource
 from jsonschema import ValidationError, validate
 from sqlalchemy.exc import IntegrityError
 
-from inventorymanager import db, cache
+from inventorymanager import cache, db
 from inventorymanager.builder import InventoryManagerBuilder
 from inventorymanager.constants import (
-    DOC_FOLDER, 
-    NAMESPACE,
+    DOC_FOLDER,
     LINK_RELATIONS_URL,
     LOCATION_PROFILE,
-    MASON
+    MASON,
+    NAMESPACE,
 )
 from inventorymanager.models import Location
 from inventorymanager.utils import request_path_cache_key
@@ -31,6 +31,7 @@ class LocationCollection(Resource):
     """Class for collection of warehouse locations including addresses.
     /locations/
     """
+
     @cache.cached(timeout=None, make_cache_key=request_path_cache_key)
     @swag_from(os.getcwd() + f"{DOC_FOLDER}location/collection/get.yml")
     def get(self):
@@ -46,15 +47,17 @@ class LocationCollection(Resource):
 
         for location_object in Location.query.all():
             location = InventoryManagerBuilder(location_object.serialize())
-            location.add_control("self", url_for("api.locationitem", location=location_object))
+            location.add_control(
+                "self", url_for("api.locationitem", location=location_object)
+            )
             location.add_control("profile", LOCATION_PROFILE)
             body["locations"].append(location)
 
         body.add_control_post(
-            "add-location", 
+            "add-location",
             "Add new location",
-            url_for("api.locationcollection"), 
-            Location.get_schema()
+            url_for("api.locationcollection"),
+            Location.get_schema(),
         )
 
         body.add_control_all_warehouses()
@@ -84,16 +87,14 @@ class LocationCollection(Resource):
             return {"message": "Location already exists"}, 409
 
         self._clear_cache()
-        
+
         return Response(
             status=201,
             headers={"Location": url_for("api.locationitem", location=location)},
         )
 
     def _clear_cache(self):
-        cache.delete(
-            request.path
-        )
+        cache.delete(request.path)
 
 
 class LocationItem(Resource):
@@ -111,7 +112,7 @@ class LocationItem(Resource):
 
         Returns:
             string: The matching location
-            
+
         """
         location_entry = Location.query.filter_by(
             location_id=location.location_id
@@ -160,7 +161,7 @@ class LocationItem(Resource):
         except IntegrityError:
             db.session.rollback()
             return abort(409, "stock already exists")
-        
+
         self._clear_cache()
         return {}, 204
 
@@ -181,7 +182,4 @@ class LocationItem(Resource):
 
     def _clear_cache(self):
         collection_path = url_for("api.locationcollection")
-        cache.delete_many(
-            collection_path,
-            request.path
-        )
+        cache.delete_many(collection_path, request.path)

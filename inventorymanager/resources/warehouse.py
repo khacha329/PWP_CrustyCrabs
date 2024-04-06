@@ -11,24 +11,25 @@ from flask_restful import Resource
 from jsonschema import validate
 from sqlalchemy.exc import IntegrityError
 
-from inventorymanager import db, cache
+from inventorymanager import cache, db
 from inventorymanager.builder import InventoryManagerBuilder
-from inventorymanager.models import Warehouse
-from inventorymanager.constants import DOC_FOLDER
-from inventorymanager.utils import create_error_response, request_path_cache_key
 from inventorymanager.constants import (
-    NAMESPACE,
+    DOC_FOLDER,
     LINK_RELATIONS_URL,
+    MASON,
+    NAMESPACE,
     WAREHOUSE_PROFILE,
-    MASON
 )
+from inventorymanager.models import Warehouse
+from inventorymanager.utils import create_error_response, request_path_cache_key
+
 
 class WarehouseCollection(Resource):
     """
     Resource for the collection of warehouses, provides GET and POST methods
     /warehouses/
     """
-    
+
     @swag_from(os.getcwd() + f"{DOC_FOLDER}warehouse/collection/get.yml")
     @cache.cached(timeout=None, make_cache_key=request_path_cache_key)
     def get(self):
@@ -40,24 +41,25 @@ class WarehouseCollection(Resource):
         body = InventoryManagerBuilder(warehouses=[])
         body.add_namespace(NAMESPACE, LINK_RELATIONS_URL)
         body.add_control("self", self_url)
-        
+
         for warehouse_object in Warehouse.query.all():
             warehouse = InventoryManagerBuilder(warehouse_object.serialize())
-            warehouse.add_control("self", url_for("api.warehouseitem", warehouse=warehouse_object))
+            warehouse.add_control(
+                "self", url_for("api.warehouseitem", warehouse=warehouse_object)
+            )
             warehouse.add_control("profile", WAREHOUSE_PROFILE)
             warehouse.add_control_all_stock_warehouse(warehouse=warehouse_object)
             body["warehouses"].append(warehouse)
-        
+
         body.add_control_post(
-            "add-warehouse", 
-            "Add new warehouse", 
+            "add-warehouse",
+            "Add new warehouse",
             url_for("api.warehousecollection"),
-            Warehouse.get_schema()
+            Warehouse.get_schema(),
         )
 
         body.add_control_all_locations()
         body.add_control_all_items()
-        
 
         return Response(json.dumps(body), 200, mimetype=MASON)
 
@@ -86,16 +88,15 @@ class WarehouseCollection(Resource):
         )
 
     def _clear_cache(self):
-        cache.delete(
-            request.path
-        )
+        cache.delete(request.path)
+
 
 class WarehouseItem(Resource):
     """
     Resource for a single warehouse, provides GET, PUT and DELETE methods
     /warehouses/<warehouse:warehouse>/
     """
-    
+
     @swag_from(os.getcwd() + f"{DOC_FOLDER}warehouse/item/get.yml")
     @cache.cached(timeout=None, make_cache_key=request_path_cache_key)
     def get(self, warehouse: Warehouse):
@@ -112,7 +113,7 @@ class WarehouseItem(Resource):
 
         self_url = url_for("api.warehouseitem", warehouse=warehouse)
         body = InventoryManagerBuilder(warehouse.serialize())
-        
+
         body.add_namespace(NAMESPACE, LINK_RELATIONS_URL)
         body.add_control("self", self_url)
         body.add_control("profile", WAREHOUSE_PROFILE)
@@ -163,7 +164,4 @@ class WarehouseItem(Resource):
 
     def _clear_cache(self):
         collection_path = url_for("api.warehousecollection")
-        cache.delete_many(
-            collection_path,
-            request.path
-        )
+        cache.delete_many(collection_path, request.path)

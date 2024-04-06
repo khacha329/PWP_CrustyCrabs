@@ -12,8 +12,8 @@ The functions are responsible for initiliazing and populating the database
 
 import hashlib
 import secrets
-import click
 
+import click
 from flask.cli import with_appcontext
 from sqlalchemy import CheckConstraint, event, text
 from sqlalchemy.engine import Engine
@@ -378,15 +378,18 @@ class Catalogue(db.Model):
             f"min_order={self.min_order}, order_price={self.order_price})>"
         )
 
+
 # APIKey Model
 class ApiKey(db.Model):
-    '''
-        A class representing the API keys saved in the database. Keys can be admin (Write permission to Catalogue)
-        or Manager (Write permission to a single related warehouse)
-    '''
+    """
+    A class representing the API keys saved in the database. Keys can be admin (Write permission to Catalogue)
+    or Manager (Write permission to a single related warehouse)
+    """
 
     key = db.Column(db.String(32), nullable=False, unique=True, primary_key=True)
-    warehouse_id = db.Column( db.Integer, db.ForeignKey("warehouse.warehouse_id"), nullable=True)
+    warehouse_id = db.Column(
+        db.Integer, db.ForeignKey("warehouse.warehouse_id"), nullable=True
+    )
     admin = db.Column(db.Boolean, default=False)
 
     warehouse = db.relationship("Warehouse", back_populates="api_key", uselist=False)
@@ -399,6 +402,7 @@ class ApiKey(db.Model):
         :return: the sha256 digest of the key parameter
         """
         return hashlib.sha256(key.encode()).hexdigest()
+
 
 @click.command("init-db")
 @with_appcontext
@@ -427,10 +431,7 @@ def generate_catalogue_key():
     """
     # admin key
     token = secrets.token_urlsafe()
-    db_key = ApiKey(
-        key=ApiKey.key_hash(token),
-        admin=True
-    )
+    db_key = ApiKey(key=ApiKey.key_hash(token), admin=True)
     db.session.add(db_key)
     db.session.commit()
     print("Catalogue key: " + token)
@@ -494,13 +495,13 @@ def populate_db() -> None:
     warehouse_api_keys = []
     for warehouse in warehouses:
         token = secrets.token_urlsafe()
-        db_key = ApiKey (
-        key=ApiKey.key_hash(token),
-        warehouse_id = warehouse.warehouse_id )
+        db_key = ApiKey(key=ApiKey.key_hash(token), warehouse_id=warehouse.warehouse_id)
 
         warehouse_api_keys.append(db_key)
         print(f"Key for Warehouse {warehouse.warehouse_id}: {token}")
 
     # Add all to session and commit
-    db.session.add_all(locations + warehouses + items + stocks + catalogues + warehouse_api_keys)
+    db.session.add_all(
+        locations + warehouses + items + stocks + catalogues + warehouse_api_keys
+    )
     db.session.commit()
