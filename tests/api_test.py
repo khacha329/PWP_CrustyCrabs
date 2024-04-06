@@ -219,6 +219,7 @@ class TestEntryPoint(object):
 
 class TestLocationCollection(object):
     RESOURCE_URL = "/api/locations/"
+    WAREHOUSE_RESOURCE_URL = "/api/warehouses/"
 
     def test_get(self, client):
         resp = client.get(self.RESOURCE_URL)
@@ -238,7 +239,7 @@ class TestLocationCollection(object):
             _check_control_get_method("profile", client, item)
 
     def test_post(self, client: FlaskClient):
-        valid = _get_location_json(3)
+        valid = _get_location_json(4)
 
         # test with wrong content type
         resp = client.post(self.RESOURCE_URL, data="notjson")

@@ -125,13 +125,8 @@ class LocationItem(Resource):
         body.add_control("collection", url_for("api.locationcollection"))
         body.add_control_put("Modify this Location", self_url, Location.get_schema())
         body.add_control_delete("Delete this Location", self_url)
-        body.add_control_get_warehouse(warehouse=location.warehouse)
+        # body.add_control_get_warehouse(warehouse=location.warehouse)
 
-        # location_entry = Location.query.filter_by(
-        #     location_id=location.location_id
-        # ).first()
-        # location_json = location_entry.serialize()
-        # location_json["uri"] = url_for("api.locationitem", location=location)
         return Response(json.dumps(body), 200, mimetype=MASON)
 
     @swag_from(os.getcwd() + f"{DOC_FOLDER}location/item/put.yml")
