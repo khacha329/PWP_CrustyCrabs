@@ -1,4 +1,4 @@
-<h1>WarehouseManager API: Link Relations</h1>
+<h1>WarehouseManager API Link Relations</h1>
 
 <h2>Standard link relations</h2>
 
@@ -16,8 +16,10 @@
 <h2>Custom link relations</h2>
 
 <ul>
-    <li><b>warehouse</b>: points to the Warehouse resource that contains the current resource.</li>
-    <li><b>items</b>: points to the Items Collection resource that contains the current resource.</li>
-    <li><b>item</b>: points to the Item resource that contains the current resource.</li>
-    <li><b>product</b>: points to the Product resource that contains the current resource.</li>
-    <li><b>products</b>: points to the Products Collection resource that contains the current resource.</li>
+    <li><b>items</b>: Points to the Items Collection resource. URL: <a href="/api/items/">/api/items/</a></li>
+    <li><b>item</b>: Points to the Item resource. URL: <a href="/api/items/{item}/">/api/items/{item}/</a></li>
+    <li><b>warehouses</b>: Points to the Warehouse Collection resource. URL: <a href="/api/warehouses/">/api/warehouses/</a></li>
+    <li><b>warehouse</b>: Points to the Warehouse resource. URL: <a href="/api/warehouses/{warehouse}/">/api/warehouses/{warehouse}/</a></li>
+    <li><b>catalogue</b>: Points to the Catalogue Collection resource. URL: <a href="/api/catalogue/">/api/catalogue/</a></li>
+    <li><b>catalogue_item</b>: Points to the Catalogue Item resource. URL: <a href="/api/catalogue/supplier/{supplier}/item/{item}/">/api/catalogue/supplier/{supplier}/item/{item}/</a></li>
+</ul>
