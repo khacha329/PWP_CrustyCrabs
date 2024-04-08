@@ -6,12 +6,19 @@ Structure copied from https://lovelace.oulu.fi/ohjelmoitava-web/ohjelmoitava-web
 import json
 import requests
 from datetime import datetime
+import numpy as np
+import qrcode
+from io import BytesIO
 from flask import Flask, Response, request
 from flask_caching import Cache
 from flask_restful import Resource, Api
 from werkzeug.exceptions import BadRequest, NotFound, ServiceUnavailable
+from qreader import QReader
+import cv2
+import ast
 
 
+#flask --app auxiliary_api/qrcode_api.py --debug run --port 5001
 app = Flask(__name__)
 app.config["INVENTORYMANAGER_API_SERVER"] = "http://localhost:5000"
 app.config["INVENTORYMANAGER_API_TIMEOUT"] = 5
@@ -92,135 +99,100 @@ class MasonBuilder(dict):
 def call_api(s, path):
     try:
         resp = s.get(
-            app.config["SENSORHUB_API_SERVER"] + path,
-            timeout=app.config["SENSORHUB_API_TIMEOUT"],
+            app.config["INVENTORYMANAGER_API_SERVER"] + path,
+            timeout=app.config["INVENTORYMANAGER_API_TIMEOUT"],
         )
         return resp.json()
     except Exception as e:
         raise ServiceUnavailable
 
-def follow_rel(s, doc, link_rel):
-    try:
-        path = doc["@controls"][link_rel]["href"]
-    except KeyError:
-        raise ServiceUnavailable
-    else:
-        data = call_api(s, path)
-        return data
-
-def get_sensors():
-    with requests.Session() as s:
-        s.headers.update({"Accept": "application/vnd.mason+json"})
-        entry = call_api(s, "/api/")
-        return follow_rel(s, entry, "senhub:sensors-all")
-
 @cache.memoize(120)
-def get_measurements(sensor, from_stamp, to_stamp):
-    measurements = []
+def get_stock(item_name : str, warehouse_id : int):
     with requests.Session() as s:
-        s.headers.update({
-            "Accept": "application/vnd.mason+json"
-        })
-        entry = call_api(s, "/api/")
-        collection = follow_rel(s, entry, "senhub:sensors-all")
-        for item in collection["items"]:
-            if item["name"] == sensor:
-                break
-        else:
-            raise NotFound
-        
-        sensor = follow_rel(s, item, "self")
-        page = follow_rel(s, sensor, "senhub:measurements-first")
-        while True:
-            for item in page["items"]:
-                stamp = datetime.fromisoformat(item["time"])
-                if stamp > to_stamp:
-                    return measurements
-                elif stamp >= from_stamp:
-                    measurements.append((item["time"], item["value"]))
-            
-            if "next" not in page["@controls"]:
-                return measurements
-            
-            page = follow_rel(s, page, "next")
-    
+        #s.headers.update({"Accept": "application/vnd.mason+json"})
+        try: 
+            #hard to avoid hardcoding this
+            stock = call_api(s, f"/api/stocks/{warehouse_id}/item/{item_name}/")
 
-class QrScan(Resource):
+            stock_response_clean = {k: v for k, v in stock.items() if "@" not in k}
+            return stock_response_clean
+
+        except Exception as e:
+            print(e)
+        
+
+class qrGenerate(Resource):
     
-    @cache.cached(timeout=10)
     def get(self):
-        api_data = get_sensors()
-        resp_data = MasonBuilder(
-            items=[]
-        )
-        resp_data.add_namespace("measag", LINK_RELATIONS_URL)
-        resp_data.add_control("self", api.url_for(SensorCollection))
-        for sensor in api_data["items"]:
-            item = MasonBuilder(
-                name=sensor["name"],
-                model=sensor["model"],
-                location=sensor["location"],
-            )
-            item.add_control(
-                "measag:measurements",
-                api.url_for(MeasurementCollection,
-                    sensor=sensor["name"]
-                ) + "?from={from}&to={to}",
-                kwargs={
-                    "isHrefTemplate": True,
-                    "schema": {
-                        "properties": {
-                            "from": {
-                                "type": "string",
-                                "format": "date-time",
-                            },
-                            "to": {
-                                "type": "string",
-                                "format": "date-time",
-                            },
-                        },
-                        "required": ["from", "to"]
-                    }
-                }
-            )
-            resp_data["items"].append(item)
-        return Response(json.dumps(resp_data), 200, mimetype=MASON)
+        item_name = request.args["item_name"]
+        warehouse_id = request.args["warehouse_id"]
+        stock_response = get_stock(item_name = item_name, warehouse_id = warehouse_id)
+        stock_response["item_name"] = item_name
+
+        qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+        )   
+        qr.add_data(stock_response)
+        img = qr.make_image(fill_color="black", back_color="white")
+
+
+        payload = BytesIO()
+        img.save(payload, 'PNG')
+        payload.seek(0)
+
+        return Response(payload, 200, mimetype='image/png')
         
 
-class MeasurementCollection(Resource):
+class qrRead(Resource):
 
-    def get(self, sensor):
-        try:
-            start = datetime.fromisoformat(request.args["from"])
-            end = datetime.fromisoformat(request.args["to"])
-        except (KeyError, ValueError):
-            raise BadRequest
+    def get(self):
+        image = request.files["image"]
+
+        # Read the image file into memory
+        image_bytes = image.read()
+
+        # Create a QReader instance
+        qreader = QReader()
+
+        # Convert the image to OpenCV format
+        image = cv2.imdecode(np.frombuffer(image_bytes, np.uint8), -1)
+
+        # Use the detect_and_decode function to get the decoded QR data
+        decoded_text = qreader.detect_and_decode(image=image)[0]
+        decoded_dict = ast.literal_eval(decoded_text)
+
+        item_name = decoded_dict["item_name"]
+        warehouse_id = decoded_dict["warehouse_id"]
+        print(item_name)
+        print(warehouse_id)
+        stock_response = get_stock(item_name = item_name, warehouse_id = warehouse_id)
+        response_dict = decoded_dict.copy()
+        response_dict["item_id"] = stock_response["item_id"]
+        response_dict["Offline_quantity"] = response_dict.pop("quantity")
+        response_dict["Offline_shelf_price"] = response_dict.pop("shelf_price")
+        response_dict["Online_quantity"] = stock_response["quantity"]
+        response_dict["Online_shelf_price"] = stock_response["shelf_price"]
+        return response_dict
         
-        resp_data = MasonBuilder()
-        resp_data["items"] = get_measurements(
-            sensor, start, end
-        )
-        resp_data.add_namespace("measag", LINK_RELATIONS_URL)
-        resp_data.add_control("self", api.url_for(MeasurementCollection, sensor=sensor))
-        resp_data.add_control(
-            "measag:sensors-all",
-            api.url_for(SensorCollection)
-        )
-        return Response(json.dumps(resp_data), 200, mimetype=MASON)
-            
-
 @app.route("/api/")
 def entry():
     resp_data = MasonBuilder()
-    resp_data.add_namespace("measag", LINK_RELATIONS_URL)
+    #resp_data.add_namespace("qrcode", LINK_RELATIONS_URL)
     resp_data.add_control(
-        "measag:sensors-all",
-        api.url_for(SensorCollection)
+        "qrcode:generate",
+        api.url_for(qrGenerate)
+    )
+    resp_data.add_control(
+        "qrcode:read",
+        api.url_for(qrRead)
     )
     return Response(json.dumps(resp_data), 200, mimetype=MASON)
     
-api.add_resource(SensorCollection, "/api/sensors/")
-api.add_resource(MeasurementCollection, "/api/sensors/<sensor>/measurements/")
+api.add_resource(qrGenerate, "/api/qrGenerate/")
+api.add_resource(qrRead, "/api/qrRead/")
 
 
 

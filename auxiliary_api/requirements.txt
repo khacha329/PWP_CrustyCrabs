@@ -6,3 +6,4 @@ Werkzeug==3.0.1
 qrcode
 qreader
 #sudo apt-get install libzbar0
+Python-IO
