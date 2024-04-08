@@ -1,1 +1,23 @@
-The link relations still need to be added.
+<h1>WarehouseManager API: Link Relations</h1>
+
+<h2>Standard link relations</h2>
+
+<ul>
+    <li><b>self</b>: carried by all resources returned by the API. Points to the resource itself. It is also carried by
+        all Items in Collections, pointing at the related resource.
+    </li>
+    <li><b>profile</b>: points to the related proflie of the current resource.</li>
+    <li><b>collection</b>: carried by Item resources, points to the related Collection.</li>
+    <li><b>edit</b>: carried by Item resources, points to itself, specifying PUT method and the appropriate JSON schema
+        to use for the request
+    </li>
+</ul>
+
+<h2>Custom link relations</h2>
+
+<ul>
+    <li><b>warehouse</b>: points to the Warehouse resource that contains the current resource.</li>
+    <li><b>items</b>: points to the Items Collection resource that contains the current resource.</li>
+    <li><b>item</b>: points to the Item resource that contains the current resource.</li>
+    <li><b>product</b>: points to the Product resource that contains the current resource.</li>
+    <li><b>products</b>: points to the Products Collection resource that contains the current resource.</li>
