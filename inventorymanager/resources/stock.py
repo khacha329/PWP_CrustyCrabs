@@ -13,13 +13,8 @@ from sqlalchemy.exc import IntegrityError
 
 from inventorymanager import db
 from inventorymanager.builder import InventoryManagerBuilder
-from inventorymanager.constants import (
-    DOC_FOLDER,
-    LINK_RELATIONS_URL,
-    MASON,
-    NAMESPACE,
-    STOCK_PROFILE,
-)
+from inventorymanager.constants import (DOC_FOLDER, LINK_RELATIONS_URL, MASON,
+                                        NAMESPACE, STOCK_PROFILE)
 from inventorymanager.models import Item, Stock, Warehouse
 from inventorymanager.utils import create_error_response
 

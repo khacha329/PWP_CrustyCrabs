@@ -16,13 +16,8 @@ from sqlalchemy.exc import IntegrityError
 
 from inventorymanager import cache, db
 from inventorymanager.builder import InventoryManagerBuilder
-from inventorymanager.constants import (
-    DOC_FOLDER,
-    LINK_RELATIONS_URL,
-    LOCATION_PROFILE,
-    MASON,
-    NAMESPACE,
-)
+from inventorymanager.constants import (DOC_FOLDER, LINK_RELATIONS_URL,
+                                        LOCATION_PROFILE, MASON, NAMESPACE)
 from inventorymanager.models import Location
 from inventorymanager.utils import request_path_cache_key
 
