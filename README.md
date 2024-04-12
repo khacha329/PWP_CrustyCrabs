@@ -87,3 +87,10 @@ Postman link: https://app.getpostman.com/join-team?invite_code=a11c54208bc216362
 __Remember to include all required documentation and HOWTOs, including how to create and populate the database, how to run and test the API, the url to the entrypoint and instructions on how to setup and run the client__
 
 
+# Auxiliary API setup
+To setup & run the auxiliary API run the following commands (the qrreader has large dependencies like tensorflow):
+```
+sudo apt-get install libzbar0
+python -m pip install -r auxiliary_api/requirements.txt
+flask --app auxiliary_api/qrcode_api.py --debug run --port 5001
+```
