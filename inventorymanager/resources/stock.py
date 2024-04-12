@@ -169,6 +169,8 @@ class StockItem(Resource):
                     request.json["item_id"], request.json["warehouse_id"]
                 ),
             )
+        except AttributeError:
+            return create_error_response(404, "Stock not found")
 
         return Response(status=204)
 

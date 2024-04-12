@@ -787,6 +787,7 @@ class TestStockItem(object):
 
     RESOURCE_URL = "/api/stocks/1/item/Laptop-1/"
     INVALID_URL = "/api/stocks/2/item/Chair/"
+    INVALID_ITEM = "/api/stocks/1/item/Laptop-2/"
 
     def test_get(self, client):
         resp = client.get(self.RESOURCE_URL)
@@ -821,6 +822,8 @@ class TestStockItem(object):
         assert resp.status_code in (400, 415)
 
         resp = client.put(self.INVALID_URL, json=valid)
+        assert resp.status_code == 404
+        resp = client.put(self.INVALID_ITEM, json=valid)
         assert resp.status_code == 404
         # test for non existing item or warehouse
         valid["item_id"] = 7
