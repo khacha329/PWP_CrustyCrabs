@@ -1,1 +1,96 @@
-The link relations still need to be added.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Manager API Link Relations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        h2 {
+            color: #2F4F4F;
+        }
+        ul {
+            list-style-type: none;
+        }
+        li {
+            margin: 5px 0;
+        }
+        a {
+            color: #4169E1;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Inventory Manager API Link Relations</h1>
+
+    <h2>Resources and Collections</h2>
+    
+    <ul>
+        <li><strong>Items</strong>
+            <ul>
+                <li><a href="/api/items/">Item Collection</a></li>
+                <li><a href="/api/items/{item}/">Item Item</a></li>
+            </ul>
+        </li>
+        <li><strong>Warehouses</strong>
+            <ul>
+                <li><a href="/api/warehouses/">Warehouse Collection</a></li>
+                <li><a href="/api/warehouses/{warehouse}/">Warehouse Item</a></li>
+            </ul>
+        </li>
+        <li><strong>Catalogue</strong>
+            <ul>
+                <li><a href="/api/catalogue/">Catalogue Collection</a></li>
+                <li><a href="/api/catalogue/supplier/{supplier}/item/{item}/">Catalogue Item</a></li>
+                <li><a href="/api/catalogue/item/{item}/">Catalogue Item Collection</a></li>
+                <li><a href="/api/catalogue/supplier/{supplier}/">Catalogue Supplier Collection</a></li>
+            </ul>
+        </li>
+        <li><strong>Stock</strong>
+            <ul>
+                <li><a href="/api/stocks/">Stock Collection</a></li>
+                <li><a href="/api/stocks/{warehouse}/item/{item}/">Stock Item</a></li>
+                <li><a href="/api/stocks/item/{item}/">Stock Item Collection</a></li>
+                <li><a href="/api/stocks/warehouse/{warehouse}/">Stock Warehouse Collection</a></li>
+            </ul>
+        </li>
+        <li><strong>Locations</strong>
+            <ul>
+                <li><a href="/api/locations/">Location Collection</a></li>
+                <li><a href="/api/locations/{location}/">Location Item</a></li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>Standard Link Relations</h2>
+    <ul>
+        <li><b>self</b>: carried by all resources returned by the API. Points to the resource itself. It is also carried by all Items in Collections, pointing at the related resource.</li>
+        <li><b>profile</b>: points to the related profile of the current resource.</li>
+        <li><b>collection</b>: carried by Item resources, points to the related Collection.</li>
+        <li><b>edit</b>: carried by Item resources, points to itself, specifying PUT method and the appropriate JSON schema to use for the request.</li>
+    </ul>
+
+    <h2>Custom Link Relations</h2>
+    <ul>
+        <li><b>items</b>: Points to the Items Collection resource. URL: <a href="/api/items/">/api/items/</a></li>
+        <li><b>item</b>: Points to the Item resource. URL: <a href="/api/items/{item}/">/api/items/{item}/</a></li>
+        <li><b>warehouses</b>: Points to the Warehouse Collection resource. URL: <a href="/api/warehouses/">/api/warehouses/</a></li>
+        <li><b>warehouse</b>: Points to the Warehouse resource. URL: <a href="/api/warehouses/{warehouse}/">/api/warehouses/{warehouse}/</a></li>
+        <li><b>catalogue</b>: Points to the Catalogue Collection resource. URL: <a href="/api/catalogue/">/api/catalogue/</a></li>
+        <li><b>catalogue_item</b>: Points to the Catalogue Item resource. URL: <a href="/api/catalogue/supplier/{supplier}/item/{item}/">/api/catalogue/supplier/{supplier}/item/{item}/</a></li>
+        <li><b>stock</b>: Points to the Stock Collection resource. URL: <a href="/api/stocks/">/api/stocks/</a></li>
+        <li><b>stock_item</b>: Points to a specific Stock Item resource within a warehouse. URL: <a href="/api/stocks/{warehouse}/item/{item}/">/api/stocks/{warehouse}/item/{item}/</a></li>
+        <li><b>stock_item_collection</b>: Points to the collection of Stock Items for a specific item across warehouses. URL: <a href="/api/stocks/item/{item}/">/api/stocks/item/{item}/</a></li>
+        <li><b>stock_warehouse_collection</b>: Points to the collection of Stock Items within a specific warehouse. URL: <a href="/api/stocks/warehouse/{warehouse}/">/api/stocks/warehouse/{warehouse}/</a></li>
+        <li><b>locations</b>: Points to the Locations Collection resource. URL: <a href="/api/locations/">/api/locations/</a></li>
+        <li><b>location</b>: Points to the Location resource. URL: <a href="/api/locations/{location}/">/api/locations/{location}/</a></li>
+    </ul>
+
+</body>
+</html>

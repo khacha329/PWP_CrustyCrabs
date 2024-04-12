@@ -13,15 +13,11 @@ from sqlalchemy.exc import IntegrityError
 
 from inventorymanager import cache, db
 from inventorymanager.builder import InventoryManagerBuilder
-from inventorymanager.constants import (
-    DOC_FOLDER,
-    LINK_RELATIONS_URL,
-    MASON,
-    NAMESPACE,
-    WAREHOUSE_PROFILE,
-)
+from inventorymanager.constants import (DOC_FOLDER, LINK_RELATIONS_URL, MASON,
+                                        NAMESPACE, WAREHOUSE_PROFILE)
 from inventorymanager.models import Warehouse
-from inventorymanager.utils import create_error_response, request_path_cache_key
+from inventorymanager.utils import (create_error_response,
+                                    request_path_cache_key)
 
 
 class WarehouseCollection(Resource):
