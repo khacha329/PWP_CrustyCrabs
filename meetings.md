@@ -43,24 +43,36 @@ We discussed our database structure and details related to implementing the API 
 
 ### Minutes
 *Summary of what was discussed during the meeting*
+We discussed how there were some inconsistencies from the wiki to the code in naming resources. We also needed to clarify that some of our resources point to the same location. Ivan also encouraged us to change from static yaml files to dynamic swaggering although the next deliverable due date was a few days away. He also mentioned that we should add in the final review how the Github Copilot extension was used while writing code.
 
 ### Action points
-*List here the actions points discussed with assistants*
+In wiki
+1) Check consistency in resource table. 
+2) Possibly reduce number of resources, many ways to look up item
+3) Addressability - comment how a single resource can be accessed through different urls
+4) Uniform interface - give example in description of how to add an item
 
-
+Code structure - probably fine
+1) Status500 error during testing - delete behavior needs to be fixed
+2) Add multiple schemas for different methods - authentication
 
 
 ## Meeting 4.
-* **DATE:**
-* **ASSISTANTS:**
+* **DATE: 2024-04-09**
+* **ASSISTANTS: Ivan Sanchez**
 
 ### Minutes
 *Summary of what was discussed during the meeting*
+The main points of this meeting covered our API diagram, documentation, and hypermedia implementation and testing. The testing coverage was good and Ivan mentioned it can count as extra work. The wiki was in good shape as well. 500 error during Stock PUT test and deserializer failed
+
 
 ### Action points
 *List here the actions points discussed with assistants*
-
-
+1) The link relations diagram should show entry points
+2) Authentication is not discussed
+3) Wiki should have instructions for how to view swaggering
+4) Swaggering errors occured during demonstration
+5) 500 errors should not be documented
 
 
 ## Midterm meeting
