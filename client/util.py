@@ -60,6 +60,6 @@ def display_nested_dict(window, nested_dictionary, title):
             window.addstr(i, 1, f"{key}: {value}")
             i += 1
         #draw horizontal line
-        window.hline(i+1, 1, "-", 38)
-        i+=2
+        window.hline(i, 1, "-", 38)
+        i+=1
         window.refresh()
