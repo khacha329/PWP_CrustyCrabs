@@ -37,3 +37,29 @@ def _ask_input(window, prompt, shift_y = 0):
     user_input = window.getstr(1 + shift_y, 0).decode('utf-8')
     curses.noecho()
     return user_input            
+
+
+def display_dict(window, dictionary, title):
+    window.clear()
+    window.box()
+    window.addstr(0, 1, title, curses.A_BOLD)
+    for i, (key, value) in enumerate(dictionary.items()):
+        window.addstr(i+1, 1, f"{key}: {value}")
+    window.refresh()
+
+
+
+def display_nested_dict(window, nested_dictionary, title):
+    window.clear()
+    window.box()
+    window.addstr(0, 1, title, curses.A_BOLD)
+    i = 1
+    for dictionary in nested_dictionary:
+        dictionary_clean = {k: v for k, v in dictionary.items() if "@" not in k}
+        for key, value in dictionary_clean.items():
+            window.addstr(i, 1, f"{key}: {value}")
+            i += 1
+        #draw horizontal line
+        window.hline(i+1, 1, "-", 38)
+        i+=2
+        window.refresh()
