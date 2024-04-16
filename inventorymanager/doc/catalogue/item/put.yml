@@ -19,7 +19,7 @@ requestBody:
   content:
     application/json:
       schema:
-        $ref: "#/components/schemas/CatalogueItem"
+        $ref: "#/components/schemas/catalogue"
 responses:
   "204":
     description: The catalogue item was successfully updated.
@@ -42,10 +42,3 @@ responses:
       application/json:
         example:
           message: Request must be JSON
-  "500":
-    description: Database error during the update process.
-    content:
-      application/json:
-        example:
-          message: Database error
-          errors: Details about the database error

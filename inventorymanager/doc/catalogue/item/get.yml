@@ -20,7 +20,7 @@ responses:
     content:
       application/json:
         schema:
-          $ref: "#/components/schemas/Catalogue"
+          $ref: "#/components/schemas/catalogue"
         example:
           supplier_name: "Supplier1"
           item: "Laptop"

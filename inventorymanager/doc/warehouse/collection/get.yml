@@ -8,8 +8,8 @@ responses:
       application/json:
         schema:
           type: array
-          # items:
-          #   $ref: "#/components/schemas/warehouseWithURI"
+          items:
+            $ref: "#/components/schemas/warehouse"
         example:
           - warehouse_id: 1
             manager: "John Doe"

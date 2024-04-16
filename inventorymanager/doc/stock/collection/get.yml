@@ -8,8 +8,8 @@ responses:
       application/json:
         schema:
           type: array
-          # items:
-          #   $ref: "#/components/schemas/stockWithURI"
+          items:
+            $ref: "#/components/schemas/stock"
         example:
           - item_id: 1
             warehouse_id: 1

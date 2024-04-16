@@ -6,7 +6,7 @@ requestBody:
   content:
     application/json:
       schema:
-        $ref: "#/components/schemas/items"
+        $ref: "#/components/schemas/item"
       examples:
         example1:
           value:

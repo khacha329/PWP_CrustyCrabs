@@ -1,8 +1,22 @@
 ---
-swagger: 2.0
+#swagger: 2.0
 openapi: 3.0.3
 servers:
   - url: /
+info:
+  title: PWP Inventory Manager
+  version: 0.0.1
+  description: |
+    This API is the coursework for the Programmable Web Project course
+    of spring 2024. It is an Inventory manager system that manages multiple warehouses and their stocks.
+  termsOfService: http://totally.not.placehold.er/
+  contact:
+    url: http://totally.not.placehold.er/
+    email: pwp-course@lists.oulu.fi
+    name: PWP Staff List
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
 components:
   parameters:
     warehouse:
@@ -42,7 +56,7 @@ components:
           type: string
       required: []
       type: object
-    Item:
+    item:
       additionalProperties: false
       properties:
         category:
@@ -57,7 +71,7 @@ components:
       required:
       - name
       type: object
-    Location:
+    location:
       additionalProperties: false
       properties:
         city:
@@ -84,7 +98,7 @@ components:
       - city
       - street
       type: object
-    Catalogue:
+    catalogue:
       additionalProperties: false
       properties:
         item_id:
@@ -129,17 +143,3 @@ components:
       type: apiKey
       name: InventoryManager-Api-Key
       in: header
-info:
-  title: PWP Inventory Manager
-  version: 0.0.1
-  description: |
-    This API is the coursework for the Programmable Web Project course
-    of spring 2024. It is a Inventory manager system that manages multiple warehouses and their stocks.
-  termsOfService: http://totally.not.placehold.er/
-  contact:
-    url: http://totally.not.placehold.er/
-    email: pwp-course@lists.oulu.fi
-    name: PWP Staff List
-  license:
-    name: Apache 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0.html

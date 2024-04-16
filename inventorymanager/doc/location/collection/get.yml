@@ -8,8 +8,8 @@ responses:
       application/json:
         schema:
           type: array
-          # items:
-          #   $ref: "#/components/schemas/LocationWithURI"
+          items:
+            $ref: "#/components/schemas/location"
         example:
           - city: "New York"
             country: "USA"

@@ -14,7 +14,7 @@ responses:
     content:
       application/json:
         schema:
-          $ref: "#/components/schemas/Location"
+          $ref: "#/components/schemas/location"
         example:
           city: "New York"
           country: "USA"

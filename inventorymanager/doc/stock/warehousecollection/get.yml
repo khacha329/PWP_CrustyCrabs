@@ -16,7 +16,7 @@ responses:
         schema:
           type: array
           items:
-            $ref: "#/components/schemas/StockWithURI"
+            $ref: "#/components/schemas/stock"
         example:
           - warehouse_id: "Warehouse1"
             item_id: "Laptop"
