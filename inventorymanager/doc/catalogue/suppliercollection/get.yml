@@ -24,6 +24,20 @@ responses:
           - supplier_name: "Supplier1"
             item: "Smartphone"
             uri: "http://example.com/api/catalogue/Supplier1/Smartphone"
+    links:
+      ViewCatalogueItem:
+        operationId: getCatalogueItem
+        description: The `GET` method endpoint to retrieve detailed information about a specific catalogue entry.
+        parameters:
+          uri: '$response.body#/uri'
+      AddCatalogueItem:
+        operationId: addCatalogueItem
+        description: The `POST` method endpoint to add a new catalogue entry under this supplier.
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/catalogue'
   "404":
     description: Supplier does not exist.
     content:
@@ -37,3 +51,7 @@ responses:
           supplierNotFound:
             value:
               message: "Supplier does not exist"
+    links:
+      ViewAllSuppliers:
+        operationId: getAllSuppliers
+        description: The `GET` method endpoint to list all suppliers.
