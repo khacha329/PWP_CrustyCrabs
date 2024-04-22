@@ -1,5 +1,4 @@
 ---
-#swagger: 2.0
 openapi: 3.0.3
 servers:
   - url: /
@@ -139,7 +138,7 @@ components:
       type: apiKey
       name: InventoryManager-Api-Key
       in: header
-    warehousetKey:
+    warehouseKey:
       type: apiKey
       name: InventoryManager-Api-Key
       in: header

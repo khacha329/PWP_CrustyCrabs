@@ -17,6 +17,17 @@ requestBody:
 responses:
   "204":
     description: The item was successfully updated.
+    links:
+            ViewItem:
+              operationId: getItem
+              description: The `GET` method endpoint to retrieve the updated item.
+              parameters:
+                item_id: $request.path.item_id
+            DeleteItem:
+              operationId: deleteItem
+              description: The `DELETE` method endpoint to remove the item.
+              parameters:
+                item_id: $request.path.item_id
   "400":
     description: Validation error with the input data.
     content:

@@ -24,8 +24,12 @@ responses:
           - supplier_name: "Supplier2"
             item: "Laptop"
             uri: "http://example.com/api/catalogue/Supplier2/Laptop"
-#    links:
-
+    links:
+      GetItemDetails:
+              operationId: getItemDetails
+              parameters:
+                itemId: "$response.body#/item_id"
+              description: Get detailed information about an item.
   "404":
     description: No supplier has the requested item.
     content:

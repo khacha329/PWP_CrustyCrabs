@@ -21,3 +21,17 @@ responses:
             name: "Smartphone"
             weight: 1
             uri: "http://example.com/api/items/2"
+    links:
+            AddNewItem:
+              operationId: addItem
+              description: The `POST` method endpoint to add a new item.
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/Item'
+            ViewItem:
+              operationId: getItem
+              description: The `GET` method endpoint to retrieve a specific item by ID.
+              parameters:
+                itemId: '$response.body#/item_id'

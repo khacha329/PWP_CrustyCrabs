@@ -20,9 +20,24 @@ responses:
           name: "Laptop"
           category: "Electronics"
           weight: 1.5
+    links:
+            UpdateItem:
+              operationId: updateItem
+              description: The `PUT` method endpoint to update the item details.
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/Item'
+            DeleteItem:
+              operationId: deleteItem
+              description: The `DELETE` method endpoint to remove the item.
+              parameters:
+                itemId: '$request.path.item'      
   "404":
     description: The specified item was not found in the database.
     content:
       application/json:
         example:
           message: "Item not found"
+    
