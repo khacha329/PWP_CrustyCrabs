@@ -23,6 +23,19 @@ requestBody:
 responses:
   "204":
     description: The catalogue item was successfully updated.
+    links:
+      ViewCatalogueItem:
+        operationId: getCatalogueItem
+        description: The `GET` method endpoint to retrieve the updated catalogue item.
+        parameters:
+          supplier_name: $request.path.supplier_name
+          item: $request.path.item
+      DeleteCatalogueItem:
+        operationId: deleteCatalogueItem
+        description: The `DELETE` method endpoint to delete this catalogue item.
+        parameters:
+          supplier_name: $request.path.supplier_name
+          item: $request.path.item
   "400":
     description: Validation error with the input data.
     content:

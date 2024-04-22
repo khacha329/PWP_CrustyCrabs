@@ -21,6 +21,12 @@ responses:
         schema:
           type: string
           format: uri
+    links:
+      ViewCatalogue:
+        operationId: getCatalogueItem
+        description: The `GET` method endpoint to view the newly created catalogue entry.
+        parameters:
+          catalogueUri: '$response.header.Location'
   "400":
     description: Validation error with the input data.
     content:

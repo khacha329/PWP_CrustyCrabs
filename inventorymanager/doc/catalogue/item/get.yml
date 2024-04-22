@@ -24,6 +24,24 @@ responses:
         example:
           supplier_name: "Supplier1"
           item: "Laptop"
+    links:
+      UpdateCatalogueItem:
+        operationId: updateCatalogueItem
+        description: The `PUT` method endpoint to update this catalogue item.
+        parameters:
+          supplier: $request.path.supplier
+          item: $request.path.item
+      DeleteCatalogueItem:
+        operationId: deleteCatalogueItem
+        description: The `DELETE` method endpoint to delete this catalogue item.
+        parameters:
+          supplier: $request.path.supplier
+          item: $request.path.item
+      ViewSupplierCatalogue:
+        operationId: getSupplierCatalogue
+        description: The `GET` method endpoint to retrieve all catalogue items from this supplier.
+        parameters:
+          supplier: $request.path.supplier
   "404":
     description: Catalogue item not found.
     content:

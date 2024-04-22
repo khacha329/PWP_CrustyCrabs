@@ -17,3 +17,22 @@ responses:
           - supplier_name: "Supplier2"
             item: "Smartphone"
             uri: "http://example.com/api/catalogue/Supplier2/Smartphone"
+    links:
+      AddCatalogue:
+        operationId: addCatalogue
+        description: The `POST` method endpoint to add a new catalogue entry.
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Catalogue'
+      ViewItemDetails:
+        operationId: getItemDetails
+        description: The `GET` method endpoint to retrieve detailed information about a specific item.
+        parameters:
+          item: '$response.body#/item'
+      ViewSupplierCatalogue:
+        operationId: getSupplierCatalogue
+        description: The `GET` method endpoint to retrieve catalogue entries from a specific supplier.
+        parameters:
+          supplier: '$response.body#/supplier_name'
