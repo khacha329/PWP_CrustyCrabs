@@ -29,7 +29,7 @@ responses:
                 content:
                   application/json:
                     schema:
-                      $ref: '#/components/schemas/Item'
+                      $ref: '#/components/schemas/item'
             ViewItem:
               operationId: getItem
               description: The `GET` method endpoint to retrieve a specific item by ID.

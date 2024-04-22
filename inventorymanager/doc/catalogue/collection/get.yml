@@ -25,7 +25,7 @@ responses:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Catalogue'
+                $ref: '#/components/schemas/catalogue'
       ViewItemDetails:
         operationId: getItemDetails
         description: The `GET` method endpoint to retrieve detailed information about a specific item.

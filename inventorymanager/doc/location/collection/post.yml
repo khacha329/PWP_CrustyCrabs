@@ -10,12 +10,12 @@ requestBody:
       examples:
         example1:
           value:
-            city: New York
-            country: USA
-            latitude: 40.7128
-            longitude: -74.0060
-            postal_code: "10001"
-            street: 5th Avenue
+            city: "Helsinki"
+            country: "Finland"
+            latitude: 60.1699
+            longitude: 24.9384
+            postal_code: "00100"
+            street: "Mannerheimintie"
 responses:
   "201":
     description: Location successfully created. The 'Location' header contains the URI of the new resource.
@@ -25,6 +25,15 @@ responses:
         schema:
           type: string
           format: uri
+    links:
+      ViewNewLocation:
+        operationId: getLocation
+        description: The `GET` method endpoint to retrieve the newly created location.
+        parameters:
+          location_id: '$response.header.Location'
+      ViewAllLocations:
+        operationId: getAllLocations
+        description: The `GET` method endpoint to view all locations.
   "400":
     description: Validation error with the input data.
     content:

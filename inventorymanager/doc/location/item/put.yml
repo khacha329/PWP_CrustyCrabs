@@ -17,6 +17,15 @@ requestBody:
 responses:
   "204":
     description: The location was successfully updated.
+    links:
+      ViewLocation:
+        operationId: getLocation
+        description: The `GET` method endpoint to view the updated location.
+        parameters:
+          location: $request.path.location
+      ViewAllLocations:
+        operationId: getAllLocations
+        description: The `GET` method endpoint to view all locations.
   "400":
     description: Validation error with the input data.
     content:

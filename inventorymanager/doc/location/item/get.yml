@@ -16,15 +16,33 @@ responses:
         schema:
           $ref: "#/components/schemas/location"
         example:
-          city: "New York"
-          country: "USA"
-          latitude: 40.7128
-          longitude: -74.0060
-          postal_code: "10001"
-          street: "5th Avenue"
+          city: "Oulu"
+          country: "Finland"
+          latitude: 65.0121
+          longitude: 25.4651
+          postal_code: "90015"
+          street: "Kauppurienkatu"
+    links:
+      UpdateLocation:
+        operationId: updateLocation
+        description: The `PUT` method endpoint to update this location.
+        parameters:
+          location_id: $request.path.location
+      DeleteLocation:
+        operationId: deleteLocation
+        description: The `DELETE` method endpoint to remove this location.
+        parameters:
+          location_id: $request.path.location
+      ViewAllLocations:
+        operationId: getAllLocations
+        description: The `GET` method endpoint to view all locations.
   "404":
     description: Location not found.
     content:
       application/json:
         example:
           message: "Location not found"
+    links:
+      ViewAllLocations:
+        operationId: getAllLocations
+        description: If the specified location is not found, view all locations to select another.

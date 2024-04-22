@@ -28,7 +28,7 @@ responses:
                 content:
                   application/json:
                     schema:
-                      $ref: '#/components/schemas/Item'
+                      $ref: '#/components/schemas/item'
             DeleteItem:
               operationId: deleteItem
               description: The `DELETE` method endpoint to remove the item.

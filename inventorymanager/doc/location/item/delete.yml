@@ -11,6 +11,10 @@ parameters:
 responses:
   "204":
     description: The location was successfully deleted. No content is returned.
+    links:
+      ViewAllLocations:
+        operationId: getAllLocations
+        description: The `GET` method endpoint to view all locations. Useful for confirming the current list of locations after deletion or continuing to manage other locations.
   "404":
     description: The specified location was not found in the database.
     content:
@@ -24,3 +28,7 @@ responses:
           locationNotFound:
             value:
               message: Location not found
+    links:
+      ViewAllLocations:
+        operationId: getAllLocations
+        description: If the specified location is not found, this link can guide users to view all locations to verify existing entries or to manage other locations.
