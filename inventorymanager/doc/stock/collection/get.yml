@@ -21,3 +21,25 @@ responses:
             quantity: 200
             shelf_price: 20.5
             uri: "http://example.com/api/stocks/2"
+    links:
+      AddStock:
+        operationId: addStock
+        description: The `POST` method endpoint to add new stock.
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/stock'
+      ViewStockDetails:
+        operationId: getStockItem
+        description: The `GET` method endpoint to retrieve detailed information about a specific stock entry.
+        parameters:
+          warehouse: '$response.body#/warehouse_id'
+          item: '$response.body#/item_id'
+      ViewAllItems:
+        operationId: getAllItems
+        description: The `GET` method endpoint to view all items in inventory.
+      ViewAllWarehouses:
+        operationId: getAllWarehouses
+        description: The `GET` method endpoint to view all warehouses.

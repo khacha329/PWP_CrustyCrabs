@@ -26,6 +26,20 @@ responses:
             item_id: "Smartphone"
             quantity: 50
             uri: "http://example.com/api/stocks/Warehouse1/Smartphone"
+    links:
+      AddStockToWarehouse:
+        operationId: addStock
+        description: The `POST` method endpoint to add new stock to this warehouse.
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/stock'
+      ViewWarehouseDetails:
+        operationId: getWarehouse
+        description: The `GET` method endpoint to retrieve detailed information about the warehouse.
+        parameters:
+          warehouse_id: $request.path.warehouse
   "404":
     description: Warehouse does not exist.
     content:
@@ -39,3 +53,7 @@ responses:
           warehouseNotFound:
             value:
               message: "Warehouse does not exist"
+    links:
+      ViewAllWarehouses:
+        operationId: getAllWarehouses
+        description: The `GET` method endpoint to view all warehouses, useful for users to select another warehouse or verify existing ones.

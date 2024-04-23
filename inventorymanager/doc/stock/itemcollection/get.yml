@@ -26,6 +26,20 @@ responses:
             item_id: "Laptop"
             quantity: 50
             uri: "http://example.com/api/stocks/Warehouse2/Laptop"
+    links:
+      ViewItemDetails:
+        operationId: getItemDetails
+        description: The `GET` method endpoint to retrieve detailed information about the item.
+        parameters:
+          item_id: $request.path.item
+      AddStockForItem:
+        operationId: addStock
+        description: The `POST` method endpoint to add new stock for this item.
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/stock'
   "404":
     description: Item does not exist or is out of stock in all warehouses.
     content:
@@ -39,3 +53,7 @@ responses:
           itemNotFound:
             value:
               message: "Item does not exist or is out of stock in all warehouses"
+    links:
+      ViewAllItems:
+        operationId: getAllItems
+        description: The `GET` method endpoint to view all items in the inventory, useful for selecting another item or verifying existing items.
