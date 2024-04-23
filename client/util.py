@@ -40,12 +40,19 @@ def _ask_input(window, prompt, shift_y = 0):
 
 
 def display_dict(window, dictionary, title):
+    max_y, max_x = window.getmaxyx()
     window.clear()
     window.box()
     window.addstr(0, 1, title, curses.A_BOLD)
+    
+    pos_y = 1 
     for i, (key, value) in enumerate(dictionary.items()):
-        window.addstr(i+1, 1, f"{key}: {value}")
-    window.refresh()
+        line = f"{key}: {value}"
+        if pos_y < max_y - 2:  
+            window.addstr(pos_y, 1, line[:max_x-2])  # Clip the line to fit the window width
+            pos_y += 1
+        else:
+            break  # Stop adding new lines if we run out of space
 
 
 

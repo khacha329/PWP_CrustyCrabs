@@ -12,13 +12,10 @@ from util import menu, ask_inputs, display_dict, display_nested_dict
 INVENTORY_MANAGER_API = "http://localhost:5000"
 AUX_API = "http://localhost:5001"
 NAMESPACE = "invmanager"
+
 def main(stdscr):
 
-
-
-
 #69
-
 
     stdscr.clear()
     stdscr.addstr(0, 0, "Handheld Client:", curses.A_BOLD)
@@ -40,6 +37,7 @@ def main(stdscr):
             #ask user for image or path to image that is sent to aux api and returns information
             #TODO ADD FUNCTIONALITY
 
+            image_path = list(ask_inputs(user_entry_window, ["Enter path to QR image: "]))[0]
             warehouse_id, item_name = 1, "Laptop-1"
 
         elif selected_option == "Exit":
@@ -59,11 +57,11 @@ def main(stdscr):
                 price = ask_inputs(user_entry_window, ["Enter Price: "])
 
             elif selected_option == "Print QR Code":
-                #TODO ADD FUNCTIONALITY
-                pass
+                #Maybe
+                print_qr_code(stdscr, warehouse_id, item_name)
             elif selected_option == "View Item Info":
-                #TODO ADD FUNCTIONALITY
-                pass
+                #maybe
+                view_item_info(stdscr, stock_window, item_name)
             elif selected_option == "Item-Stock in other Warehouses":
                 item_stock_response = follow_relation(stock_response, "stock-item-all")
                 display_nested_dict(stock_item_window, item_stock_response["items"], title = "ITEM-STOCK")
@@ -80,10 +78,44 @@ def get_stock(warehouse_id, item_name):
     NAMESPACE = list(stock_response["@namespaces"].keys())[0]
     return stock_response, stock_response_clean
 
+def scan_stock(stdscr, user_entry_window):
+    inputs = list(ask_inputs(user_entry_window, ["Enter path to QR image: "]))
+    image_path = inputs[0] if inputs else None
+    try:
+        with open(image_path, 'rb') as file:
+            files = {'image': file}
+            response = requests.post(f"{AUX_API}/api/qrRead/", files=files)
+            response.raise_for_status()
+            stock_info = response.json()
+            return stock_info['warehouse_id'], stock_info['item_name']
+    except requests.RequestException as e:
+        stdscr.addstr(20, 0, f"Failed to scan stock: {str(e)}")
+        stdscr.refresh()
+        return None, None
+
+def print_qr_code(stdscr, warehouse_id, item_name):
+    response = requests.get(f"{AUX_API}/api/qrGenerate/?warehouse_id={warehouse_id}&item_name={item_name}")
+    if response.status_code == 200:
+        with open('output_qr.png', 'wb') as f:
+            f.write(response.content)
+        stdscr.addstr(20, 0, "QR Code saved as 'output_qr.png'.")
+        stdscr.refresh()
+    else:
+        stdscr.addstr(20, 0, f"Failed to print QR code: {response.text}")
+        stdscr.refresh()
+
+def view_item_info(stdscr, stock_window, item_name):
+    response = requests.get(f"{INVENTORY_MANAGER_API}/api/items/{item_name}/")
+    if response.status_code == 200:
+        item_details = response.json()
+        display_dict(stock_window, item_details, title="Item Details")
+    else:
+        stdscr.addstr(20, 0, "Failed to retrieve item details.")
+        stdscr.refresh()
+
 def follow_relation(response, relation):
     relation_url = response["@controls"][f"{NAMESPACE}:{relation}"]["href"]
     return requests.get(INVENTORY_MANAGER_API + relation_url).json()
 
 if __name__ == "__main__":
     wrapper(main)
-
