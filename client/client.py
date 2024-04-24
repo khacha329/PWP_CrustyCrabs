@@ -50,9 +50,11 @@ def main(stdscr):
             stock_response, stock_response_clean = get_stock(warehouse_id, item_name)
             display_dict(stock_window, stock_response_clean, title = "STOCK")
 
-            selected_option = menu(menu_window, ["Change Quantity", "Change Price", "Print QR Code","View Item Info","Item-Stock in other Warehouses","Back"], menu_title = menu_title)
+            selected_option = menu(menu_window, ["Change Quantity", "Change Price", "Print QR Code","View Item Info","Item-Stock in other Warehouses","Back"], menu_title=f"Selected {item_name} in warehouse {warehouse_id}")
             if selected_option == "Change Quantity":
-                quantity = ask_inputs(user_entry_window, ["Enter Quantity: "])
+                quantity_option = menu(menu_window, ["Add 1", "Add 3", "Add 5", "Remove 1", "Remove 3", "Remove 5", "Back"], menu_title="Update Stock Quantity")
+                if quantity_option.startswith("Add") or quantity_option.startswith("Remove"):
+                    modify_quantity(stdscr, warehouse_id, item_name, quantity_option)
             elif selected_option == "Change Price":
                 price = ask_inputs(user_entry_window, ["Enter Price: "])
 
@@ -77,6 +79,27 @@ def get_stock(warehouse_id, item_name):
     stock_response_clean = {k: v for k, v in stock_response.items() if "@" not in k}
     NAMESPACE = list(stock_response["@namespaces"].keys())[0]
     return stock_response, stock_response_clean
+
+def modify_quantity(stdscr, warehouse_id, item_name, action):
+    if "Add" in action:
+        amount = int(action.split()[1])
+    elif "Remove" in action:
+        amount = -int(action.split()[1])
+    update_stock(stdscr, warehouse_id, item_name, amount)
+
+def update_stock(stdscr, warehouse_id, item_name, quantity):
+    url = f"{INVENTORY_MANAGER_API}/api/stocks/{warehouse_id}/item/{item_name}/update"
+    data = {'quantity': quantity}
+    try:
+        response = requests.post(url, json=data)
+        response.raise_for_status()
+        if response.status_code == 200:
+            stdscr.addstr(20, 0, "Stock updated successfully.")
+        else:
+            stdscr.addstr(20, 0, f"Failed to update stock: {response.text}")
+    except requests.RequestException as e:
+        stdscr.addstr(20, 0, f"Request failed: {str(e)}")
+    stdscr.refresh()
 
 def scan_stock(stdscr, user_entry_window):
     inputs = list(ask_inputs(user_entry_window, ["Enter path to QR image: "]))
