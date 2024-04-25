@@ -6,7 +6,7 @@ TODO's:
 - 
 """
 import requests
-
+from error import APIError
 import curses
 from curses import wrapper
 
@@ -16,6 +16,8 @@ from util import menu, ask_inputs, display_dict, display_nested_dict
 INVENTORY_MANAGER_API = "http://localhost:5000"
 AUX_API = "http://localhost:5001"
 NAMESPACE = "invmanager"
+
+session = requests.Session()
 
 def main(stdscr):
 

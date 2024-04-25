@@ -1,3 +1,4 @@
+import requests
 import curses
 
 def menu(window, menu_options=["Option 1", "Option 2", "Option 3"], menu_title="Select an option:"):
@@ -63,7 +64,6 @@ def display_dict(window, dictionary, title):
     window.refresh()
 
 
-
 def display_nested_dict(window, nested_dictionary, title):
     max_y, max_x = window.getmaxyx()
     window.clear()
@@ -91,3 +91,26 @@ def display_nested_dict(window, nested_dictionary, title):
             break
 
     window.refresh()
+
+
+def handle_response(stdscr, response):
+    try:
+        response.raise_for_status() 
+
+        if response.status_code == 201:
+            stdscr.addstr(20, 0, "Operation successful.")
+        else:
+            stdscr.addstr(20, 0, f"Unexpected status code: {response.status_code}")
+    except requests.HTTPError as e:
+        if response.status_code == 404:
+            stdscr.addstr(20, 0, "Resource not found.")
+        elif response.status_code == 500:
+            stdscr.addstr(20, 0, "Server error.")
+        else:
+            stdscr.addstr(20, 0, f"HTTP error occurred: {str(e)}")
+    except requests.RequestException as e:
+        stdscr.addstr(20, 0, f"Request failed: {str(e)}")
+    except Exception as e:
+        stdscr.addstr(20, 0, f"An error occurred: {str(e)}")
+    finally:
+        stdscr.refresh()
