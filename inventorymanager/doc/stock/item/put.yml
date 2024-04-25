@@ -23,6 +23,16 @@ requestBody:
 responses:
   "204":
     description: The stock was successfully updated.
+    links:
+      ViewUpdatedStock:
+        operationId: getStockItem
+        description: The `GET` method endpoint to retrieve the updated stock details.
+        parameters:
+          warehouse: $request.path.warehouse
+          item: $request.path.item
+      ViewAllStocks:
+        operationId: getAllStocks
+        description: The `GET` method endpoint to view all stocks.
   "400":
     description: Validation error with the input data.
     content:
@@ -38,15 +48,13 @@ responses:
       application/json:
         example:
           message: stock not found
+    links:
+      ViewAllStocks:
+        operationId: getAllStocks
+        description: The `GET` method endpoint to view all stocks if the specific stock is not found.
   "415":
     description: Unsupported Media Type. Request must be JSON.
     content:
       application/json:
         example:
           message: Request must be JSON
-  "500":
-    description: Database error during the update process.
-    content:
-      application/json:
-        example:
-          message: Database error

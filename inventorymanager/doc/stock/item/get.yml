@@ -27,9 +27,29 @@ responses:
           quantity: 100
           shelf_price: 10.5
           uri: "http://example.com/api/stocks/1"
+    links:
+      UpdateStock:
+        operationId: updateStock
+        description: The `PUT` method endpoint to update this specific stock.
+        parameters:
+          warehouse: $request.path.warehouse
+          item: $request.path.item
+      DeleteStock:
+        operationId: deleteStock
+        description: The `DELETE` method endpoint to remove this specific stock.
+        parameters:
+          warehouse: $request.path.warehouse
+          item: $request.path.item
+      ViewAllStocks:
+        operationId: getAllStocks
+        description: The `GET` method endpoint to view all stocks.
   "404":
     description: stock not found.
     content:
       application/json:
         example:
           message: "stock not found"
+    links:
+      ViewAllStocks:
+        operationId: getAllStocks
+        description: If the specified stock is not found, this link can guide users to view all stocks to verify existing entries or manage other stocks.

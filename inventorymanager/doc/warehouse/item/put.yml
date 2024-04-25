@@ -17,6 +17,15 @@ requestBody:
 responses:
   "204":
     description: The warehouse was successfully updated.
+    links:
+      ViewWarehouse:
+        operationId: getWarehouse
+        description: The `GET` method endpoint to view the updated warehouse.
+        parameters:
+          warehouse_id: $request.path.warehouse
+      ViewAllWarehouses:
+        operationId: getAllWarehouses
+        description: The `GET` method endpoint to view all warehouses.
   "400":
     description: Validation error with the input data.
     content:
@@ -30,16 +39,13 @@ responses:
       application/json:
         example:
           message: warehouse not found
+    links:
+      ViewAllWarehouses:
+        operationId: getAllWarehouses
+        description: The `GET` method endpoint to view all warehouses.
   "415":
     description: Unsupported Media Type. Request must be JSON.
     content:
       application/json:
         example:
           message: Request must be JSON
-  "500":
-    description: Database error during the update process.
-    content:
-      application/json:
-        example:
-          message: Database error
-          errors: Details about the database error

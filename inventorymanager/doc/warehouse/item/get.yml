@@ -19,9 +19,29 @@ responses:
           warehouse_id: 1
           manager: "John Doe"
           location_id: 1
+    links:
+      UpdateWarehouse:
+        operationId: updateWarehouse
+        description: The `PUT` method endpoint to update this warehouse.
+        parameters:
+          warehouse_id: $request.path.warehouse
+      DeleteWarehouse:
+        operationId: deleteWarehouse
+        description: The `DELETE` method endpoint to remove this warehouse.
+        parameters:
+          warehouse_id: $request.path.warehouse
+      ViewAllStocksInWarehouse:
+        operationId: getStocksByWarehouse
+        description: The `GET` method endpoint to view all stocks in this specific warehouse.
+        parameters:
+          warehouse_id: $request.path.warehouse
   "404":
     description: warehouse not found.
     content:
       application/json:
         example:
           message: "warehouse not found"
+    links:
+      ViewAllWarehouses:
+        operationId: getAllWarehouses
+        description: The `GET` method endpoint to view all warehouses, useful if the specified warehouse is not found.

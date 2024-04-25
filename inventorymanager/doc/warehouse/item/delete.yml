@@ -11,6 +11,10 @@ parameters:
 responses:
   "204":
     description: The warehouse was successfully deleted. No content is returned.
+    links:
+      ViewAllWarehouses:
+        operationId: getAllWarehouses
+        description: The `GET` method endpoint to view all warehouses.
   "404":
     description: The specified warehouse was not found in the database.
     content:
@@ -24,3 +28,7 @@ responses:
           warehouseNotFound:
             value:
               message: warehouse not found
+    links:
+      ViewAllWarehouses:
+        operationId: getAllWarehouses
+        description: The `GET` method endpoint to view all warehouses if the specific warehouse is not found.

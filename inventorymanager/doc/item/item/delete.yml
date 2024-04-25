@@ -11,6 +11,10 @@ parameters:
 responses:
   "204":
     description: The item was successfully deleted. No content is returned.
+    links:
+      ViewAllItems:
+        operationId: getItems
+        description: The `GET` method endpoint to retrieve all items, useful for reviewing remaining items after deletion.
   "404":
     description: The specified item was not found in the database.
     content:

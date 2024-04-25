@@ -21,6 +21,15 @@ responses:
         schema:
           type: string
           format: uri
+    links:
+      ViewNewWarehouse:
+        operationId: getWarehouse
+        description: The `GET` method endpoint to retrieve the newly created warehouse.
+        parameters:
+          warehouse_id: '$response.header.location'
+      ViewAllWarehouses:
+        operationId: getAllWarehouses
+        description: The `GET` method endpoint to view all warehouses.
   "400":
     description: Validation error with the input data.
     content:

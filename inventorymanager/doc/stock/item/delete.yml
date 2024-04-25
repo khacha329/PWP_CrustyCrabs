@@ -17,6 +17,10 @@ parameters:
 responses:
   "204":
     description: The stock was successfully deleted. No content is returned.
+    links:
+      ViewAllStockItems:
+        operationId: getAllStocks
+        description: The `GET` method endpoint to view all stocks, useful for reviewing remaining stocks after deletion.
   "404":
     description: The specified stock was not found in the database.
     content:

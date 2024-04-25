@@ -8,8 +8,8 @@ responses:
       application/json:
         schema:
           type: array
-          # items:
-          #   $ref: "#/components/schemas/LocationWithURI"
+          items:
+            $ref: "#/components/schemas/location"
         example:
           - city: "New York"
             country: "USA"
@@ -25,3 +25,18 @@ responses:
             postal_code: "94103"
             street: "Market Street"
             uri: "http://example.com/api/locations/2"
+    links:
+      AddLocation:
+        operationId: addLocation
+        description: The `POST` method endpoint to add a new location.
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/location'
+      ViewLocation:
+        operationId: getLocation
+        description: The `GET` method endpoint to retrieve a specific location by its ID.
+        parameters:
+          location_id: '$response.body#/location_id'

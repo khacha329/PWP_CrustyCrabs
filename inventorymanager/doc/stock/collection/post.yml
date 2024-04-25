@@ -23,6 +23,16 @@ responses:
         schema:
           type: string
           format: uri
+    links:
+      ViewNewStock:
+        operationId: getStockItem
+        description: The `GET` method endpoint to retrieve the newly created stock.
+        parameters:
+          warehouse: $response.header.Location
+          item: $response.header.Location
+      ViewAllStocks:
+        operationId: getAllStocks
+        description: The `GET` method endpoint to view all stock entries.
   "400":
     description: Validation error with the input data.
     content:

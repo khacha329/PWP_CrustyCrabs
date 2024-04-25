@@ -6,14 +6,14 @@ requestBody:
   content:
     application/json:
       schema:
-        $ref: "#/components/schemas/items"
+        $ref: "#/components/schemas/item"
       examples:
         example1:
           value:
             item_id: 1
             name: "Laptop"
             category: "Electronics"
-            weight: 1.5
+            weight: 1.5          
 responses:
   "201":
     description: item successfully created. The 'item' header contains the URI of the new resource.
@@ -23,6 +23,22 @@ responses:
         schema:
           type: string
           format: uri
+    links:
+            ViewItem:
+              operationId: getItem
+              description: The `GET` method endpoint to retrieve the newly created item.
+              parameters:
+                itemId: '$response.body#/item_id'
+            UpdateItem:
+              operationId: updateItem
+              description: The `PUT` method endpoint to update the item.
+              parameters:
+                itemId: '$response.body#/item_id'
+            DeleteItem:
+              operationId: deleteItem
+              description: The `DELETE` method endpoint to remove the item.
+              parameters:
+                itemId: '$response.body#/item_id'
   "400":
     description: Validation error with the input data.
     content:

@@ -17,6 +17,10 @@ parameters:
 responses:
   "204":
     description: The catalogue item was successfully deleted. No content is returned.
+    links:
+      ViewAllCatalogueItems:
+        operationId: getCatalogue
+        description: The `GET` method endpoint to view all catalogue items, useful for reviewing remaining items after deletion.
   "404":
     description: The specified catalogue item was not found in the database.
     content:

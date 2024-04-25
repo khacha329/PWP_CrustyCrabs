@@ -16,7 +16,7 @@ responses:
         schema:
           type: array
           items:
-            $ref: "#/components/schemas/Catalogue"
+            $ref: "#/components/schemas/catalogue"
         example:
           - supplier_name: "Supplier1"
             item: "Laptop"
@@ -24,6 +24,12 @@ responses:
           - supplier_name: "Supplier2"
             item: "Laptop"
             uri: "http://example.com/api/catalogue/Supplier2/Laptop"
+    links:
+      GetItemDetails:
+              operationId: getItemDetails
+              parameters:
+                itemId: "$response.body#/item_id"
+              description: Get detailed information about an item.
   "404":
     description: No supplier has the requested item.
     content:
@@ -37,3 +43,7 @@ responses:
           itemNotFound:
             value:
               message: "No supplier has the requested item"
+    links:
+      ViewAllItems:
+        operationId: getAllItems
+        description: The `GET` method endpoint to return to the items list, possibly to select a different item.
