@@ -1,5 +1,9 @@
 """
 This is the main file for the client application. This file will be used to interact with the user and send requests to the server.
+
+TODO's: 
+- Add request sessions?
+- 
 """
 import requests
 
@@ -93,7 +97,7 @@ def update_stock(stdscr, warehouse_id, item_name, quantity):
     try:
         response = requests.post(url, json=data)
         response.raise_for_status()
-        if response.status_code == 200:
+        if response.status_code == 201:
             stdscr.addstr(20, 0, "Stock updated successfully.")
         else:
             stdscr.addstr(20, 0, f"Failed to update stock: {response.text}")
