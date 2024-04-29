@@ -58,9 +58,20 @@ def main(stdscr):
 
             selected_option = menu(menu_window, ["Change Quantity", "Change Price", "Print QR Code","View Item Info","Item-Stock in other Warehouses","Back"], menu_title=f"Selected {item_name} in warehouse {warehouse_id}")
             if selected_option == "Change Quantity":
-                quantity_option = menu(menu_window, ["Add 1", "Add 3", "Add 5", "Remove 1", "Remove 3", "Remove 5", "Back"], menu_title="Update Stock Quantity")
-                if quantity_option.startswith("Add") or quantity_option.startswith("Remove"):
-                    modify_quantity(stdscr, warehouse_id, item_name, quantity_option)
+                quantity_option = menu(menu_window, ["Add 1", "Add 5", "Remove 1", "Remove 5", "Enter Custom Amount", "Back"], menu_title="Update Stock Quantity")
+            if quantity_option.startswith("Add") or quantity_option.startswith("Remove"):
+                modify_quantity(stdscr, warehouse_id, item_name, quantity_option)
+            elif quantity_option == "Enter Custom Amount":
+                try:
+                    custom_amount_input = next(ask_inputs(user_entry_window, ["Enter Custom Amount: "]))
+                    custom_amount = int(custom_amount_input)
+                    action_type = menu(menu_window, ["Add", "Remove"], menu_title="Add or Remove?")
+                    modify_quantity(stdscr, warehouse_id, item_name, f"{action_type} {custom_amount}")
+                except StopIteration:
+                    stdscr.addstr(20, 0, "No amount entered.")
+                except ValueError:
+                    stdscr.addstr(20, 0, "Invalid input. Please enter a valid number.")
+                stdscr.refresh()
             elif selected_option == "Change Price":
                 price = ask_inputs(user_entry_window, ["Enter Price: "])
 
@@ -87,11 +98,11 @@ def get_stock(warehouse_id, item_name):
     return stock_response, stock_response_clean
 
 def modify_quantity(stdscr, warehouse_id, item_name, action):
+    quantity = int(action.split()[1])
     if "Add" in action:
-        amount = int(action.split()[1])
+        update_stock(stdscr, warehouse_id, item_name, quantity)
     elif "Remove" in action:
-        amount = -int(action.split()[1])
-    update_stock(stdscr, warehouse_id, item_name, amount)
+        update_stock(stdscr, warehouse_id, item_name, -quantity)
 
 def update_stock(stdscr, warehouse_id, item_name, quantity):
     url = f"{INVENTORY_MANAGER_API}/api/stocks/{warehouse_id}/item/{item_name}/update"
