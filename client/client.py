@@ -108,7 +108,7 @@ def update_stock(stdscr, warehouse_id, item_name, quantity):
     url = f"{INVENTORY_MANAGER_API}/api/stocks/{warehouse_id}/item/{item_name}/update"
     data = {'quantity': quantity}
     try:
-        response = requests.post(url, json=data)
+        response = requests.put(url, json=data)
         response.raise_for_status()
         if response.status_code == 201:
             stdscr.addstr(20, 0, "Stock updated successfully.")
