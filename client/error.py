@@ -27,12 +27,15 @@ class APIError(Exception):
         a string.
         """
         try:
-            msgs = "\n".join(self.error["@error"]["@messages"])
+            msgs = "\n".join(filter(None, self.error["@error"]["@messages"])) 
             value = f'Error {self.code} while accessing {self.url}: ' \
                     f'{self.error["@error"]["@message"]}\n' \
                     f'Details:\n' \
                     f'{msgs}'
-        except KeyError:
-            value = f'Error {self.code} while accessing {self.url}: {self.error["message"]}'
-
+        except KeyError as e:
+            value = f'Error {self.code} while accessing {self.url}: ' \
+                    f'Unexpected error format. Missing key: {str(e)}'
+        except Exception as ex:
+            value = f'Error {self.code} while accessing {self.url}: ' \
+                    f'Error processing error message: {str(ex)}'
         return value

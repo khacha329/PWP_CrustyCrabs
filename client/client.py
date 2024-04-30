@@ -3,6 +3,7 @@ This is the main file for the client application. This file will be used to inte
 
 TODO's: 
 - Add request sessions?
+- ask user for image or path to image that is sent to aux api and returns information
 - 
 """
 import requests
@@ -106,17 +107,25 @@ def modify_quantity(stdscr, warehouse_id, item_name, action):
         update_stock(stdscr, warehouse_id, item_name, -quantity)
 
 def update_stock(stdscr, warehouse_id, item_name, quantity):
-    url = f"{INVENTORY_MANAGER_API}/api/stocks/{warehouse_id}/item/{item_name}"
-    data = {'quantity': quantity}
+    url = (INVENTORY_MANAGER_API + f"/api/stocks/{warehouse_id}/item/{item_name}/")
+    data = {'item_id': item_name, 'quantity': quantity}
     try:
         response = requests.put(url, json=data)
-        response.raise_for_status()
-        if response.status_code == 201:
+
+        if response.status_code == 204:
+            stdscr.addstr(20, 0, "Stock updated successfully.")
+        elif response.status_code == 200: 
             stdscr.addstr(20, 0, "Stock updated successfully.")
         else:
-            stdscr.addstr(20, 0, f"Failed to update stock: {response.text}")
+            raise APIError(response.status_code, response.text, url)
+
     except requests.RequestException as e:
-        stdscr.addstr(20, 0, f"Request failed: {str(e)}")
+        stdscr.addstr(20, 0, f"Network or request issue: {str(e)}")
+
+    except APIError as api_error:
+        error_message = str(api_error) if str(api_error) else "Unknown API error."
+        stdscr.addstr(20, 0, error_message)
+
     stdscr.refresh()
 
 def scan_stock(stdscr, user_entry_window):
