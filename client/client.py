@@ -56,6 +56,7 @@ def main(stdscr):
             stock_response, stock_response_clean = get_stock(warehouse_id, item_name)
             display_dict(stock_window, stock_response_clean, title = "STOCK")
 
+            # Scan QR code as option? in addition to Print QR code
             selected_option = menu(menu_window, ["Change Quantity", "Change Price", "Print QR Code","View Item Info","Item-Stock in other Warehouses","Back"], menu_title=f"Selected {item_name} in warehouse {warehouse_id}")
             if selected_option == "Change Quantity":
                 quantity_option = menu(menu_window, ["Add 1", "Add 5", "Remove 1", "Remove 5", "Enter Custom Amount", "Back"], menu_title="Update Stock Quantity")
@@ -79,7 +80,7 @@ def main(stdscr):
                 #Maybe return path to QR code. scan QR code and return image path, open image popup
                 print_qr_code(stdscr, warehouse_id, item_name)
             elif selected_option == "View Item Info":
-                #maybe
+                #maybe not working?
                 view_item_info(stdscr, stock_window, item_name)
             elif selected_option == "Item-Stock in other Warehouses":
                 item_stock_response = follow_relation(stock_response, "stock-item-all")
