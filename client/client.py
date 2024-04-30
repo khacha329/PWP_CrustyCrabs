@@ -76,7 +76,7 @@ def main(stdscr):
                 price = ask_inputs(user_entry_window, ["Enter Price: "])
 
             elif selected_option == "Print QR Code":
-                #Maybe
+                #Maybe return path to QR code. scan QR code and return image path, open image popup
                 print_qr_code(stdscr, warehouse_id, item_name)
             elif selected_option == "View Item Info":
                 #maybe

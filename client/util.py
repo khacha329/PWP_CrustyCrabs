@@ -1,6 +1,8 @@
 import requests
 import curses
 
+#Maybe add error if terminal is too small for display
+
 def menu(window, menu_options=["Option 1", "Option 2", "Option 3"], menu_title="Select an option:"):
     selected_option = 0
     top_line = 0 
