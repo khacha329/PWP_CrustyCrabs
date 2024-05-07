@@ -75,10 +75,17 @@ def main(stdscr):
                         stdscr.addstr(20, 0, "Invalid input. Please enter a valid number.")
                 stdscr.refresh()
             elif selected_option == "Change Price":
-                price = ask_inputs(user_entry_window, ["Enter Price: "])
-
+                try:
+                    price_input = next(ask_inputs(user_entry_window, ["Enter New Price: "]))
+                    new_price = float(price_input)
+                    update_price(stdscr, warehouse_id, item_name, new_price)
+                except StopIteration:
+                    stdscr.addstr(20, 0, "No price entered.")
+                except ValueError:
+                    stdscr.addstr(20, 0, "Invalid input. Please enter a valid number.")
+                stdscr.refresh()
             elif selected_option == "Print QR Code":
-                #Maybe return path to QR code. scan QR code and return image path, open image popup
+                #Maybe return path to QR code. scan QR code and return image path, open image popup 
                 print_qr_code(stdscr, warehouse_id, item_name)
             elif selected_option == "View Item Info":
                 #maybe not working?
@@ -116,6 +123,26 @@ def update_stock(stdscr, warehouse_id, item_name, quantity):
             stdscr.addstr(20, 0, "Stock updated successfully.")
         elif response.status_code == 200: 
             stdscr.addstr(20, 0, "Stock updated successfully.")
+        else:
+            raise APIError(response.status_code, response.text, url)
+
+    except requests.RequestException as e:
+        stdscr.addstr(20, 0, f"Network or request issue: {str(e)}")
+
+    except APIError as api_error:
+        error_message = str(api_error) if str(api_error) else "Unknown API error."
+        stdscr.addstr(20, 0, error_message)
+
+    stdscr.refresh()
+
+def update_price(stdscr, warehouse_id, item_name, new_price):
+    url = (INVENTORY_MANAGER_API + f"/api/stocks/{warehouse_id}/item/{item_name}/")
+    data = {'item_id': item_name, 'price': new_price}
+    try:
+        response = requests.put(url, json=data)
+
+        if response.status_code in {200, 204}:
+            stdscr.addstr(20, 0, "Price updated successfully.")
         else:
             raise APIError(response.status_code, response.text, url)
 
