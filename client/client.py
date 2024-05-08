@@ -2,9 +2,9 @@
 This is the main file for the client application. This file will be used to interact with the user and send requests to the server.
 
 TODO's: 
-- Add request sessions?
-- ask user for image or path to image that is sent to aux api and returns information
 - 
+- ask user for image or path to image that is sent to aux api and returns information
+- Clear previous stock details windows when you use 'back' button
 """
 import requests
 from error import APIError
@@ -88,7 +88,6 @@ def main(stdscr):
                 #Maybe return path to QR code. scan QR code and return image path, open image popup 
                 print_qr_code(stdscr, warehouse_id, item_name)
             elif selected_option == "View Item Info":
-                #maybe not working?
                 view_item_info(stdscr, stock_window, item_name)
             elif selected_option == "Item-Stock in other Warehouses":
                 item_stock_response = follow_relation(stock_response, "stock-item-all")
