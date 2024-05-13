@@ -7,10 +7,11 @@ TODO's:
 - Clear previous stock details windows when you use 'back' button
 """
 import requests
+from requests.exceptions import HTTPError, ConnectionError, Timeout, RequestException
 from error import APIError
 import curses
 from curses import wrapper
-
+import json
 from util import menu, ask_inputs, display_dict, display_nested_dict
 
 
@@ -18,7 +19,7 @@ INVENTORY_MANAGER_API = "http://localhost:5000"
 AUX_API = "http://localhost:5001"
 NAMESPACE = "invmanager"
 
-session = requests.Session()
+#session = requests.Session()
 
 def main(stdscr):
 
@@ -45,10 +46,10 @@ def main(stdscr):
             #TODO ADD FUNCTIONALITY
 
             image_path = list(ask_inputs(user_entry_window, ["Enter path to QR image: "]))[0]
-            warehouse_id, item_name = 1, "Laptop-1"
+            warehouse_id, item_name = scan_stock(stdscr, image_path)
 
         elif selected_option == "Exit":
-            exit()
+            break
         
 
         while True:        
@@ -113,8 +114,9 @@ def modify_quantity(stdscr, warehouse_id, item_name, action):
         update_stock(stdscr, warehouse_id, item_name, -quantity)
 
 def update_stock(stdscr, warehouse_id, item_name, quantity):
+#add get request to get name of item to pass to the put request
     url = (INVENTORY_MANAGER_API + f"/api/stocks/{warehouse_id}/item/{item_name}/")
-    data = {'item_id': item_name, 'quantity': quantity}
+    data = {'item_id': item_name, 'warehouse_id': warehouse_id, 'quantity': quantity}
     try:
         response = requests.put(url, json=data)
 
