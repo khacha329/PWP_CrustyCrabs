@@ -46,8 +46,7 @@ def _ask_input(window, prompt, shift_y = 0):
     curses.echo()
     user_input = window.getstr(1 + shift_y, 0).decode('utf-8')
     curses.noecho()
-    return user_input            
-
+    return user_input
 
 def display_dict(window, dictionary, title):
     max_y, max_x = window.getmaxyx()
@@ -55,11 +54,11 @@ def display_dict(window, dictionary, title):
     window.box()
     window.addstr(0, 1, title[:max_x-2], curses.A_BOLD)
     
-    pos_y = 1 
+    pos_y = 1
     for key, value in dictionary.items():
         line = f"{key}: {value}"
-        if pos_y < max_y - 1: 
-            window.addstr(pos_y, 1, line[:max_x-2]) 
+        if pos_y < max_y - 1:
+            window.addstr(pos_y, 1, line[:max_x-2])
             pos_y += 1
         else:
             break
