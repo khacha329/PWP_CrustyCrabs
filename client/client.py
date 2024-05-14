@@ -114,7 +114,7 @@ def modify_quantity(stdscr, warehouse_id, item_name, action):
         update_stock(stdscr, warehouse_id, item_name, -quantity)
 
 def update_stock(stdscr, warehouse_id, item_name, quantity):
-#add get request to get name of item to pass to the put request
+    #add get request to get name of item to pass to the put request
     url = (INVENTORY_MANAGER_API + f"/api/stocks/{warehouse_id}/item/{item_name}/")
     data = {'item_id': item_name, 'warehouse_id': warehouse_id, 'quantity': quantity}
     try:
@@ -137,6 +137,7 @@ def update_stock(stdscr, warehouse_id, item_name, quantity):
     stdscr.refresh()
 
 def update_price(stdscr, warehouse_id, item_name, new_price):
+    #add get request to get name of item to pass to the put request
     url = (INVENTORY_MANAGER_API + f"/api/stocks/{warehouse_id}/item/{item_name}/")
     data = {'item_id': item_name, 'price': new_price}
     try:
