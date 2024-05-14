@@ -52,20 +52,12 @@ def main(stdscr):
                 break
 
 def get_stock(warehouse_id, item_name):
-    try:
-        init_response = requests.get(INVENTORY_MANAGER_API + "/api")
-        init_response.raise_for_status()
-        controls = init_response.json()['@controls']
-        stock_url = controls[f"{NAMESPACE}:stock"]['href'].format(warehouse_id=warehouse_id, item_name=item_name)
-        
-        stock_response = requests.get(stock_url)
-        stock_response.raise_for_status()
-        stock_data = stock_response.json()
-        stock_data_clean = {k: v for k, v in stock_data.items() if not k.startswith('@')}
-        return stock_data, stock_data_clean
-    except requests.RequestException as e:
-        print(f"Request failed: {str(e)}")
-        return {}, {}
+    # get stock of item in warehouse
+
+    stock_response = requests.get(INVENTORY_MANAGER_API + f"/api/stocks/{warehouse_id}/item/{item_name}/").json()
+    stock_response_clean = {k: v for k, v in stock_response.items() if "@" not in k}
+    NAMESPACE = list(stock_response["@namespaces"].keys())[0]
+    return stock_response, stock_response_clean
 
 def handle_change_quantity(stdscr, menu_window, user_entry_window, warehouse_id, item_name):
     quantity_option = menu(menu_window, ["Add 1", "Add 5", "Remove 1", "Remove 5", "Enter Custom Amount", "Back"], menu_title="Update Stock Quantity")
