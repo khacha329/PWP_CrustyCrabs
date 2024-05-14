@@ -4,10 +4,12 @@ import curses
 #Maybe add error if terminal is too small for display
 
 def menu(window, menu_options=["Option 1", "Option 2", "Option 3"], menu_title="Select an option:"):
-    selected_option = 0
-    top_line = 0 
     max_y, max_x = window.getmaxyx()
+    if max_x < 40 or max_y < len(menu_options) + 4:
+        raise Exception("Terminal window too small, please resize and try again.")
 
+    selected_option = 0
+    top_line = 0
     window.keypad(True)
 
     while True:
