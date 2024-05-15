@@ -2,9 +2,13 @@
 This is the main file for the client application. This file will be used to interact with the user and send requests to the server.
 
 TODO's: 
-- 
+- update quantity not change
+- error handling
+- add timeout arguments
+- issue with view item info window refresh - shift to the right
 - ask user for image or path to image that is sent to aux api and returns information
 - Clear previous stock details windows when you use 'back' button
+- run pylint
 """
 import requests
 from requests.exceptions import HTTPError, ConnectionError, Timeout, RequestException
@@ -113,6 +117,12 @@ def main(stdscr):
 
 
 def get_stock(warehouse_id, item_name):
+    """_summary_
+
+    :param warehouse_id: _description_
+    :param item_name: _description_
+    :return: _description_
+    """
     # get stock of item in warehouse
 
     stock_response = requests.get(INVENTORY_MANAGER_API + f"/api/stocks/{warehouse_id}/item/{item_name}/").json()
@@ -154,6 +164,7 @@ def modify_quantity(stdscr, warehouse_id, item_name, action):
     :param item_name: Name of the item to update.
     :param action: _description_
     """
+    # 
     quantity = int(action.split()[1])
     if "Add" in action:
         update_stock(stdscr, warehouse_id, item_name, quantity)
