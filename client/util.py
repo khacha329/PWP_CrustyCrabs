@@ -4,10 +4,12 @@ import curses
 #Maybe add error if terminal is too small for display
 
 def menu(window, menu_options=["Option 1", "Option 2", "Option 3"], menu_title="Select an option:"):
-    selected_option = 0
-    top_line = 0 
     max_y, max_x = window.getmaxyx()
+    if max_x < 40 or max_y < len(menu_options) + 4:
+        raise Exception("Terminal window too small, please resize and try again.")
 
+    selected_option = 0
+    top_line = 0
     window.keypad(True)
 
     while True:
@@ -46,8 +48,7 @@ def _ask_input(window, prompt, shift_y = 0):
     curses.echo()
     user_input = window.getstr(1 + shift_y, 0).decode('utf-8')
     curses.noecho()
-    return user_input            
-
+    return user_input
 
 def display_dict(window, dictionary, title):
     max_y, max_x = window.getmaxyx()
@@ -55,11 +56,11 @@ def display_dict(window, dictionary, title):
     window.box()
     window.addstr(0, 1, title[:max_x-2], curses.A_BOLD)
     
-    pos_y = 1 
+    pos_y = 1
     for key, value in dictionary.items():
         line = f"{key}: {value}"
-        if pos_y < max_y - 1: 
-            window.addstr(pos_y, 1, line[:max_x-2]) 
+        if pos_y < max_y - 1:
+            window.addstr(pos_y, 1, line[:max_x-2])
             pos_y += 1
         else:
             break

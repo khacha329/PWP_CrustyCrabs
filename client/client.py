@@ -23,6 +23,12 @@ INVENTORY_MANAGER_API = "http://localhost:5000"
 AUX_API = "http://localhost:5001"
 NAMESPACE = "invmanager"
 
+<<<<<<< HEAD
+=======
+quantity = None
+shelf_price = None
+
+>>>>>>> bc1bc5631a5071924cd69bdc35f9ceee47347ec4
 def main(stdscr):
     """
     Main function 
@@ -60,7 +66,12 @@ def main(stdscr):
             #ask user for image or path to image that is sent to aux api and returns information
             #TODO ADD FUNCTIONALITY
 
+<<<<<<< HEAD
             warehouse_id, item_name = scan_stock(stdscr, user_entry_window)
+=======
+            image_path = list(ask_inputs(user_entry_window, ["Enter path to QR image: "]))[0]
+            warehouse_id, item_name = scan_stock(stdscr, image_path)
+>>>>>>> bc1bc5631a5071924cd69bdc35f9ceee47347ec4
 
         elif selected_option == "Exit":
             break
@@ -92,7 +103,11 @@ def main(stdscr):
                 try:
                     price_input = next(ask_inputs(user_entry_window, ["Enter New Price: "]))
                     new_price = float(price_input)
+<<<<<<< HEAD
                     update_price(stdscr, warehouse_id, item_name, current_quantity, new_price)
+=======
+                    update_price(stdscr, warehouse_id, item_name, new_price)
+>>>>>>> bc1bc5631a5071924cd69bdc35f9ceee47347ec4
                 except StopIteration:
                     stdscr.addstr(20, 0, "No price entered.")
                 except ValueError:
@@ -153,7 +168,11 @@ def get_item_id_by_name(warehouse_id, item_name):
         print(f"Request failed: {str(e)}")
         return None
 
+<<<<<<< HEAD
 def modify_quantity(stdscr, warehouse_id, item_name, action, current_quantity):
+=======
+def modify_quantity(stdscr, warehouse_id, item_name, action):
+>>>>>>> bc1bc5631a5071924cd69bdc35f9ceee47347ec4
     """
     Adds or removes quantity of stock for a given item in the warehouse.
 
@@ -162,6 +181,10 @@ def modify_quantity(stdscr, warehouse_id, item_name, action, current_quantity):
     :param item_name: Name of the item to update.
     :param action: _description_
     """
+<<<<<<< HEAD
+=======
+    get_stock
+>>>>>>> bc1bc5631a5071924cd69bdc35f9ceee47347ec4
     quantity = int(action.split()[1])
     if "Add" in action:
         quantity = quantity + current_quantity
@@ -204,7 +227,11 @@ def update_stock(stdscr, warehouse_id, item_name, quantity):
         stdscr.addstr(20, 0, error_message)
     stdscr.refresh()
 
+<<<<<<< HEAD
 def update_price(stdscr, warehouse_id, item_name, modifeid_quantity, new_price):
+=======
+def update_price(stdscr, warehouse_id, item_name, new_price):
+>>>>>>> bc1bc5631a5071924cd69bdc35f9ceee47347ec4
     """
     Updates the price of a given item in a warehouse.
 
@@ -221,7 +248,11 @@ def update_price(stdscr, warehouse_id, item_name, modifeid_quantity, new_price):
         return
 
     url = f"{INVENTORY_MANAGER_API}/api/stocks/{warehouse_id}/item/{item_name}/"
+<<<<<<< HEAD
     data = {'warehouse_id': warehouse_id, 'item_id': item_id, 'quantity': modifeid_quantity, 'shelf_price': new_price} #need to somehow pass quantity with data
+=======
+    data = {'warehouse_id': warehouse_id, 'item_id': item_id, 'quantity': quantity, 'shelf_price': new_price} #need to somehow pass quantity with data
+>>>>>>> bc1bc5631a5071924cd69bdc35f9ceee47347ec4
 
     try:
         response = requests.put(url, json=data)
