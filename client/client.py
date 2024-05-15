@@ -106,7 +106,7 @@ def get_stock(warehouse_id, item_name):
     NAMESPACE = list(stock_response["@namespaces"].keys())[0]
     return stock_response, stock_response_clean
 
-def get_item_id_by_name(item_name):
+def get_item_id_by_name(warehouse_id, item_name):
     """
     Fetches the item ID from the Inventory Manager API by item name.
 
@@ -114,13 +114,11 @@ def get_item_id_by_name(item_name):
     :return: The ID of the item if found, else None.
     """
     try:
-        # Construct the URL with the item name included in the path
-        url = f"{INVENTORY_MANAGER_API}/api/items/{item_name}"
+        url = f"{INVENTORY_MANAGER_API}/api/stocks/{warehouse_id}/item/{item_name}/"
         response = requests.get(url)
-        response.raise_for_status()  # This will raise an HTTPError if the HTTP request returned an unsuccessful status code
+        response.raise_for_status()
         item_data = response.json()
 
-        # Check if the 'item_id' is in the response and return it
         if 'item_id' in item_data:
             return item_data['item_id']
         else:
@@ -134,6 +132,14 @@ def get_item_id_by_name(item_name):
         return None
 
 def modify_quantity(stdscr, warehouse_id, item_name, action):
+    """
+    Updates quantity of stock for a given item in the warehouse.
+
+    :param stdscr: _description_
+    :param warehouse_id: _description_
+    :param item_name: _description_
+    :param action: _description_
+    """
     quantity = int(action.split()[1])
     if "Add" in action:
         update_stock(stdscr, warehouse_id, item_name, quantity)
@@ -150,15 +156,23 @@ def update_stock(stdscr, warehouse_id, item_name, quantity):
     :param quantity: Quantity to update in the stock.
     """
     # First, retrieve the item_id using the item_name
-    item_id = get_item_id_by_name(item_name)
+    item_id = get_item_id_by_name(warehouse_id, item_name)
+
     if item_id is None:
         stdscr.addstr(20, 0, "Failed to find the item ID for the given item name.")
         stdscr.refresh()
         return
 
+    try:
+        warehouse_id = int(warehouse_id)
+    except ValueError:
+        stdscr.addstr(20, 0, "Invalid warehouse ID. Must be a number.")
+        stdscr.refresh()
+        return
+
     # Construct the URL with the retrieved item_id and warehouse_id
-    url = f"{INVENTORY_MANAGER_API}/api/stocks/{warehouse_id}/item/{item_id}/"
-    data = {'item_id': item_id, 'warehouse_id': warehouse_id, 'quantity': quantity}
+    url = f"{INVENTORY_MANAGER_API}/api/stocks/{warehouse_id}/item/{item_name}/"
+    data = {'warehouse_id':warehouse_id, 'item_id': item_id, 'quantity': quantity}
     
     try:
         response = requests.put(url, json=data)
@@ -176,7 +190,7 @@ def update_stock(stdscr, warehouse_id, item_name, quantity):
 def update_price(stdscr, warehouse_id, item_name, new_price):
     #add get request to get name of item to pass to the put request
     url = (INVENTORY_MANAGER_API + f"/api/stocks/{warehouse_id}/item/{item_name}/")
-    data = {'item_id': item_name, 'price': new_price}
+    data = {'warehouse_id':warehouse_id, 'item_id': item_name, 'shelf_price': new_price}
     try:
         response = requests.put(url, json=data)
 
