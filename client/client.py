@@ -1,21 +1,21 @@
 """
-This is the main file for the client application. This file will be used to interact with the user and send requests to the server.
+This is the main file for the client application. 
+This file will be used to interact with the user and send requests to the server.
 
 TODO's: 
-- update quantity not change
+- modify_quantity: add or remove quantity, don't just change to number selected
 - error handling
+- add stock response clean as a global variable to get quantity in price put
 - add timeout arguments
 - issue with view item info window refresh - shift to the right
 - ask user for image or path to image that is sent to aux api and returns information
 - Clear previous stock details windows when you use 'back' button
-- run pylint
 """
+import curses
+from curses import wrapper
 import requests
 from requests.exceptions import HTTPError, ConnectionError, Timeout, RequestException
 from error import APIError
-import curses
-from curses import wrapper
-import json
 from util import menu, ask_inputs, display_dict, display_nested_dict
 
 
@@ -23,7 +23,8 @@ INVENTORY_MANAGER_API = "http://localhost:5000"
 AUX_API = "http://localhost:5001"
 NAMESPACE = "invmanager"
 
-#session = requests.Session()
+quantity = None
+shelf_price = None
 
 def main(stdscr):
     """
@@ -67,16 +68,15 @@ def main(stdscr):
 
         elif selected_option == "Exit":
             break
-        
 
-        while True:        
-            #new menu to intercact with stock
+        while True:
+            #new menu to interact with stock
             menu_title = f"Selected {item_name} in warehouse {warehouse_id}"
             stock_response, stock_response_clean = get_stock(warehouse_id, item_name)
             display_dict(stock_window, stock_response_clean, title = "STOCK")
 
             # Scan QR code as option? in addition to Print QR code
-            selected_option = menu(menu_window, ["Change Quantity", "Change Price", "Print QR Code","View Item Info","Item-Stock in other Warehouses","Back"], menu_title=f"Selected {item_name} in warehouse {warehouse_id}")
+            selected_option = menu(menu_window, ["Change Quantity", "Change Price", "Print QR Code","View Item Info", "Item-Stock in other Warehouses","Back"], menu_title=f"Selected {item_name} in warehouse {warehouse_id}")
             if selected_option == "Change Quantity":
                 quantity_option = menu(menu_window, ["Add 1", "Add 5", "Remove 1", "Remove 5", "Enter Custom Amount", "Back"], menu_title="Update Stock Quantity")
                 if quantity_option.startswith("Add") or quantity_option.startswith("Remove"):
@@ -157,14 +157,14 @@ def get_item_id_by_name(warehouse_id, item_name):
 
 def modify_quantity(stdscr, warehouse_id, item_name, action):
     """
-    Updates quantity of stock for a given item in the warehouse.
+    Adds or removes quantity of stock for a given item in the warehouse.
 
     :param stdscr: The curses window object for displaying messages.
     :param warehouse_id: ID of the warehouse where the stock is stored.
     :param item_name: Name of the item to update.
     :param action: _description_
     """
-    # 
+    get_stock
     quantity = int(action.split()[1])
     if "Add" in action:
         update_stock(stdscr, warehouse_id, item_name, quantity)
