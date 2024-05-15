@@ -3,7 +3,10 @@ Install the following package:
 ```
 pip install windows-curses
 ``` 
+Ensure both the Inventory API and the QR code API are running in separate terminals before testing the client.
+
  To test the app, type the following commands in cmd from the client folder of the project /PWP_CrustyCrabs/client/
+
  
  (NOTE: Ensure terminal window size is at least 80 x 25)
 
