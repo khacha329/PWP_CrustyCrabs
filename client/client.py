@@ -102,7 +102,7 @@ def main(stdscr):
                 #Maybe return path to QR code. scan QR code and return image path, open image popup 
                 print_qr_code(stdscr, warehouse_id, item_name)
             elif selected_option == "View Item Info":
-                view_item_info(stdscr, stock_window, item_name)
+                view_item_info(stdscr, stock_item_window, item_name)
             elif selected_option == "Item-Stock in other Warehouses":
                 item_stock_response = follow_relation(stock_response, "stock-item-all")
                 display_nested_dict(stock_item_window, item_stock_response["items"], title = "ITEM-STOCK")
@@ -260,8 +260,9 @@ def view_item_info(stdscr, stock_window, item_name):
     :param item_name: _description_
     """
     response = requests.get(f"{INVENTORY_MANAGER_API}/api/items/{item_name}/")
+    response_clean = {k: v for k, v in response.json().items() if "@" not in k}
     if response.status_code == 200:
-        item_details = response.json()
+        item_details = response_clean
         display_dict(stock_window, item_details, title="Item Details")
     else:
         stdscr.addstr(20, 0, "Failed to retrieve item details.")
