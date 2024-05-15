@@ -175,7 +175,7 @@ class QrRead(Resource):
     /api/qrRead/
     """
 
-    def get(self) -> Response:
+    def post(self) -> Response:
         """Reads a QR code image and returns the stock information
 
         :raises BadRequest: Raised if encoded information in QR code is missing required fields
