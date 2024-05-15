@@ -22,7 +22,14 @@ NAMESPACE = "invmanager"
 #session = requests.Session()
 
 def main(stdscr):
+    """
+    Main function 
 
+    :param stdscr: _description_
+    :raises APIError: _description_
+    :raises APIError: _description_
+    :return: _description_
+    """
 #69
 
     stdscr.clear()
@@ -38,8 +45,14 @@ def main(stdscr):
         selected_option = menu(menu_window, ["Enter Stock", "Scan Stock", "Exit"])
 
         if selected_option == "Enter Stock":
-            warehouse_id, item_name = ask_inputs(user_entry_window, ["Enter Warehouse ID: ", "Enter Item Name: "])
-
+            try:
+                warehouse_id = list(ask_inputs(user_entry_window, ["Enter Warehouse ID: "]))[0]
+                warehouse_id = int(warehouse_id)
+                item_name = list(ask_inputs(user_entry_window, ["Enter Item Name: "]))[0]
+            except ValueError:
+                stdscr.addstr(20, 0, "Invalid warehouse ID. Must be a number.")
+                stdscr.refresh()
+                continue
 
         elif selected_option == "Scan Stock":
             #ask user for image or path to image that is sent to aux api and returns information
@@ -95,6 +108,7 @@ def main(stdscr):
                 display_nested_dict(stock_item_window, item_stock_response["items"], title = "ITEM-STOCK")
             elif selected_option == "Back":
                 menu_window.clear()
+                stdscr.refresh()
                 break
 
 
@@ -108,7 +122,7 @@ def get_stock(warehouse_id, item_name):
 
 def get_item_id_by_name(warehouse_id, item_name):
     """
-    Fetches the item ID from the Inventory Manager API by item name.
+    GET requests for the item ID from the Inventory Manager API by item name.
 
     :param item_name: The name of the item whose ID is required.
     :return: The ID of the item if found, else None.
@@ -135,9 +149,9 @@ def modify_quantity(stdscr, warehouse_id, item_name, action):
     """
     Updates quantity of stock for a given item in the warehouse.
 
-    :param stdscr: _description_
-    :param warehouse_id: _description_
-    :param item_name: _description_
+    :param stdscr: The curses window object for displaying messages.
+    :param warehouse_id: ID of the warehouse where the stock is stored.
+    :param item_name: Name of the item to update.
     :param action: _description_
     """
     quantity = int(action.split()[1])
@@ -155,7 +169,6 @@ def update_stock(stdscr, warehouse_id, item_name, quantity):
     :param item_name: Name of the item to update.
     :param quantity: Quantity to update in the stock.
     """
-    # First, retrieve the item_id using the item_name
     item_id = get_item_id_by_name(warehouse_id, item_name)
 
     if item_id is None:
@@ -163,16 +176,8 @@ def update_stock(stdscr, warehouse_id, item_name, quantity):
         stdscr.refresh()
         return
 
-    try:
-        warehouse_id = int(warehouse_id)
-    except ValueError:
-        stdscr.addstr(20, 0, "Invalid warehouse ID. Must be a number.")
-        stdscr.refresh()
-        return
-
-    # Construct the URL with the retrieved item_id and warehouse_id
     url = f"{INVENTORY_MANAGER_API}/api/stocks/{warehouse_id}/item/{item_name}/"
-    data = {'warehouse_id':warehouse_id, 'item_id': item_id, 'quantity': quantity}
+    data = {'warehouse_id': warehouse_id, 'item_id': item_id, 'quantity': quantity}
     
     try:
         response = requests.put(url, json=data)
@@ -188,25 +193,38 @@ def update_stock(stdscr, warehouse_id, item_name, quantity):
     stdscr.refresh()
 
 def update_price(stdscr, warehouse_id, item_name, new_price):
-    #add get request to get name of item to pass to the put request
-    url = (INVENTORY_MANAGER_API + f"/api/stocks/{warehouse_id}/item/{item_name}/")
-    data = {'warehouse_id':warehouse_id, 'item_id': item_name, 'shelf_price': new_price}
+    """
+    Updates the price of a given item in a warehouse.
+
+    :param stdscr: The curses window object for displaying messages.
+    :param warehouse_id: ID of the warehouse where the item is stored.
+    :param item_name: Name of the item to update.
+    :param new_price: New price to set for the item.
+    """
+    item_id = get_item_id_by_name(warehouse_id, item_name)
+
+    if item_id is None:
+        stdscr.addstr(20, 0, "Failed to find the item ID for the given item name.")
+        stdscr.refresh()
+        return
+
+    url = f"{INVENTORY_MANAGER_API}/api/stocks/{warehouse_id}/item/{item_name}/"
+    data = {'warehouse_id': warehouse_id, 'item_id': item_id, 'shelf_price': new_price}
+
     try:
         response = requests.put(url, json=data)
-
         if response.status_code in {200, 204}:
             stdscr.addstr(20, 0, "Price updated successfully.")
         else:
             raise APIError(response.status_code, response.text, url)
-
+        stdscr.refresh()
     except requests.RequestException as e:
         stdscr.addstr(20, 0, f"Network or request issue: {str(e)}")
-
+        stdscr.refresh()
     except APIError as api_error:
         error_message = str(api_error) if str(api_error) else "Unknown API error."
         stdscr.addstr(20, 0, error_message)
-
-    stdscr.refresh()
+        stdscr.refresh()
 
 def scan_stock(stdscr, user_entry_window):
     inputs = list(ask_inputs(user_entry_window, ["Enter path to QR image: "]))
@@ -235,6 +253,12 @@ def print_qr_code(stdscr, warehouse_id, item_name):
         stdscr.refresh()
 
 def view_item_info(stdscr, stock_window, item_name):
+    """_summary_
+
+    :param stdscr: _description_
+    :param stock_window: _description_
+    :param item_name: _description_
+    """
     response = requests.get(f"{INVENTORY_MANAGER_API}/api/items/{item_name}/")
     if response.status_code == 200:
         item_details = response.json()
