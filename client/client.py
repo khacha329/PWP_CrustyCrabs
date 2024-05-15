@@ -23,9 +23,6 @@ INVENTORY_MANAGER_API = "http://localhost:5000"
 AUX_API = "http://localhost:5001"
 NAMESPACE = "invmanager"
 
-quantity = None
-shelf_price = None
-
 def main(stdscr):
     """
     Main function 
@@ -71,7 +68,7 @@ def main(stdscr):
         while True:
             #new menu to interact with stock
             menu_title = f"Selected {item_name} in warehouse {warehouse_id}"
-            stock_response, stock_response_clean = get_stock(warehouse_id, item_name)
+            stock_response, stock_response_clean, current_quantity = get_stock(warehouse_id, item_name)
             display_dict(stock_window, stock_response_clean, title = "STOCK")
 
             # Scan QR code as option? in addition to Print QR code
@@ -79,13 +76,13 @@ def main(stdscr):
             if selected_option == "Change Quantity":
                 quantity_option = menu(menu_window, ["Add 1", "Add 5", "Remove 1", "Remove 5", "Enter Custom Amount", "Back"], menu_title="Update Stock Quantity")
                 if quantity_option.startswith("Add") or quantity_option.startswith("Remove"):
-                    modify_quantity(stdscr, warehouse_id, item_name, quantity_option)
+                    current_quantity = modify_quantity(stdscr, warehouse_id, item_name, quantity_option, current_quantity)
                 elif quantity_option == "Enter Custom Amount":
                     try:
                         custom_amount_input = next(ask_inputs(user_entry_window, ["Enter Custom Amount: "]))
                         custom_amount = int(custom_amount_input)
                         action_type = menu(menu_window, ["Add", "Remove"], menu_title="Add or Remove?")
-                        modify_quantity(stdscr, warehouse_id, item_name, f"{action_type} {custom_amount}")
+                        current_quantity = modify_quantity(stdscr, warehouse_id, item_name, f"{action_type} {custom_amount}", current_quantity)
                     except StopIteration:
                         stdscr.addstr(20, 0, "No amount entered.")
                     except ValueError:
@@ -95,7 +92,7 @@ def main(stdscr):
                 try:
                     price_input = next(ask_inputs(user_entry_window, ["Enter New Price: "]))
                     new_price = float(price_input)
-                    update_price(stdscr, warehouse_id, item_name, new_price)
+                    update_price(stdscr, warehouse_id, item_name, current_quantity, new_price)
                 except StopIteration:
                     stdscr.addstr(20, 0, "No price entered.")
                 except ValueError:
@@ -125,9 +122,11 @@ def get_stock(warehouse_id, item_name):
     # get stock of item in warehouse
 
     stock_response = requests.get(INVENTORY_MANAGER_API + f"/api/stocks/{warehouse_id}/item/{item_name}/").json()
+    stock_quantity = stock_response['quantity']
+    stock_shelf_price = stock_response['shelf_price']
     stock_response_clean = {k: v for k, v in stock_response.items() if "@" not in k}
     NAMESPACE = list(stock_response["@namespaces"].keys())[0]
-    return stock_response, stock_response_clean
+    return stock_response, stock_response_clean, stock_quantity
 
 def get_item_id_by_name(warehouse_id, item_name):
     """
@@ -154,7 +153,7 @@ def get_item_id_by_name(warehouse_id, item_name):
         print(f"Request failed: {str(e)}")
         return None
 
-def modify_quantity(stdscr, warehouse_id, item_name, action):
+def modify_quantity(stdscr, warehouse_id, item_name, action, current_quantity):
     """
     Adds or removes quantity of stock for a given item in the warehouse.
 
@@ -163,12 +162,15 @@ def modify_quantity(stdscr, warehouse_id, item_name, action):
     :param item_name: Name of the item to update.
     :param action: _description_
     """
-    get_stock
     quantity = int(action.split()[1])
     if "Add" in action:
+        quantity = quantity + current_quantity
         update_stock(stdscr, warehouse_id, item_name, quantity)
     elif "Remove" in action:
-        update_stock(stdscr, warehouse_id, item_name, -quantity)
+        quantity = -quantity + current_quantity
+        update_stock(stdscr, warehouse_id, item_name, quantity)
+    modified_quantity = quantity
+    return modified_quantity
 
 def update_stock(stdscr, warehouse_id, item_name, quantity):
     """
@@ -202,7 +204,7 @@ def update_stock(stdscr, warehouse_id, item_name, quantity):
         stdscr.addstr(20, 0, error_message)
     stdscr.refresh()
 
-def update_price(stdscr, warehouse_id, item_name, new_price):
+def update_price(stdscr, warehouse_id, item_name, modifeid_quantity, new_price):
     """
     Updates the price of a given item in a warehouse.
 
@@ -219,7 +221,7 @@ def update_price(stdscr, warehouse_id, item_name, new_price):
         return
 
     url = f"{INVENTORY_MANAGER_API}/api/stocks/{warehouse_id}/item/{item_name}/"
-    data = {'warehouse_id': warehouse_id, 'item_id': item_id, 'quantity': quantity, 'shelf_price': new_price} #need to somehow pass quantity with data
+    data = {'warehouse_id': warehouse_id, 'item_id': item_id, 'quantity': modifeid_quantity, 'shelf_price': new_price} #need to somehow pass quantity with data
 
     try:
         response = requests.put(url, json=data)
