@@ -209,7 +209,7 @@ def update_price(stdscr, warehouse_id, item_name, new_price):
         return
 
     url = f"{INVENTORY_MANAGER_API}/api/stocks/{warehouse_id}/item/{item_name}/"
-    data = {'warehouse_id': warehouse_id, 'item_id': item_id, 'shelf_price': new_price}
+    data = {'warehouse_id': warehouse_id, 'item_id': item_id, 'quantity': quantity, 'shelf_price': new_price} #need to somehow pass quantity with data
 
     try:
         response = requests.put(url, json=data)
