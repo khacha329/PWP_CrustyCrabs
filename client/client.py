@@ -23,7 +23,8 @@ from client_constants import INVENTORY_MANAGER_API, AUX_API, NAMESPACE, TIMEOUT_
 
 def main(stdscr):
     """
-    Main function
+    The main function of the client application which handles the interface and user interactions.
+    It manages the display and navigation through various stock management features using the curses library.
 
     :param stdscr: The curses window object for displaying messages.
     """
@@ -71,7 +72,6 @@ def main(stdscr):
             )
             display_dict(stock_window, stock_response_clean, title="STOCK")
 
-            # Scan QR code as option? in addition to Print QR code
             selected_option = menu(
                 menu_window,
                 [
@@ -145,7 +145,6 @@ def main(stdscr):
                     stdscr.addstr(20, 0, "Invalid input. Please enter a valid number.")
                 stdscr.refresh()
             elif selected_option == "Print QR Code":
-                # Maybe return path to QR code. scan QR code and return image path, open image popup
                 print_qr_code(stdscr, warehouse_id, item_name)
             elif selected_option == "View Item Info":
                 view_item_info(stdscr, stock_item_window, item_name)
@@ -161,13 +160,13 @@ def main(stdscr):
 
 
 def get_stock(warehouse_id, item_name):
-    """_summary_
+    """ Get stock of item in warehouse
 
-    :param warehouse_id: _description_
-    :param item_name: _description_
-    :return: _description_
+    :param warehouse_id: ID of the warehouse where the stock is stored.
+    :param item_name: The name of the item whose ID is required.
+    :return: Stock attributes
     """
-    # get stock of item in warehouse
+    # 
     try:
         stock_response = requests.get(
             INVENTORY_MANAGER_API + f"/api/stocks/{warehouse_id}/item/{item_name}/",
@@ -224,7 +223,7 @@ def modify_quantity(stdscr, warehouse_id, item_name, action, current_quantity):
     :param stdscr: The curses window object for displaying messages.
     :param warehouse_id: ID of the warehouse where the stock is stored.
     :param item_name: Name of the item to update.
-    :param action: _description_
+    :return: The new quantity of stock
     """
     quantity = int(action.split()[1])
     if "Add" in action:
@@ -294,7 +293,7 @@ def update_price(stdscr, warehouse_id, item_name, modifeid_quantity, new_price):
         "item_id": item_id,
         "quantity": modifeid_quantity,
         "shelf_price": new_price,
-    }  # need to somehow pass quantity with data
+    }
 
     try:
         response = requests.put(url, json=data, timeout=TIMEOUT_DURATION)
@@ -375,9 +374,9 @@ def print_qr_code(stdscr, warehouse_id, item_name):
 def view_item_info(stdscr, stock_window, item_name):
     """View the info of a given item
 
-    :param stdscr: _description_
-    :param stock_window: _description_
-    :param item_name: _description_
+    :param stdscr: The curses window object for displaying messages.
+    :param stock_window: The curses window to display stock information
+    :param item_name: Name of stock item
     """
     try:
         response = requests.get(
