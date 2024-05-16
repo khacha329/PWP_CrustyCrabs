@@ -2,9 +2,6 @@
 This is the main file for the client application. 
 This file will be used to interact with the user and send requests to the server.
 
-TODO's: 
-- error handling
-- Clear previous stock details windows when you use 'back' button
 """
 
 import curses
