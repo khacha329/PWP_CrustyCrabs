@@ -3,12 +3,7 @@ This is the main file for the client application.
 This file will be used to interact with the user and send requests to the server.
 
 TODO's: 
-- modify_quantity: add or remove quantity, don't just change to number selected
 - error handling
-- add stock response clean as a global variable to get quantity in price put
-- add timeout arguments
-- issue with view item info window refresh - shift to the right
-- ask user for image or path to image that is sent to aux api and returns information
 - Clear previous stock details windows when you use 'back' button
 """
 
@@ -43,23 +38,25 @@ def main(stdscr):
         selected_option = menu(menu_window, ["Enter Stock", "Scan Stock", "Exit"])
 
         if selected_option == "Enter Stock":
-            try:
-                warehouse_id = list(
-                    ask_inputs(user_entry_window, ["Enter Warehouse ID: "])
-                )[0]
-                warehouse_id = int(warehouse_id)
-                item_name = list(ask_inputs(user_entry_window, ["Enter Item Name: "]))[
-                    0
-                ]
-            except ValueError:
-                stdscr.addstr(20, 0, "Invalid warehouse ID. Must be a number.")
-                stdscr.refresh()
-                continue
+            input_valid = False
+            while not input_valid:
+                try:
+                    warehouse_id = list(
+                        ask_inputs(user_entry_window, ["Enter Warehouse ID: "])
+                    )[0]
+                    warehouse_id = int(warehouse_id)
+                    item_name = list(ask_inputs(user_entry_window, ["Enter Item Name: "]))[0]
+                    input_valid = True
+                except ValueError:
+                    stdscr.addstr(20, 0, "Invalid input. Please enter a valid number.")
+                    stdscr.refresh()
 
         elif selected_option == "Scan Stock":
-            # ask user for image or path to image that is sent to aux api and returns information
-
             warehouse_id, item_name = scan_stock(stdscr, user_entry_window)
+            if warehouse_id is None or item_name is None:
+                stdscr.addstr(20, 0, "Failed to scan stock. Try again.")
+                stdscr.refresh()
+                continue
 
         elif selected_option == "Exit":
             break
@@ -164,9 +161,8 @@ def get_stock(warehouse_id, item_name):
 
     :param warehouse_id: ID of the warehouse where the stock is stored.
     :param item_name: The name of the item whose ID is required.
-    :return: Stock attributes
+    :return: Tuple containing the stock response, cleaned stock response, and current quantity if available.
     """
-    # 
     try:
         stock_response = requests.get(
             INVENTORY_MANAGER_API + f"/api/stocks/{warehouse_id}/item/{item_name}/",
